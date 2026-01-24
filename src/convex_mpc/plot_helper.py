@@ -3,10 +3,8 @@ import matplotlib.pyplot as plt
 
 def plot_contact_forces(U_opt, contact_mask, dt, block, leg_names=("FL","FR","RL","RR")):
 
-    assert U_opt.shape[0] == 12, "Expected 12 rows in U_opt (4 legs × 3 forces)."
+    assert U_opt.shape[0] == 12
     N = U_opt.shape[1]
-    # print(contact_mask)
-    # assert contact_mask.shape == (4, N), "contact_mask must be (4, N)."
 
     t_edges = np.linspace(0, N*dt, N+1)
 
