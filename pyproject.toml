@@ -10,7 +10,7 @@ description = "Convex MPC controller stack for Unitree Go2"
 readme = "README.md"
 
 [tool.setuptools]
-package-dir = {"" = "src/python"}
+package-dir = {"" = "src"}
 
 [tool.setuptools.packages.find]
-where = ["src/python"]
+where = ["src"]

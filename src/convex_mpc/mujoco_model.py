@@ -11,7 +11,7 @@ import pinocchio as pin
 # MuJoCo Model Setting
 # --------------------------------------------------------------------------------
 
-REPO = Path(__file__).resolve().parents[3]
+REPO = Path(__file__).resolve().parents[2]
 XML_PATH = REPO / "models" / "MJCF" / "go2" / "scene.xml"
 
 class MuJoCo_GO2_Model:
