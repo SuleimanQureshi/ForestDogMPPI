@@ -276,7 +276,7 @@ class ComTraj:
             if current_mask[3] != mask_previous[3] and current_mask[3] == 0:
                 # Takes off -> compute next touchdown in world
                 pos_rr_next_td_world = gait.compute_touchdown_world_for_traj_purpose_only(self.dummy_go2, "RR")
-                self.td_world[3, i, :] = pos_fl_next_td_world
+                self.td_world[3, i, :] = pos_rr_next_td_world
 
                 # Snap touchdown to terrain (z + normal)
                 z_td, n_td = self.terrain.height_and_normal(pos_rr_next_td_world[0], pos_rr_next_td_world[1])
