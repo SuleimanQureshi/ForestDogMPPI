@@ -564,8 +564,6 @@ with mj.viewer.launch_passive(mujoco_go2.model, mujoco_go2.data) as viewer:
                     )
 
 
-
-
                 vx_des_body = float(u0[0])
                 vy_des_body = float(u0[1])
                 wz_des_body = float(u0[2])
