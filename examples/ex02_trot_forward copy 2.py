@@ -109,74 +109,6 @@ def get_body_cmd(t: float):
             return phase.x_vel, phase.y_vel, phase.z_pos, phase.yaw_rate
     return 0.0, 0.0, 0.27, 0.0
 @dataclass
-class MuJoCoLidar3D:
-    """
-    Very simple 3D LiDAR using MuJoCo ray casts.
-    Returns hit points in WORLD frame.
-    """
-    def __init__(self, model, data,
-                 n_az=72, n_el=5,
-                 el_min_deg=-10.0, el_max_deg=10.0,
-                 max_range=6.0):
-        self.model = model
-        self.data = data
-        self.max_range = float(max_range)
-
-        az = np.linspace(-np.pi, np.pi, n_az, endpoint=False)
-        el = np.linspace(np.deg2rad(el_min_deg), np.deg2rad(el_max_deg), n_el)
-
-        self.dirs_body = []
-        for e in el:
-            ce, se = np.cos(e), np.sin(e)
-            for a in az:
-                ca, sa = np.cos(a), np.sin(a)
-                # body-frame ray direction (x forward, y left, z up)
-                d = np.array([ce * ca, ce * sa, se], dtype=float)
-                d /= (np.linalg.norm(d) + 1e-12)
-                self.dirs_body.append(d)
-        self.dirs_body = np.asarray(self.dirs_body)  # (M,3)
-
-    def scan(self, sensor_pos_world, yaw):
-        """
-        sensor_pos_world: (3,)
-        yaw: float
-        """
-        # rotate body directions into world with yaw only (good enough for now)
-        cy, sy = np.cos(yaw), np.sin(yaw)
-        Rz = np.array([[cy, -sy, 0.0],
-                       [sy,  cy, 0.0],
-                       [0.0, 0.0, 1.0]], dtype=float)
-
-        dirs_world = (Rz @ self.dirs_body.T).T  # (M,3)
-
-        hits = []
-        p0 = np.asarray(sensor_pos_world, dtype=float)
-
-        # optional: exclude nothing (you can later exclude robot geoms with geomgroup)
-        geomgroup = np.ones(6, dtype=np.uint8)
-
-        for d in dirs_world:
-            geomid = np.array([-1], dtype=np.int32)
-
-            dist = mj.mj_ray(
-                self.model,
-                self.data,
-                p0,
-                d,
-                geomgroup,
-                1,          # include static geoms
-                -1,         # bodyexclude
-                geomid      # <-- REQUIRED in your version
-            )
-
-            if dist > 0 and dist < self.max_range:
-                hits.append(p0 + dist * d)
-
-        if len(hits) == 0:
-            return np.zeros((0, 3), dtype=float)
-
-        return np.asarray(hits, dtype=float)
-
 class MPPIConfig:
     horizon_steps: int
     dt: float
@@ -189,213 +121,78 @@ class MPPIConfig:
     w_u: float = 0.2
     w_obs: float = 200.0
     obs_margin: float = 0.25
-class Nav2StyleMPPI:
-
+class SimpleMPPI:
     def __init__(self, dt):
-
-        # --- MPPI parameters ---
         self.dt = dt
-        self.H = 80              # ~1.66s lookahead with dt=0.0208
-        self.BATCH = 600         # still feasible
-        self.ITERS = 3           # better convergence
+        self.num_samples = 40
+        self.horizon = 10
 
-        self.LAMBDA = 1.0
-        self.ALPHA = 0.85        # correlated noise
+        self.prev_u = np.array([0.0, 0.0, 0.0])
 
-        # velocity limits (keep conservative!)
-        self.vx_min, self.vx_max = 0.0, 0.6
-        self.vy_min, self.vy_max = -0.3, 0.3
-        self.wz_min, self.wz_max = -1.0, 1.0
-
-        # noise std
-        self.std = np.array([0.12, 0.10, 0.30])  # allow lateral/turn exploration
-
-        # persistent sequence
-        self.U = np.zeros((self.H, 3))
-
-    # --------------------------------------
-    # correlated noise
-    # --------------------------------------
-    def correlated_noise(self):
-        eps = np.random.randn(self.BATCH, self.H, 3)
-        eps *= self.std
-
-        for t in range(1, self.H):
-            eps[:, t, :] = (
-                self.ALPHA * eps[:, t-1, :]
-                + (1.0 - self.ALPHA) * eps[:, t, :]
-            )
-        return eps
-
-    # --------------------------------------
-    # rollout model
-    # --------------------------------------
-    def rollout(self, state, U_batch):
-
-        B, T, _ = U_batch.shape
-        X = np.zeros((B, T, 3))
-
-        x = np.full(B, state[0])
-        y = np.full(B, state[1])
-        yaw = np.full(B, state[2])
-
-        for t in range(T):
-
-            vx = np.clip(U_batch[:, t, 0], self.vx_min, self.vx_max)
-            vy = np.clip(U_batch[:, t, 1], self.vy_min, self.vy_max)
-            wz = np.clip(U_batch[:, t, 2], self.wz_min, self.wz_max)
-
-            x += (vx*np.cos(yaw) - vy*np.sin(yaw)) * self.dt
-            y += (vx*np.sin(yaw) + vy*np.cos(yaw)) * self.dt
-            yaw += wz * self.dt
-
-            X[:, t, 0] = x
-            X[:, t, 1] = y
-            X[:, t, 2] = yaw
-
-        return X
-
-    # --------------------------------------
-    # cost
-    # --------------------------------------
-    def cost(self, X, U_batch, goal, obstacle_xy):
+        self.vx_limits = (-0.5, 0.5)
+        self.vy_limits = (-0.15, 0.15)
+        self.wz_limits = (-0.6, 0.6)
 
 
-        x = X[:, :, 0]
-        y = X[:, :, 1]
-        yaw = X[:, :, 2]
+        self.max_delta = np.array([0.05, 0.05, 0.1])  # limit change per step
 
-        # goal distance
-        goal_cost = ((x - goal[0])**2 + (y - goal[1])**2).mean(axis=1)
+    def step(self, state, u):
+        x, y, yaw = state
+        vx, vy, wz = u
+        dt = self.dt
 
-        # terminal cost
-        term = (x[:, -1] - goal[0])**2 + (y[:, -1] - goal[1])**2
+        x += (vx*np.cos(yaw) - vy*np.sin(yaw)) * dt
+        y += (vx*np.sin(yaw) + vy*np.cos(yaw)) * dt
+        yaw += wz * dt
+        return np.array([x, y, yaw])
 
-        # heading to goal
-        goal_ang = np.arctan2(goal[1] - y, goal[0] - x)
-        dtheta = np.arctan2(
-            np.sin(yaw - goal_ang),
-            np.cos(yaw - goal_ang)
-        )
-        heading_cost = (dtheta**2).mean(axis=1)
+    def cost(self, state0, u, goal_xy, obstacles):
+        state = state0.copy()
+        total = 0.0
 
-        # obstacle cost (soft + hard safety)
-        # obstacle cost from point cloud (no single radius / supports many objects)
-        if obstacle_xy is not None and obstacle_xy.shape[0] > 0:
+        for _ in range(self.horizon):
+            state = self.step(state, u)
 
-            px = x[:, :, None]
-            py = y[:, :, None]
+            dx = state[0] - goal_xy[0]
+            dy = state[1] - goal_xy[1]
+            total += dx*dx + dy*dy
 
-            ox = obstacle_xy[:, 0][None, None, :]
-            oy = obstacle_xy[:, 1][None, None, :]
+            for (ox, oy, r) in obstacles:
+                d = np.linalg.norm(state[0:2] - np.array([ox, oy]))
+                if d < r:
+                    return 1e6
+                total += 20.0 / (d + 1e-2)
 
-            d = np.sqrt((px - ox)**2 + (py - oy)**2)
-            dmin = d.min(axis=2)
+        # smoothness penalty
+        total += 5.0 * np.sum((u - self.prev_u)**2)
 
-            robot_radius = 0.35
-            safety_margin = 0.4
-            inflation = robot_radius + safety_margin
+        return total
 
-            inside = np.maximum(0.0, inflation - dmin)
-            hard = (inside**2).mean(axis=1)
+    def command(self, state0, goal_xy, obstacles):
+        best_cost = 1e12
+        best_u = self.prev_u.copy()
 
-            soft = np.exp(-3.0 * dmin).mean(axis=1)
+        for _ in range(self.num_samples):
+            # sample near previous command (small Gaussian)
+            u = self.prev_u + np.random.randn(3) * np.array([0.1, 0.05, 0.1])
 
-            obs_cost = 500.0 * hard + 20.0 * soft
+            # clamp to limits
+            u[0] = np.clip(u[0], *self.vx_limits)
+            u[1] = np.clip(u[1], *self.vy_limits)
+            u[2] = np.clip(u[2], *self.wz_limits)
 
-        else:
-            obs_cost = np.zeros(x.shape[0])
+            c = self.cost(state0, u, goal_xy, obstacles)
 
-        
+            if c < best_cost:
+                best_cost = c
+                best_u = u
 
+        # limit rate of change
+        delta = best_u - self.prev_u
+        delta = np.clip(delta, -self.max_delta, self.max_delta)
+        self.prev_u += delta
 
-        #Progress param
-        d0 = np.sqrt((x[:, 0] - goal[0])**2 + (y[:, 0] - goal[1])**2)      # distance at start of rollout
-        dT = np.sqrt((x[:, -1] - goal[0])**2 + (y[:, -1] - goal[1])**2)    # distance at end
-        progress = (d0 - dT)  # positive = moved toward goal
-
-
-        # smoothness
-        dU = np.diff(U_batch, axis=1)
-        smooth = (dU**2).mean(axis=(1,2))
-
-        # control effort
-        effort = (U_batch**2).mean(axis=(1,2))
-
-        return (
-            4.0 * goal_cost +
-            10.0 * term +
-            3.0 * heading_cost +
-            1.0 * obs_cost +
-            0.2 * smooth +
-            0.05 * effort
-            - 6.0 * progress
-        )
-
-    # --------------------------------------
-    # main step
-    # --------------------------------------
-    def command(self, state, goal, obstacle_xy):
-        
-        for _ in range(self.ITERS):
-
-            eps = self.correlated_noise()
-            U_batch = self.U[None, :, :] + eps
-
-            X = self.rollout(state, U_batch)
-            costs = self.cost(X, U_batch, goal, obstacle_xy)
-
-            beta = costs.min()
-            w = np.exp(-(costs - beta) / self.LAMBDA)
-            w /= (w.sum() + 1e-9)
-
-            dU = (w[:, None, None] * eps).sum(axis=0)
-            self.U += dU
-
-            # clip feasible
-            self.U[:, 0] = np.clip(self.U[:, 0], self.vx_min, self.vx_max)
-            self.U[:, 1] = np.clip(self.U[:, 1], self.vy_min, self.vy_max)
-            self.U[:, 2] = np.clip(self.U[:, 2], self.wz_min, self.wz_max)
-
-        # execute first control
-        u0 = self.U[0].copy()
-
-        # receding horizon
-        self.U[:-1] = self.U[1:]
-        self.U[-1] = self.U[-2]
-
-        self.last_U_batch = U_batch
-
-        return u0
-
-
-import matplotlib.pyplot as plt
-
-def debug_plot_mppi(state, goal, obstacle_xy, U_batch, mppi):
-
-    plt.clf()
-
-    # --- Rollout all trajectories ---
-    X = mppi.rollout(state, U_batch)
-
-    for i in range(min(80, X.shape[0])):  # don't plot all 600
-        plt.plot(X[i,:,0], X[i,:,1], color='blue', alpha=0.1)
-
-    # --- Robot position ---
-    plt.scatter(state[0], state[1], c='black', s=80, label="Robot")
-
-    # --- Goal ---
-    plt.scatter(goal[0], goal[1], c='green', s=120, label="Goal")
-
-    # --- Obstacles (LiDAR points) ---
-    if obstacle_xy is not None and obstacle_xy.shape[0] > 0:
-        plt.scatter(obstacle_xy[:,0], obstacle_xy[:,1], c='red', s=5)
-
-    plt.axis("equal")
-    plt.xlim(-4,4)
-    plt.ylim(-4, 4)
-    plt.legend()
-    plt.pause(0.001)
+        return self.prev_u.copy()
 
 # --------------------------------------------------------------------------------
 # Storage Variables (CONTROL-rate logs for plots)
@@ -438,7 +235,6 @@ U_opt = None
 
 go2 = PinGo2Model()
 mujoco_go2 = MuJoCo_GO2_Model()
-lidar = MuJoCoLidar3D(mujoco_go2.model, mujoco_go2.data, n_az=72, n_el=5, max_range=6.0)
 leg_controller = LegController()
 traj = ComTraj(go2)
 gait = Gait(GAIT_HZ, GAIT_DUTY)
@@ -454,8 +250,8 @@ traj.generate_traj(
 )
 mpc = CentroidalMPC(go2, traj)
 
-# mppi_cfg = MPPIConfig(horizon_steps=traj.N, dt=MPC_DT)
-mppi = Nav2StyleMPPI(MPC_DT)
+mppi_cfg = MPPIConfig(horizon_steps=traj.N, dt=MPC_DT)
+mppi = SimpleMPPI(MPC_DT)
 
 goal_xy = np.array([3.0, 0.0])
 box_radius = 0.75
@@ -520,12 +316,12 @@ with mj.viewer.launch_passive(mujoco_go2.model, mujoco_go2.data) as viewer:
             py = x_vec[1, ctrl_i]
             yaw = x_vec[5, ctrl_i]
             robot_xy = x_vec[0:2, ctrl_i]
-            # box_xy = box_pos[0:2]
+            box_xy = box_pos[0:2]
 
-            # dist = np.linalg.norm(robot_xy - box_xy)
-            # if ctrl_i % 20 == 0:
-            #     print("Distance to obstacle:", dist)
-            #     print("Distance to goal:", np.linalg.norm(robot_xy - goal_xy))
+            dist = np.linalg.norm(robot_xy - box_xy)
+            if ctrl_i % 20 == 0:
+                print("Distance to obstacle:", dist)
+
 
             # Control-rate logs
             time_log_ctrl_s[ctrl_i] = time_now_s
@@ -539,39 +335,19 @@ with mj.viewer.launch_passive(mujoco_go2.model, mujoco_go2.data) as viewer:
                 
 
                 state0 = np.array([px, py, yaw])
-                state0 = np.array([px, py, yaw])
-
-                if (ctrl_i % (4 * STEPS_PER_MPC)) == 0:
-                    # LiDAR origin (a bit above COM so it doesn't hit the ground instantly)
-                    lidar_origin = np.array([px, py, 0.35], dtype=float)
-
-                    hits_world = lidar.scan(lidar_origin, yaw)        # (N,3)
-                    obstacle_xy = hits_world[:, :2]                   # (N,2)
-
-                    # downsample for speed (VERY important)
-                    if obstacle_xy.shape[0] > 250:
-                        idx = np.random.choice(obstacle_xy.shape[0], 250, replace=False)
-                        obstacle_xy = obstacle_xy[idx]
-
-                    u0 = mppi.command(state0, goal_xy, obstacle_xy)
-                if ctrl_i % 10 == 0:  # don’t draw every tick
-                    debug_plot_mppi(
+                if (ctrl_i %( 4 * STEPS_PER_MPC)) == 0:
+                    u0 = mppi.command(
                         state0,
                         goal_xy,
-                        obstacle_xy,
-                        mppi.last_U_batch,
-                        mppi
+                        [(box_xy[0], box_xy[1], box_radius)]
                     )
-
-
-
 
                 vx_des_body = float(u0[0])
                 vy_des_body = float(u0[1])
                 wz_des_body = float(u0[2])
                 z_pos_des_body = 0.27
-                vx_des_body = np.clip(vx_des_body, -0.8, 0.8)
-                vy_des_body = np.clip(vy_des_body, -0.3, 0.3)
+                vx_des_body = np.clip(vx_des_body, -0.5, 0.5)
+                vy_des_body = np.clip(vy_des_body, -0.15, 0.15)
                 wz_des_body = np.clip(wz_des_body, -0.6, 0.6)
                 # vx_des_body = 0.8
                 # vy_des_body = 0.0
