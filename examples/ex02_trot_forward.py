@@ -103,6 +103,46 @@ LEG_SLICE = {
 # --------------------------------------------------------------------------------
 # Helper Function
 # --------------------------------------------------------------------------------
+@dataclass
+class GlobalHeightMap:
+    size_xy: float = 10.0      # total map width (meters)
+    res: float = 0.05          # 5 cm resolution
+
+    def __post_init__(self):
+        self.N = int(self.size_xy / self.res)
+        self.hmap = np.zeros((self.N, self.N), dtype=np.float32)
+        self.count = np.zeros((self.N, self.N), dtype=np.int32)
+
+        self.origin_xy = np.array([
+            -self.size_xy / 2.0,
+            -self.size_xy / 2.0
+        ])  # map centered at world (0,0)
+
+    def update(self, hits_world):
+        if hits_world.shape[0] == 0:
+            return
+
+        x = hits_world[:, 0]
+        y = hits_world[:, 1]
+        z = hits_world[:, 2]
+
+        ix = ((x - self.origin_xy[0]) / self.res).astype(int)
+        iy = ((y - self.origin_xy[1]) / self.res).astype(int)
+
+        valid = (
+            (ix >= 0) & (ix < self.N) &
+            (iy >= 0) & (iy < self.N)
+        )
+
+        ix = ix[valid]
+        iy = iy[valid]
+        z = z[valid]
+
+        for i, j, zz in zip(ix, iy, z):
+            self.count[j, i] += 1
+            c = self.count[j, i]
+            self.hmap[j, i] += (zz - self.hmap[j, i]) / c  # running mean
+
 def get_body_cmd(t: float):
     for phase in CMD_SCHEDULE:
         if phase.t_start <= t < phase.t_end:
@@ -117,7 +157,7 @@ class MuJoCoLidar3D:
     def __init__(self, model, data,
                  n_az=72, n_el=5,
                  el_min_deg=-10.0, el_max_deg=10.0,
-                 max_range=6.0):
+                 max_range=4.0):
         self.model = model
         self.data = data
         self.max_range = float(max_range)
@@ -136,18 +176,17 @@ class MuJoCoLidar3D:
                 self.dirs_body.append(d)
         self.dirs_body = np.asarray(self.dirs_body)  # (M,3)
 
-    def scan(self, sensor_pos_world, yaw):
+    def scan(self, sensor_pos_world, R_world_from_body):
         """
         sensor_pos_world: (3,)
-        yaw: float
         """
         # rotate body directions into world with yaw only (good enough for now)
-        cy, sy = np.cos(yaw), np.sin(yaw)
-        Rz = np.array([[cy, -sy, 0.0],
-                       [sy,  cy, 0.0],
-                       [0.0, 0.0, 1.0]], dtype=float)
+        # cy, sy = np.cos(yaw), np.sin(yaw)
+        # Rz = np.array([[cy, -sy, 0.0],
+        #                [sy,  cy, 0.0],
+        #                [0.0, 0.0, 1.0]], dtype=float)
 
-        dirs_world = (Rz @ self.dirs_body.T).T  # (M,3)
+        dirs_world = (R_world_from_body @ self.dirs_body.T).T # (M,3)
 
         hits = []
         p0 = np.asarray(sensor_pos_world, dtype=float)
@@ -189,6 +228,8 @@ class MPPIConfig:
     w_u: float = 0.2
     w_obs: float = 200.0
     obs_margin: float = 0.25
+
+
 class Nav2StyleMPPI:
 
     def __init__(self, dt):
@@ -432,13 +473,29 @@ mpc_solve_time_ms = []
 X_opt = None
 U_opt = None
 
+#--------------------------
+#Debug function
+def debug_plot_heightmap(hmap, res, origin):
+    plt.figure("Global Height Map", clear=True)
+    extent = [
+        origin[0],
+        origin[0] + hmap.shape[1]*res,
+        origin[1],
+        origin[1] + hmap.shape[0]*res
+    ]
+    plt.imshow(hmap, origin="lower", extent=extent)
+    plt.colorbar(label="World Z (m)")
+    plt.pause(0.001)
+
+
 # --------------------------------------------------------------------------------
 # Simulation Initialization
 # --------------------------------------------------------------------------------
 
 go2 = PinGo2Model()
 mujoco_go2 = MuJoCo_GO2_Model()
-lidar = MuJoCoLidar3D(mujoco_go2.model, mujoco_go2.data, n_az=72, n_el=5, max_range=6.0)
+lidar = MuJoCoLidar3D(mujoco_go2.model, mujoco_go2.data, n_az=72, n_el=5,el_min_deg=-30.0, el_max_deg=20.0, max_range=4.0)
+heightmap = GlobalHeightMap(size_xy=12.0, res=0.02)
 leg_controller = LegController()
 traj = ComTraj(go2)
 gait = Gait(GAIT_HZ, GAIT_DUTY)
@@ -471,6 +528,9 @@ mujoco_go2.model.opt.timestep = SIM_DT
 
 # Safe defaults until first solve
 U_opt = np.zeros((12, traj.N), dtype=float)
+obstacle_xy = np.zeros((0, 2), dtype=float)
+u0 = np.array([0.0, 0.0, 0.0], dtype=float)
+
 
 # --------------------------------------------------------------------------------
 # Replay logs sampled at RENDER_HZ
@@ -542,13 +602,29 @@ with mj.viewer.launch_passive(mujoco_go2.model, mujoco_go2.data) as viewer:
                 state0 = np.array([px, py, yaw])
 
                 if (ctrl_i % (4 * STEPS_PER_MPC)) == 0:
-                    # LiDAR origin (a bit above COM so it doesn't hit the ground instantly)
+                    # LiDAR origin
                     lidar_origin = np.array([px, py, 0.35], dtype=float)
 
-                    hits_world = lidar.scan(lidar_origin, yaw)        # (N,3)
-                    obstacle_xy = hits_world[:, :2]                   # (N,2)
+                    # Get trunk rotation matrix from MuJoCo
+                    base_body_id = mj.mj_name2id(
+                        mujoco_go2.model,
+                        mj.mjtObj.mjOBJ_BODY,
+                        "trunk"
+                    )
 
-                    # downsample for speed (VERY important)
+                    Rwb = mujoco_go2.data.xmat[base_body_id].reshape(3,3).copy()
+
+                    # Perform scan using full base rotation
+                    hits_world = lidar.scan(lidar_origin, Rwb)
+
+                    # --- UPDATE GLOBAL HEIGHT MAP ---
+                    heightmap.update(hits_world)
+                    if ctrl_i % 40 == 0:
+                        debug_plot_heightmap(heightmap.hmap, heightmap.res, heightmap.origin_xy)
+
+                    # Keep obstacle XY for MPPI
+                    obstacle_xy = hits_world[:, :2]
+
                     if obstacle_xy.shape[0] > 250:
                         idx = np.random.choice(obstacle_xy.shape[0], 250, replace=False)
                         obstacle_xy = obstacle_xy[idx]
@@ -669,12 +745,33 @@ print(
 # --------------------------------------------------------------------------------
 # Simulation Results
 # --------------------------------------------------------------------------------
+# ---------------------------
+# Save final height map image
+# ---------------------------
+plt.figure(figsize=(6,6))
+extent = [
+    heightmap.origin_xy[0],
+    heightmap.origin_xy[0] + heightmap.N * heightmap.res,
+    heightmap.origin_xy[1],
+    heightmap.origin_xy[1] + heightmap.N * heightmap.res
+]
+
+plt.imshow(heightmap.hmap, origin="lower", extent=extent)
+plt.colorbar(label="World Z (m)")
+plt.title("Global Height Map")
+plt.xlabel("World X (m)")
+plt.ylabel("World Y (m)")
+
+plt.savefig("heightmap_result.png", dpi=300)
+plt.close()
+
+print("Height map saved as heightmap_result.png")
 
 # Plot results
-t_vec = np.arange(ctrl_i) * CTRL_DT
-plot_swing_foot_traj(t_vec, foot_traj, False)
-plot_mpc_result(t_vec, mpc_force_world, tau_cmd, x_vec, block=False)
-plot_solve_time(mpc_solve_time_ms, mpc_update_time_ms, MPC_DT, MPC_HZ, block=True)
+# t_vec = np.arange(ctrl_i) * CTRL_DT
+# plot_swing_foot_traj(t_vec, foot_traj, False)
+# plot_mpc_result(t_vec, mpc_force_world, tau_cmd, x_vec, block=False)
+# plot_solve_time(mpc_solve_time_ms, mpc_update_time_ms, MPC_DT, MPC_HZ, block=True)
 
 # Replay simulation
 time_log_render = np.asarray(time_log_render, dtype=float)
