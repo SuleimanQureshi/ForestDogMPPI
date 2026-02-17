@@ -11,6 +11,7 @@ import time
 
 COST_MATRIX_Q = np.diag([1, 1, 50,  10, 20, 1,  2, 2, 1,  1, 1, 1])     # State cost weight matrix
 COST_MATRIX_R = np.diag([1e-5] * 12)                                    # Input cost weight matrix
+F_MIN = 10
 
 MU = 0.8    # Friction coefficient
 NX = 12     # State size (6-DOF 12 states)
@@ -56,7 +57,7 @@ class CentroidalMPC:
 
         # 2. Pre-compute Constant Friction Matrix (Static Part)
         # The friction inequality constraints of the constraint matrix A is constant
-        self.A_ineq_static = self._precompute_friction_matrix(traj)
+        # self.A_ineq_static = self._precompute_friction_matrix(traj)
 
         # 3. Create CasADi Function for Dynamics (Parametric Part)
         # The dynamics equality constraints of the constraint matrix A changes 
@@ -124,7 +125,7 @@ class CentroidalMPC:
         This method returns box constriant bounds
         """
 
-        fz_min = 10     # Prevent slipping
+        # fz_min = 10     # Prevent slipping
         N = traj.N      
         nvars = self.nvars
         start_u = N*12
@@ -161,13 +162,13 @@ class CentroidalMPC:
         ubx_np[swing_idx, 0] = 0.0
 
         # 5) Stance legs → fz >= fz_min (only the z row of each leg: rows 2,5,8,11)
-        fz_rows = np.array([2, 5, 8, 11])
-        stance_idx_2d = force_idx[fz_rows[:, None], np.arange(N)[None, :]]
-        stance_mask   = contact
-        stance_idx    = stance_idx_2d[stance_mask]
+        # fz_rows = np.array([2, 5, 8, 11])
+        # stance_idx_2d = force_idx[fz_rows[:, None], np.arange(N)[None, :]]
+        # stance_mask   = contact
+        # stance_idx    = stance_idx_2d[stance_mask]
 
-        # keep the tighter lower bound if any
-        lbx_np[stance_idx, 0] = np.maximum(lbx_np[stance_idx, 0], fz_min)
+        # # keep the tighter lower bound if any
+        # lbx_np[stance_idx, 0] = np.maximum(lbx_np[stance_idx, 0], fz_min)
 
         # 6) Convert to CasADi
         lbx = ca.DM(lbx_np)
@@ -205,7 +206,9 @@ class CentroidalMPC:
         Bd_stacked_np = traj.Bd.reshape(self.N * NX, NU)
         Bd_seq_dm = ca.DM(Bd_stacked_np)
         
-        A_init = self._assemble_A_matrix(Ad_dm, Bd_seq_dm)
+        A_ineq_init = self._build_rotated_friction_matrix(traj)  # will be flat if normals are flat
+        A_init = self._assemble_A_matrix(Ad_dm, Bd_seq_dm, A_ineq_init)
+
         self.A_sp = A_init.sparsity()
 
         # 3) Create Solver
@@ -242,7 +245,9 @@ class CentroidalMPC:
         Bd_seq_dm = ca.DM(Bd_stacked_np)
 
         # 2) Assemble A
-        A_dm = self._assemble_A_matrix(Ad_dm, Bd_seq_dm)
+        A_ineq = self._build_rotated_friction_matrix(traj)
+        A_dm = self._assemble_A_matrix(Ad_dm, Bd_seq_dm, A_ineq)
+
 
         # 3) Compute g vector (Linear Cost)
         Q_mat = ca.DM(self.Q)
@@ -261,7 +266,7 @@ class CentroidalMPC:
         beq = ca.vertcat(beq_first, beq_rest)
 
         # Friction Inequality Bounds
-        n_ineq = 4 * 4 * self.N
+        n_ineq = 4 * 5 * self.N
         l_ineq = -ca.inf * ca.DM.ones(n_ineq, 1)
         
         # Set Stance legs to <= 0.0
@@ -271,11 +276,19 @@ class CentroidalMPC:
         idx = 0
         for k in range(self.N):
             for leg in range(4):
-                if ct[leg, k] == 1: 
-                    # STANCE: Enforce friction pyramid <= 0
+                if ct[leg, k] == 1:
+                    # 4 friction faces
                     u_ineq_np[idx:idx+4] = 0.0
-                idx += 4
-        
+                    idx += 4
+
+                    # normal force constraint
+                    u_ineq_np[idx] = -F_MIN   # matches f_min
+                    idx += 1
+                else:
+                    # skip all 5 rows
+                    idx += 5
+
+                
         u_ineq = ca.DM(u_ineq_np)
 
         # Final Stack
@@ -284,23 +297,23 @@ class CentroidalMPC:
 
         return g, A_dm, lb, ub
      
-    def _assemble_A_matrix(self, Ad, Bd):
+    def _assemble_A_eq(self, Ad, Bd):
         """
-        Combines Dynamics (Parametric) and Friction (Static)
+        Dynamics equality part only.
         """
-        # 1) Generate Block Diagonals for Dynamics
         big_minus_Ad, big_minus_Bd = self.dyn_builder(Ad, Bd)
-        
-        # 2) Shift Ad to lower diagonal
         term_Ad = self.S_block @ big_minus_Ad
-        
-        # 3) Create Dynamics LHS
         A_eq = ca.horzcat(self.I_block + term_Ad, big_minus_Bd)
-        
-        # 4) Stack with Static Friction
-        A_total = ca.vertcat(A_eq, self.A_ineq_static)
-        
-        return A_total
+        return A_eq
+
+
+    def _assemble_A_matrix(self, Ad, Bd, A_ineq):
+        """
+        Full A = [A_eq; A_ineq]
+        """
+        A_eq = self._assemble_A_eq(Ad, Bd)
+        return ca.vertcat(A_eq, A_ineq)
+
     
     def _create_dynamics_function(self):
         Ad_sym = ca.SX.sym('Ad', NX, NX)
@@ -362,3 +375,86 @@ class CentroidalMPC:
     def _scipy_to_casadi(M):
         M = M.tocsc()
         return ca.DM(ca.Sparsity(M.shape[0], M.shape[1], M.indptr, M.indices), M.data)
+
+    @staticmethod
+    def _tangent_basis_from_normal(n):
+        """
+        Given a unit normal n (3,), return two unit tangents t1,t2 spanning tangent plane.
+        """
+        n = np.asarray(n, dtype=float)
+        n = n / (np.linalg.norm(n) + 1e-12)
+
+        # pick a helper vector not parallel to n
+        if abs(n[2]) < 0.9:
+            a = np.array([0.0, 0.0, 1.0])
+        else:
+            a = np.array([0.0, 1.0, 0.0])
+
+        t1 = np.cross(n, a)
+        t1 = t1 / (np.linalg.norm(t1) + 1e-12)
+        t2 = np.cross(n, t1)
+        t2 = t2 / (np.linalg.norm(t2) + 1e-12)
+        return t1, t2, n
+
+
+    def _build_rotated_friction_matrix(self, traj: ComTraj):
+        """
+        Builds A_ineq for rotated friction pyramid:
+          (t1^T f) <= mu (n^T f)
+          (-t1^T f) <= mu (n^T f)
+          (t2^T f) <= mu (n^T f)
+          (-t2^T f) <= mu (n^T f)
+
+        Same shape/sparsity as before: (4*4*N) x nvars
+        """
+        rows, cols, vals = [], [], []
+        baseU = self.N * NX
+        r0 = 0
+
+        # Expect shape (4, N, 3)
+        normals = getattr(traj, "contact_normals", None)
+        if normals is None:
+            # fallback: flat ground
+            normals = np.zeros((4, self.N, 3), dtype=float)
+            normals[:, :, 2] = 1.0
+
+        for k in range(self.N):
+            uk0 = baseU + k * NU
+            for leg in range(4):
+                n_leg = normals[leg, k, :]
+                t1, t2, n = self._tangent_basis_from_normal(n_leg)
+
+                # each row is coeffs on [fx,fy,fz] for this leg at this timestep
+                # row1:  t1^T f - mu n^T f <= 0  =>  (t1 - mu n)^T f <= 0
+                # row2: -t1^T f - mu n^T f <= 0  => (-t1 - mu n)^T f <= 0
+                # row3:  t2^T f - mu n^T f <= 0
+                # row4: -t2^T f - mu n^T f <= 0
+                c1 = (t1 - MU * n)
+                c2 = (-t1 - MU * n)
+                c3 = (t2 - MU * n)
+                c4 = (-t2 - MU * n)
+
+                fx, fy, fz = 3 * leg, 3 * leg + 1, 3 * leg + 2
+
+                for c in (c1, c2, c3, c4):
+                    rows.extend([r0, r0, r0])
+                    cols.extend([uk0 + fx, uk0 + fy, uk0 + fz])
+                    vals.extend([float(c[0]), float(c[1]), float(c[2])])
+                    r0 += 1
+                # -------------------------------------------------
+                # Normal force minimum: n^T f >= f_min
+                # Convert to inequality form:
+                #   -n^T f <= -f_min
+                # -------------------------------------------------
+
+              
+                c_norm = -n   # because -n^T f <= -f_min
+
+                rows.extend([r0, r0, r0])
+                cols.extend([uk0 + fx, uk0 + fy, uk0 + fz])
+                vals.extend([float(c_norm[0]), float(c_norm[1]), float(c_norm[2])])
+                r0 += 1
+
+
+        A_sp = sp.csc_matrix((vals, (rows, cols)), shape=(r0, self.nvars))
+        return self._scipy_to_casadi(A_sp)
