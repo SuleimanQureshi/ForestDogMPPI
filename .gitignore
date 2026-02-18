@@ -11,3 +11,4 @@ __pycache__/
 __pycache__/
 *.pyc
 .env
+Miniconda3-latest-Linux-x86_64.sh
