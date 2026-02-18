@@ -105,20 +105,23 @@ LEG_SLICE = {
 # --------------------------------------------------------------------------------
 @dataclass
 class GlobalHeightMap:
-    size_xy: float = 10.0      # total map width (meters)
-    res: float = 0.05          # 5 cm resolution
+    size_xy: float = 10.0
+    res: float = 0.05
 
     def __post_init__(self):
         self.N = int(self.size_xy / self.res)
-        self.hmap = np.zeros((self.N, self.N), dtype=np.float32)
-        self.count = np.zeros((self.N, self.N), dtype=np.int32)
+        self.hmap = np.full((self.N, self.N), np.nan, dtype=np.float32)
 
         self.origin_xy = np.array([
             -self.size_xy / 2.0,
             -self.size_xy / 2.0
-        ])  # map centered at world (0,0)
+        ])
 
     def update(self, hits_world):
+
+        # clear MAP EVERY FRAME
+        self.hmap[:] = 0.0
+
         if hits_world.shape[0] == 0:
             return
 
@@ -139,9 +142,7 @@ class GlobalHeightMap:
         z = z[valid]
 
         for i, j, zz in zip(ix, iy, z):
-            self.count[j, i] += 1
-            c = self.count[j, i]
-            self.hmap[j, i] += (zz - self.hmap[j, i]) / c  # running mean
+            self.hmap[j, i] = zz
 
 def get_body_cmd(t: float):
     for phase in CMD_SCHEDULE:
@@ -483,7 +484,7 @@ def debug_plot_heightmap(hmap, res, origin):
         origin[1],
         origin[1] + hmap.shape[0]*res
     ]
-    plt.imshow(hmap, origin="lower", extent=extent)
+    plt.imshow(heightmap.hmap, origin="lower", extent=extent, vmin=0, vmax=0.5)
     plt.colorbar(label="World Z (m)")
     plt.pause(0.001)
 
