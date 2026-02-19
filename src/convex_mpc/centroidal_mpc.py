@@ -233,8 +233,6 @@ class CentroidalMPC:
             print("[QP Init] ✓ Initialization complete.\n")
 
 
-
-
     def _update_sparse_matrix(self, traj: ComTraj):
         # 1) Get current model
         # Ad is constant (12, 12)

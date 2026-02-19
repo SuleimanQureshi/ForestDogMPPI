@@ -121,6 +121,17 @@ class ComTraj:
         # Per-foot surface normals across horizon (world frame)
         self.contact_normals = np.zeros((4, N, 3), dtype=float)
         self.contact_normals[:, :, 2] = 1.0  # default flat ground normals
+        # Persistent touchdown state across the horizon (world-frame)
+        td_pos_world = np.full((4, 3), np.nan, dtype=float)    # per-leg touchdown point (WORLD)
+        td_n_world   = np.zeros((4, 3), dtype=float)           # per-leg normal (WORLD)
+        td_n_world[:, 2] = 1.0
+
+        [r_fl_next_td_world, r_fr_next_td_world, r_rl_next_td_world, r_rr_next_td_world] = go2.get_foot_lever_world()
+        # Initialize td_pos_world for legs that start in stance, using current lever arms
+        # (This prevents NaNs on the very first stance tick.)
+        r0s = [r_fl_next_td_world, r_fr_next_td_world, r_rl_next_td_world, r_rr_next_td_world]
+        self.td_world = np.full((4, N, 3), np.nan, dtype=float)
+
 
 
         r_fl_traj_world = np.zeros((3,N))
@@ -128,8 +139,6 @@ class ComTraj:
         r_rl_traj_world = np.zeros((3,N))
         r_rr_traj_world = np.zeros((3,N))
 
-        [r_fl_next_td_world, r_fr_next_td_world, r_rl_next_td_world, r_rr_next_td_world] = go2.get_foot_lever_world()
-        self.td_world = np.full((4, N, 3), np.nan, dtype=float)
 
 
         mask_previous = np.array([2,2,2,2])
@@ -162,35 +171,46 @@ class ComTraj:
             #     r_fl_traj_world[:,i] = np.array([0,0,0])
 
             # =======================
-            # FRONT LEFT
+            # FRONT LEFT  (leg = 0)
             # =======================
+            leg = 0
 
-            if current_mask[0] != mask_previous[0] and current_mask[0] == 0:
-                # TAKEOFF
-                pos_fl_next_td_world = gait.compute_touchdown_world_for_traj_purpose_only(self.dummy_go2, "FL")
-                self.td_world[0, i, :] = pos_fl_next_td_world
+            if current_mask[leg] != mask_previous[leg] and current_mask[leg] == 0:
+                # TAKEOFF -> compute NEXT touchdown point in WORLD, then SNAP to terrain
+                pos_td = gait.compute_touchdown_world_for_traj_purpose_only(self.dummy_go2, "FL")
 
-                z_td, n_td = self.terrain.height_and_normal(pos_fl_next_td_world[0], pos_fl_next_td_world[1])
-                pos_fl_next_td_world[2] = z_td
+                z_td, n_td = self.terrain.height_and_normal(pos_td[0], pos_td[1])
+                pos_td[2] = z_td
+                n_td = n_td / (np.linalg.norm(n_td) + 1e-9)
 
-                self.contact_normals[0, i, :] = n_td / (np.linalg.norm(n_td) + 1e-9)
+                # Persist touchdown point + normal for stance phase
+                td_pos_world[leg, :] = pos_td
+                td_n_world[leg, :]   = n_td
 
-                r_fl_next_td_world = pos_fl_next_td_world - p_base_traj_world
-                r_fl_traj_world[:, i] = np.array([0.0, 0.0, 0.0])
+                # log
+                self.td_world[leg, i, :] = pos_td
+                self.contact_normals[leg, i, :] = n_td
 
-            elif current_mask[0] != mask_previous[0] and current_mask[0] == 1:
-                # TOUCHDOWN
-                r_fl_traj_world[:, i] = r_fl_next_td_world
+                # Swing -> no contact force used
+                r_fl_traj_world[:, i] = 0.0
+
+            elif current_mask[leg] == 1:
+                # STANCE -> touchdown point persists, lever arm recomputed EVERY timestep
+                if np.any(np.isnan(td_pos_world[leg])):
+                    # If stance at i=0 without a prior takeoff event, initialize from current lever arm
+                    td_pos_world[leg, :] = p_base_traj_world + r0s[leg]
+                    # normal stays default unless you want to query terrain here too
+
+                self.td_world[leg, i, :] = td_pos_world[leg, :]
+                self.contact_normals[leg, i, :] = td_n_world[leg, :]
+
+                r_fl_traj_world[:, i] = td_pos_world[leg, :] - p_base_traj_world
 
             else:
-                # HOLD PREVIOUS
-                if i > 0:
-                    r_fl_traj_world[:, i] = r_fl_traj_world[:, i-1]
-                    self.contact_normals[0, i, :] = self.contact_normals[0, i-1, :]
-                else:
-                    # i == 0: keep safe defaults explicitly
-                    r_fl_traj_world[:, i] = np.array([0.0, 0.0, 0.0])
-                    self.contact_normals[0, i, :] = np.array([0.0, 0.0, 1.0])
+                # SWING (no contact)
+                self.contact_normals[leg, i, :] = td_n_world[leg, :] if i > 0 else np.array([0.0,0.0,1.0])
+                r_fl_traj_world[:, i] = 0.0
+
 
 
 
@@ -203,35 +223,46 @@ class ComTraj:
             #     r_fr_traj_world[:,i] = np.array([0,0,0])
 
             # =======================
-            # FRONT RIGHT
+            # FRONT RIGHT  (leg = 1)
             # =======================
-
-            if current_mask[1] != mask_previous[1] and current_mask[1] == 0:
-                # TAKEOFF
-                pos_fr_next_td_world = gait.compute_touchdown_world_for_traj_purpose_only(self.dummy_go2, "FR")
-                self.td_world[1, i, :] = pos_fr_next_td_world
-
-                z_td, n_td = self.terrain.height_and_normal(pos_fr_next_td_world[0], pos_fr_next_td_world[1])
-                pos_fr_next_td_world[2] = z_td
-
-                self.contact_normals[1, i, :] = n_td / (np.linalg.norm(n_td) + 1e-9)
-
-                r_fr_next_td_world = pos_fr_next_td_world - p_base_traj_world
-                r_fr_traj_world[:, i] = np.array([0.0, 0.0, 0.0])
-
-            elif current_mask[1] != mask_previous[1] and current_mask[1] == 1:
-                # TOUCHDOWN
-                r_fr_traj_world[:, i] = r_fr_next_td_world
-
+            leg = 1
+            
+            if current_mask[leg] != mask_previous[leg] and current_mask[leg] == 0:
+                # TAKEOFF -> compute NEXT touchdown point in WORLD, then SNAP to terrain
+                pos_td = gait.compute_touchdown_world_for_traj_purpose_only(self.dummy_go2, "FR")
+            
+                z_td, n_td = self.terrain.height_and_normal(pos_td[0], pos_td[1])
+                pos_td[2] = z_td
+                n_td = n_td / (np.linalg.norm(n_td) + 1e-9)
+            
+                # Persist touchdown point + normal for stance phase
+                td_pos_world[leg, :] = pos_td
+                td_n_world[leg, :]   = n_td
+            
+                # log
+                self.td_world[leg, i, :] = pos_td
+                self.contact_normals[leg, i, :] = n_td
+            
+                # Swing -> no contact force used
+                r_fr_traj_world[:, i] = 0.0
+            
+            elif current_mask[leg] == 1:
+                # STANCE -> touchdown point persists, lever arm recomputed EVERY timestep
+                if np.any(np.isnan(td_pos_world[leg])):
+                    # If stance at i=0 without a prior takeoff event, initialize from current lever arm
+                    td_pos_world[leg, :] = p_base_traj_world + r0s[leg]
+                    # normal stays default unless you want to query terrain here too
+            
+                self.td_world[leg, i, :] = td_pos_world[leg, :]
+                self.contact_normals[leg, i, :] = td_n_world[leg, :]
+            
+                r_fr_traj_world[:, i] = td_pos_world[leg, :] - p_base_traj_world
+            
             else:
-                # HOLD PREVIOUS
-                if i > 0:
-                    r_fr_traj_world[:, i] = r_fr_traj_world[:, i-1]
-                    self.contact_normals[1, i, :] = self.contact_normals[1, i-1, :]
-                else:
-                    # i == 0: keep safe defaults explicitly
-                    r_fr_traj_world[:, i] = np.array([0.0, 0.0, 0.0])
-                    self.contact_normals[1, i, :] = np.array([0.0, 0.0, 1.0])
+                # SWING (no contact)
+                self.contact_normals[leg, i, :] = td_n_world[leg, :] if i > 0 else np.array([0.0,0.0,1.0])
+                r_fr_traj_world[:, i] = 0.0
+            
 
 
             ## Rear-left foot
@@ -241,37 +272,46 @@ class ComTraj:
             #     r_rl_next_td_world = pos_rl_next_td_world - p_base_traj_world
 
             #     r_rl_traj_world[:,i] = np.array([0,0,0])
-
             # =======================
-            # REAR LEFT
+            # REAR LEFT  (leg = 2)
             # =======================
+            leg = 2
 
-            if current_mask[2] != mask_previous[2] and current_mask[2] == 0:
-                # TAKEOFF
-                pos_rl_next_td_world = gait.compute_touchdown_world_for_traj_purpose_only(self.dummy_go2, "RL")
-                self.td_world[2, i, :] = pos_rl_next_td_world
+            if current_mask[leg] != mask_previous[leg] and current_mask[leg] == 0:
+                # TAKEOFF -> compute NEXT touchdown point in WORLD, then SNAP to terrain
+                pos_td = gait.compute_touchdown_world_for_traj_purpose_only(self.dummy_go2, "RL")
 
-                z_td, n_td = self.terrain.height_and_normal(pos_rl_next_td_world[0], pos_rl_next_td_world[1])
-                pos_rl_next_td_world[2] = z_td
+                z_td, n_td = self.terrain.height_and_normal(pos_td[0], pos_td[1])
+                pos_td[2] = z_td
+                n_td = n_td / (np.linalg.norm(n_td) + 1e-9)
 
-                self.contact_normals[2, i, :] = n_td / (np.linalg.norm(n_td) + 1e-9)
+                # Persist touchdown point + normal for stance phase
+                td_pos_world[leg, :] = pos_td
+                td_n_world[leg, :]   = n_td
 
-                r_rl_next_td_world = pos_rl_next_td_world - p_base_traj_world
-                r_rl_traj_world[:, i] = np.array([0.0, 0.0, 0.0])
+                # log
+                self.td_world[leg, i, :] = pos_td
+                self.contact_normals[leg, i, :] = n_td
 
-            elif current_mask[2] != mask_previous[2] and current_mask[2] == 1:
-                # TOUCHDOWN
-                r_rl_traj_world[:, i] = r_rl_next_td_world
+                # Swing -> no contact force used
+                r_rl_traj_world[:, i] = 0.0
+
+            elif current_mask[leg] == 1:
+                # STANCE -> touchdown point persists, lever arm recomputed EVERY timestep
+                if np.any(np.isnan(td_pos_world[leg])):
+                    # If stance at i=0 without a prior takeoff event, initialize from current lever arm
+                    td_pos_world[leg, :] = p_base_traj_world + r0s[leg]
+                    # normal stays default unless you want to query terrain here too
+
+                self.td_world[leg, i, :] = td_pos_world[leg, :]
+                self.contact_normals[leg, i, :] = td_n_world[leg, :]
+
+                r_rl_traj_world[:, i] = td_pos_world[leg, :] - p_base_traj_world
 
             else:
-                # HOLD PREVIOUS
-                if i > 0:
-                    r_rl_traj_world[:, i] = r_rl_traj_world[:, i-1]
-                    self.contact_normals[2, i, :] = self.contact_normals[2, i-1, :]
-                else:
-                    # i == 0: keep safe defaults explicitly
-                    r_rl_traj_world[:, i] = np.array([0.0, 0.0, 0.0])
-                    self.contact_normals[2, i, :] = np.array([0.0, 0.0, 1.0])
+                # SWING (no contact)
+                self.contact_normals[leg, i, :] = td_n_world[leg, :] if i > 0 else np.array([0.0,0.0,1.0])
+                r_rl_traj_world[:, i] = 0.0
 
 
 
@@ -284,38 +324,48 @@ class ComTraj:
             #     r_rr_traj_world[:,i] = np.array([0,0,0])
 
             # =======================
-            # REAR RIGHT
+            # REAR RIGHT  (leg = 3)
             # =======================
+            leg = 3
 
-            if current_mask[3] != mask_previous[3] and current_mask[3] == 0:
-                # TAKEOFF
-                pos_rr_next_td_world = gait.compute_touchdown_world_for_traj_purpose_only(self.dummy_go2, "RR")
-                self.td_world[3, i, :] = pos_rr_next_td_world
+            if current_mask[leg] != mask_previous[leg] and current_mask[leg] == 0:
+                # TAKEOFF -> compute NEXT touchdown point in WORLD, then SNAP to terrain
+                pos_td = gait.compute_touchdown_world_for_traj_purpose_only(self.dummy_go2, "RR")
 
-                z_td, n_td = self.terrain.height_and_normal(pos_rr_next_td_world[0], pos_rr_next_td_world[1])
-                pos_rr_next_td_world[2] = z_td
+                z_td, n_td = self.terrain.height_and_normal(pos_td[0], pos_td[1])
+                pos_td[2] = z_td
+                n_td = n_td / (np.linalg.norm(n_td) + 1e-9)
 
-                self.contact_normals[3, i, :] = n_td / (np.linalg.norm(n_td) + 1e-9)
+                # Persist touchdown point + normal for stance phase
+                td_pos_world[leg, :] = pos_td
+                td_n_world[leg, :]   = n_td
 
-                r_rr_next_td_world = pos_rr_next_td_world - p_base_traj_world
-                r_rr_traj_world[:, i] = np.array([0.0, 0.0, 0.0])
+                # log
+                self.td_world[leg, i, :] = pos_td
+                self.contact_normals[leg, i, :] = n_td
 
-            elif current_mask[3] != mask_previous[3] and current_mask[3] == 1:
-                # TOUCHDOWN
-                r_rr_traj_world[:, i] = r_rr_next_td_world
+                # Swing -> no contact force used
+                r_rr_traj_world[:, i] = 0.0
+
+            elif current_mask[leg] == 1:
+                # STANCE -> touchdown point persists, lever arm recomputed EVERY timestep
+                if np.any(np.isnan(td_pos_world[leg])):
+                    # If stance at i=0 without a prior takeoff event, initialize from current lever arm
+                    td_pos_world[leg, :] = p_base_traj_world + r0s[leg]
+                    # normal stays default unless you want to query terrain here too
+
+                self.td_world[leg, i, :] = td_pos_world[leg, :]
+                self.contact_normals[leg, i, :] = td_n_world[leg, :]
+
+                r_rr_traj_world[:, i] = td_pos_world[leg, :] - p_base_traj_world
 
             else:
-                # HOLD PREVIOUS
-                if i > 0:
-                    r_rr_traj_world[:, i] = r_rr_traj_world[:, i-1]
-                    self.contact_normals[3, i, :] = self.contact_normals[3, i-1, :]
-                else:
-                    # i == 0: keep safe defaults explicitly
-                    r_rr_traj_world[:, i] = np.array([0.0, 0.0, 0.0])
-                    self.contact_normals[3, i, :] = np.array([0.0, 0.0, 1.0])
+                # SWING (no contact)
+                self.contact_normals[leg, i, :] = td_n_world[leg, :] if i > 0 else np.array([0.0,0.0,1.0])
+                r_rr_traj_world[:, i] = 0.0
 
 
-            mask_previous = current_mask
+            mask_previous = np.array(current_mask, copy=True)
 
         # Save
         self.r_fl_foot_world = r_fl_traj_world

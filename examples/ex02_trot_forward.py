@@ -442,6 +442,9 @@ lidar = MuJoCoLidar3D(mujoco_go2.model, mujoco_go2.data, n_az=72, n_el=5, max_ra
 leg_controller = LegController()
 traj = ComTraj(go2)
 gait = Gait(GAIT_HZ, GAIT_DUTY)
+# Share terrain with gait via go2
+go2.terrain = traj.terrain
+
 traj.generate_traj(
     go2,
     gait,
