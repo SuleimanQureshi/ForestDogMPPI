@@ -108,8 +108,28 @@ def get_body_cmd(t: float):
         if phase.t_start <= t < phase.t_end:
             return phase.x_vel, phase.y_vel, phase.z_pos, phase.yaw_rate
     return 0.0, 0.0, 0.27, 0.0
-@dataclass
 
+def visualize_lidar_hits(viewer, hits_world, max_points=200):
+    viewer.user_scn.ngeom = 0  # clear previous frame markers
+
+    if hits_world.shape[0] == 0:
+        return
+
+    pts = hits_world[:max_points]
+
+    for p in pts:
+        g = viewer.user_scn.geoms[viewer.user_scn.ngeom]
+        mj.mjv_initGeom(
+            g,
+            type=mj.mjtGeom.mjGEOM_SPHERE,
+            size=[0.03, 0, 0],
+            pos=p,
+            mat=np.eye(3).flatten(),
+            rgba=[1, 0, 0, 1]   # RED
+        )
+        viewer.user_scn.ngeom += 1
+
+@dataclass
 class GlobalHeightMap:
     size_xy: float = 10.0
     res: float = 0.05
@@ -234,11 +254,18 @@ class MuJoCoLidar3D:
                 self.data,
                 p0,
                 d,
-                geomgroup,
+                None,
                 1,
-                bodyexclude,
+                -1,
                 geomid
             )
+
+            if geomid[0] != -1:
+                body_id = self.model.geom_bodyid[geomid[0]]
+                body_name = mj.mj_id2name(self.model, mj.mjtObj.mjOBJ_BODY, body_id)
+
+                if "go2" in body_name or "trunk" in body_name:
+                    continue   # skip robot hits
 
             if dist > 0 and dist < self.max_range:
                 hits.append(p0 + dist * d)
@@ -266,20 +293,20 @@ class Nav2StyleMPPI:
 
         # --- MPPI parameters ---
         self.dt = dt
-        self.H = 80              # ~1.66s lookahead with dt=0.0208
+        self.H = 140              # ~1.66s lookahead with dt=0.0208
         self.BATCH = 600         # still feasible
         self.ITERS = 3           # better convergence
 
         self.LAMBDA = 1.0
-        self.ALPHA = 0.85        # correlated noise
+        self.ALPHA = 0.3        # correlated noise
 
         # velocity limits (keep conservative!)
         self.vx_min, self.vx_max = 0.0, 0.6
-        self.vy_min, self.vy_max = -0.3, 0.3
+        self.vy_min, self.vy_max = -0.6, 0.6
         self.wz_min, self.wz_max = -1.0, 1.0
 
         # noise std
-        self.std = np.array([0.12, 0.10, 0.30])  # allow lateral/turn exploration
+        self.std = np.array([0.15, 0.45, 0.8]) # allow lateral/turn exploration
 
         # persistent sequence
         self.U = np.zeros((self.H, 3))
@@ -370,9 +397,9 @@ class Nav2StyleMPPI:
             inside = np.maximum(0.0, inflation - dmin)
             hard = (inside**2).mean(axis=1)
 
-            soft = np.exp(-3.0 * dmin).mean(axis=1)
+            soft = np.exp(-1.5 * dmin).mean(axis=1)
 
-            obs_cost = 500.0 * hard + 20.0 * soft
+            obs_cost = 300.0 * hard + 20.0 * soft
 
         else:
             obs_cost = np.zeros(x.shape[0])
@@ -394,14 +421,15 @@ class Nav2StyleMPPI:
         effort = (U_batch**2).mean(axis=(1,2))
 
         return (
-            4.0 * goal_cost +
-            10.0 * term +
-            3.0 * heading_cost +
+            2.0 * goal_cost +
+            3.0 * term +
+            1.0 * heading_cost +
             1.0 * obs_cost +
             0.2 * smooth +
             0.05 * effort
-            - 6.0 * progress
+            # - 6.0 * progress
         )
+
 
     # --------------------------------------
     # main step
@@ -412,6 +440,9 @@ class Nav2StyleMPPI:
 
             eps = self.correlated_noise()
             U_batch = self.U[None, :, :] + eps
+            # Inject symmetric lateral bias
+            lateral_bias = np.linspace(-0.5, 0.5, self.BATCH)
+            U_batch[:, :, 1] += lateral_bias[:, None]
 
             X = self.rollout(state, U_batch)
             costs = self.cost(X, U_batch, goal, obstacle_xy)
@@ -519,7 +550,15 @@ def debug_plot_heightmap(hmap, res, origin):
 
 go2 = PinGo2Model()
 mujoco_go2 = MuJoCo_GO2_Model()
-lidar = MuJoCoLidar3D(mujoco_go2.model, mujoco_go2.data, n_az=72, n_el=5, max_range=6.0)
+lidar = MuJoCoLidar3D(
+    mujoco_go2.model,
+    mujoco_go2.data,
+    n_az=90,
+    n_el=15,
+    el_min_deg=-30.0,
+    el_max_deg=15.0,
+    max_range=6.0
+)
 heightmap = GlobalHeightMap(size_xy=12.0, res=0.02)
 leg_controller = LegController()
 traj = ComTraj(go2)
@@ -629,7 +668,10 @@ with mj.viewer.launch_passive(mujoco_go2.model, mujoco_go2.data) as viewer:
                 if (ctrl_i % (4 * STEPS_PER_MPC)) == 0:
                     # LiDAR origin (a bit above COM so it doesn't hit the ground instantly)
                     lidar_origin = go2.current_config.base_pos.copy()
-                    lidar_origin[2] += 0.05
+                    lidar_origin[2] -= 0.1
+                    
+                    print("LiDAR origin:", lidar_origin)
+
 
                     base_body_id = mj.mj_name2id(
                         mujoco_go2.model,
@@ -642,6 +684,12 @@ with mj.viewer.launch_passive(mujoco_go2.model, mujoco_go2.data) as viewer:
                     # Perform scan using full base rotation
                     trunk_id = mj.mj_name2id(mujoco_go2.model, mj.mjtObj.mjOBJ_BODY, "trunk")
                     hits_world = lidar.scan(lidar_origin, Rwb, bodyexclude=trunk_id)
+                    
+                    print("Raw hits:", hits_world.shape[0])
+                    if hits_world.shape[0] > 0:
+                        print("Max hit Z:", hits_world[:,2].max())
+
+
                     # 1) drop ground returns (tune threshold)
                     zmin = 0.05              # keep points above 5cm (obstacles)
                     zmax = 1.20              # optional: ignore very high stuff
@@ -655,6 +703,7 @@ with mj.viewer.launch_passive(mujoco_go2.model, mujoco_go2.data) as viewer:
 
                     hits_filt = hits_world[keep_z & keep_r]
                     obstacle_xy = hits_filt[:, :2]
+                    visualize_lidar_hits(viewer, hits_filt)
 
                     # --- UPDATE GLOBAL HEIGHT MAP ---
                     heightmap.update(hits_world)
