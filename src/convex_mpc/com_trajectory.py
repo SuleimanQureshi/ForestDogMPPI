@@ -177,7 +177,7 @@ class ComTraj:
 
             if current_mask[leg] != mask_previous[leg] and current_mask[leg] == 0:
                 # TAKEOFF -> compute NEXT touchdown point in WORLD, then SNAP to terrain
-                pos_td = gait.compute_touchdown_world_for_traj_purpose_only(self.dummy_go2, "FL")
+                pos_td = gait.compute_touchdown_world_for_traj_purpose_only(self.dummy_go2, "FL", time_now + i * time_step)
 
                 z_td, n_td = self.terrain.height_and_normal(pos_td[0], pos_td[1])
                 pos_td[2] = z_td
@@ -229,7 +229,7 @@ class ComTraj:
             
             if current_mask[leg] != mask_previous[leg] and current_mask[leg] == 0:
                 # TAKEOFF -> compute NEXT touchdown point in WORLD, then SNAP to terrain
-                pos_td = gait.compute_touchdown_world_for_traj_purpose_only(self.dummy_go2, "FR")
+                pos_td = gait.compute_touchdown_world_for_traj_purpose_only(self.dummy_go2, "FR", time_now + i * time_step)
             
                 z_td, n_td = self.terrain.height_and_normal(pos_td[0], pos_td[1])
                 pos_td[2] = z_td
@@ -279,7 +279,7 @@ class ComTraj:
 
             if current_mask[leg] != mask_previous[leg] and current_mask[leg] == 0:
                 # TAKEOFF -> compute NEXT touchdown point in WORLD, then SNAP to terrain
-                pos_td = gait.compute_touchdown_world_for_traj_purpose_only(self.dummy_go2, "RL")
+                pos_td = gait.compute_touchdown_world_for_traj_purpose_only(self.dummy_go2, "RL", time_now + i * time_step)
 
                 z_td, n_td = self.terrain.height_and_normal(pos_td[0], pos_td[1])
                 pos_td[2] = z_td
@@ -330,7 +330,7 @@ class ComTraj:
 
             if current_mask[leg] != mask_previous[leg] and current_mask[leg] == 0:
                 # TAKEOFF -> compute NEXT touchdown point in WORLD, then SNAP to terrain
-                pos_td = gait.compute_touchdown_world_for_traj_purpose_only(self.dummy_go2, "RR")
+                pos_td = gait.compute_touchdown_world_for_traj_purpose_only(self.dummy_go2, "RR", time_now + i * time_step)
 
                 z_td, n_td = self.terrain.height_and_normal(pos_td[0], pos_td[1])
                 pos_td[2] = z_td

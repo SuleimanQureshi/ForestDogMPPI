@@ -67,7 +67,7 @@ class LegController():
         if self.last_mask[leg_idx] != current_mask[leg_idx] and current_mask[leg_idx] == 0:
             # This leg just took off
             setattr(self, f"{leg}_takeoff_time", current_time)
-            traj, td_pos = gait.compute_swing_traj_and_touchdown(go2, leg)
+            traj, td_pos = gait.compute_swing_traj_and_touchdown(go2, leg, current_time)
             setattr(self, f"{leg}_traj", traj)
             setattr(self, f"{leg}_td_pos", td_pos)
 
