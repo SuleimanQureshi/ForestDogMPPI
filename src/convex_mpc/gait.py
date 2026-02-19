@@ -20,8 +20,7 @@ class Gait():
 
     def compute_current_mask(self, time):
 
-        mask = self.compute_contact_table(time, 0, 1)
-        return mask
+        return self.compute_contact_table(time, 0.0, 1).reshape(-1)
     
     def compute_contact_table(self, t0: float, dt: float, N: int) -> np.ndarray:
 
@@ -37,7 +36,7 @@ class Gait():
         return contact_table        
     
 
-    def compute_touchdown_world_for_traj_purpose_only(self, go2:PinGo2Model, leg:str):
+    def compute_touchdown_world_for_traj_purpose_only(self, go2:PinGo2Model, leg:str, time_now):
         base_pos = go2.current_config.base_pos
         base_vel = go2.current_config.base_vel
         R_z = go2.R_z
@@ -72,11 +71,11 @@ class Gait():
                                 )
         terrain = getattr(go2, "terrain", None)
         if terrain is not None:
-            pos_touchdown_world = self.select_foothold(go2, leg, pos_touchdown_world, terrain)
+            pos_touchdown_world = self.select_foothold(go2, leg, pos_touchdown_world, terrain, time_now)
         return pos_touchdown_world
     
 
-    def compute_swing_traj_and_touchdown(self, go2:PinGo2Model, leg:str):
+    def compute_swing_traj_and_touchdown(self, go2:PinGo2Model, leg:str, time_now):
 
         # This function should only be called the moment the foot takes off
         base_pos = go2.current_config.base_pos
@@ -135,6 +134,10 @@ class Gait():
                                 )
         
         pos_foot_traj_eval_at_world = self.make_swing_trajectory(foot_pos, pos_touchdown_world, t_swing, h_sw=HEIGHT_SWING)
+        terrain = getattr(go2, "terrain", None)
+        if terrain is not None:
+            pos_touchdown_world = self.select_foothold(go2, leg, pos_touchdown_world, terrain, time_now)
+
         return pos_foot_traj_eval_at_world, pos_touchdown_world
 
 
@@ -186,11 +189,101 @@ class Gait():
     FH_DZ_MAX = 0.10
 
     # Weights (normalized terms ~0..1)
-    W_DIST   = 0.35
-    W_SLOPE  = 0.25
-    W_RESID  = 0.25
-    W_SPEED  = 0.10
-    W_GRADE  = 0.05  # uphill/downhill preference
+    W_STAB = 0.20
+    W_DIST = 0.25
+    W_SLOPE = 0.20
+    W_RESID = 0.20
+    W_SPEED = 0.10
+    W_GRADE = 0.05
+
+
+    FH_STAB_MARGIN_MIN = 0.00   # gate: must be inside polygon
+    FH_STAB_TARGET     = 0.06   # 6 cm: "good" margin
+
+    def _project_to_plane2(self, p, origin, t1, t2):
+        d = p - origin
+        return np.array([np.dot(t1, d), np.dot(t2, d)], dtype=float)
+    
+    def _tangent_basis_from_normal(self, n):
+        n = np.asarray(n, dtype=float)
+        n = n / (np.linalg.norm(n) + 1e-9)
+
+        # pick arbitrary vector not parallel to n
+        if abs(n[2]) < 0.9:
+            a = np.array([0.0, 0.0, 1.0])
+        else:
+            a = np.array([1.0, 0.0, 0.0])
+
+        t1 = np.cross(a, n)
+        t1 = t1 / (np.linalg.norm(t1) + 1e-9)
+
+        t2 = np.cross(n, t1)
+        t2 = t2 / (np.linalg.norm(t2) + 1e-9)
+
+        return t1, t2, n
+
+
+    def _convex_hull_2d(self, pts):
+        # pts: (M,2), M up to 4
+        pts = np.unique(pts, axis=0)
+        if len(pts) <= 2:
+            return pts
+
+        # sort by x then y
+        pts = pts[np.lexsort((pts[:,1], pts[:,0]))]
+
+        def cross(o,a,b):
+            return (a[0]-o[0])*(b[1]-o[1]) - (a[1]-o[1])*(b[0]-o[0])
+
+        lower = []
+        for p in pts:
+            while len(lower) >= 2 and cross(lower[-2], lower[-1], p) <= 0:
+                lower.pop()
+            lower.append(p)
+        upper = []
+        for p in pts[::-1]:
+            while len(upper) >= 2 and cross(upper[-2], upper[-1], p) <= 0:
+                upper.pop()
+            upper.append(p)
+
+        hull = np.array(lower[:-1] + upper[:-1], dtype=float)
+        return hull
+
+    def _point_margin_to_poly(self, poly, q):
+        """
+        poly: (H,2) convex hull vertices CCW-ish
+        q: (2,)
+        Returns signed margin:
+        >0 inside: min distance to edges
+        <0 outside: -min distance to edges
+        """
+        H = poly.shape[0]
+        if H < 3:
+            return -np.inf
+
+        inside = True
+        min_dist = np.inf
+
+        for i in range(H):
+            a = poly[i]
+            b = poly[(i+1) % H]
+            e = b - a
+            # outward normal for CCW polygon is [-e_y, e_x] (but sign depends on ordering)
+            # We'll compute signed distance using cross test:
+            # For CCW, cross(e, q-a) >= 0 means q is left of edge (inside)
+            cross_val = e[0]*(q[1]-a[1]) - e[1]*(q[0]-a[0])
+            if cross_val < 0:
+                inside = False
+
+            # distance from point to segment
+            t = np.dot(q - a, e) / (np.dot(e, e) + 1e-12)
+            t = np.clip(t, 0.0, 1.0)
+            proj = a + t * e
+            d = np.linalg.norm(q - proj)
+            min_dist = min(min_dist, d)
+
+        return min_dist if inside else -min_dist
+
 
     def _unit2(self, v, eps=1e-9):
         n = np.linalg.norm(v)
@@ -244,7 +337,7 @@ class Gait():
 
         return np.array(offs, dtype=float)  # (K,2)
 
-    def select_foothold(self, go2, leg: str, nominal_td_world: np.ndarray, terrain):
+    def select_foothold(self, go2, leg: str, nominal_td_world: np.ndarray, terrain, time_now):
         """
         Returns chosen touchdown position in world: (3,)
         Assumes terrain.height_and_normal(x,y) exists.
@@ -292,7 +385,15 @@ class Gait():
 
         # collect normalized terms to compute robustly
         cand = []
-        terms = {"dist": [], "slope": [], "resid": [], "speed": [], "grade": []}
+        terms = {
+            "dist": [],
+            "slope": [],
+            "resid": [],
+            "speed": [],
+            "grade": [],
+            "stab": []
+        }
+
 
         # precompute nominal z
         z0, _ = terrain.height_and_normal(td0[0], td0[1])
@@ -324,6 +425,64 @@ class Gait():
             resid = self._plane_fit_residual(terrain, x, y)
             if resid > self.FH_PLANE_RES_MAX:
                 continue
+            
+            # --- stance set at touchdown time ---
+            t_td = time_now + self.swing_time
+            mask_td = self.compute_current_mask(t_td)  # (4,)
+
+            # build support points list in WORLD
+            legs = ["FL","FR","RL","RR"]
+            support_pts = []
+            support_normals = []
+
+            for j, lj in enumerate(legs):
+                if mask_td[j] != 1:
+                    continue
+
+                if lj == leg:
+                    # candidate foothold
+                    support_pts.append(np.array([x, y, z], dtype=float))
+                    support_normals.append(n)
+                else:
+                    # use current foot position as approximation of stance contact
+                    pj, _ = go2.get_single_foot_state_in_world(lj)
+                    # snap it to terrain (important)
+                    zj, nj = terrain.height_and_normal(pj[0], pj[1])
+                    pj = np.array([pj[0], pj[1], zj], dtype=float)
+                    nj = np.asarray(nj, dtype=float)
+                    nj = nj / (np.linalg.norm(nj) + 1e-9)
+                    support_pts.append(pj)
+                    support_normals.append(nj)
+
+            # need at least 3 contacts
+            if len(support_pts) < 3:
+                continue
+
+            support_pts = np.array(support_pts, dtype=float)
+            n_sup = np.mean(np.array(support_normals), axis=0)
+            n_sup = n_sup / (np.linalg.norm(n_sup) + 1e-9)
+
+            # tangent basis from n_sup
+            t1, t2, _ = self._tangent_basis_from_normal(n_sup)
+
+            origin = support_pts[0]
+            pts2 = np.array([self._project_to_plane2(p, origin, t1, t2) for p in support_pts])
+            poly = self._convex_hull_2d(pts2)
+
+            # COM point for stability check
+            p_com = go2.pos_com_world + go2.vel_com_world * self.swing_time
+            q2 = self._project_to_plane2(p_com, origin, t1, t2)
+
+            margin = self._point_margin_to_poly(poly, q2)
+
+            # ---- stability gate ----
+            if margin < self.FH_STAB_MARGIN_MIN:
+                continue
+
+            # ---- soft term: larger margin is better ----
+            # convert to penalty where "good" margin -> 0 penalty
+            stab_pen = max(0.0, (self.FH_STAB_TARGET - margin) / (self.FH_STAB_TARGET + 1e-9))
+            terms["stab"].append(stab_pen)
 
             # ---- Soft terms (later normalized) ----
             dist = np.linalg.norm(xy - td0[:2])  # deviation from nominal
@@ -362,13 +521,15 @@ class Gait():
         nres   = norm01(terms["resid"])
         nspd   = norm01(terms["speed"])
         ngr    = norm01(terms["grade"])
+        nstab = norm01(terms["stab"])
 
         # ---- total score (lower is better) ----
         score = (self.W_DIST  * ndist +
                  self.W_SLOPE * nslope +
                  self.W_RESID * nres +
                  self.W_SPEED * nspd +
-                 self.W_GRADE * ngr)
+                 self.W_GRADE * ngr +
+                 self.W_STAB * nstab)
 
         best = int(np.argmin(score))
         x, y, z, n = cand[best]

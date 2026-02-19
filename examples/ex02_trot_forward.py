@@ -109,14 +109,95 @@ def get_body_cmd(t: float):
             return phase.x_vel, phase.y_vel, phase.z_pos, phase.yaw_rate
     return 0.0, 0.0, 0.27, 0.0
 @dataclass
+
+class GlobalHeightMap:
+    size_xy: float = 10.0
+    res: float = 0.05
+
+    def __post_init__(self):
+        self.N = int(self.size_xy / self.res)
+        self.hmap = np.full((self.N, self.N), np.nan, dtype=np.float32)
+
+        self.origin_xy = np.array([
+            -self.size_xy / 2.0,
+            -self.size_xy / 2.0
+        ])
+
+    def update(self, hits_world):
+
+        # clear MAP EVERY FRAME
+        self.hmap[:] = np.nan
+
+        if hits_world.shape[0] == 0:
+            return
+
+        x = hits_world[:, 0]
+        y = hits_world[:, 1]
+        z = hits_world[:, 2]
+
+        ix = ((x - self.origin_xy[0]) / self.res).astype(int)
+        iy = ((y - self.origin_xy[1]) / self.res).astype(int)
+
+        valid = (
+            (ix >= 0) & (ix < self.N) &
+            (iy >= 0) & (iy < self.N)
+        )
+
+        ix = ix[valid]
+        iy = iy[valid]
+        z = z[valid]
+
+        for i, j, zz in zip(ix, iy, z):
+            self.hmap[j, i] = zz
+    def height_and_normal(self, x: float, y: float):
+        """
+        Query height map at (x,y).
+        Returns:
+            z (float)
+            normal (3,) numpy array
+        """
+
+        ix = int((x - self.origin_xy[0]) / self.res)
+        iy = int((y - self.origin_xy[1]) / self.res)
+
+        if ix < 0 or ix >= self.N or iy < 0 or iy >= self.N:
+            return 0.0, np.array([0.0, 0.0, 1.0])
+
+        z = self.hmap[iy, ix]
+
+        if np.isnan(z):
+            return 0.0, np.array([0.0, 0.0, 1.0])
+
+        # Simple normal estimate using central differences
+        dzdx = 0.0
+        dzdy = 0.0
+
+        if 1 <= ix < self.N-1 and 1 <= iy < self.N-1:
+            z_x1 = self.hmap[iy, ix+1]
+            z_x0 = self.hmap[iy, ix-1]
+            z_y1 = self.hmap[iy+1, ix]
+            z_y0 = self.hmap[iy-1, ix]
+
+            if not np.isnan(z_x1) and not np.isnan(z_x0):
+                dzdx = (z_x1 - z_x0) / (2*self.res)
+
+            if not np.isnan(z_y1) and not np.isnan(z_y0):
+                dzdy = (z_y1 - z_y0) / (2*self.res)
+
+        normal = np.array([-dzdx, -dzdy, 1.0])
+        normal /= (np.linalg.norm(normal) + 1e-9)
+
+        return float(z), normal
+
+
 class MuJoCoLidar3D:
     """
     Very simple 3D LiDAR using MuJoCo ray casts.
     Returns hit points in WORLD frame.
     """
     def __init__(self, model, data,
-                 n_az=72, n_el=5,
-                 el_min_deg=-10.0, el_max_deg=10.0,
+                 n_az=72, n_el=9,
+                 el_min_deg=-45.0, el_max_deg=5.0,
                  max_range=6.0):
         self.model = model
         self.data = data
@@ -136,23 +217,13 @@ class MuJoCoLidar3D:
                 self.dirs_body.append(d)
         self.dirs_body = np.asarray(self.dirs_body)  # (M,3)
 
-    def scan(self, sensor_pos_world, yaw):
-        """
-        sensor_pos_world: (3,)
-        yaw: float
-        """
-        # rotate body directions into world with yaw only (good enough for now)
-        cy, sy = np.cos(yaw), np.sin(yaw)
-        Rz = np.array([[cy, -sy, 0.0],
-                       [sy,  cy, 0.0],
-                       [0.0, 0.0, 1.0]], dtype=float)
+    def scan(self, sensor_pos_world, R_world_from_body, bodyexclude = 1):
 
-        dirs_world = (Rz @ self.dirs_body.T).T  # (M,3)
+        dirs_world = (R_world_from_body @ self.dirs_body.T).T
 
         hits = []
         p0 = np.asarray(sensor_pos_world, dtype=float)
 
-        # optional: exclude nothing (you can later exclude robot geoms with geomgroup)
         geomgroup = np.ones(6, dtype=np.uint8)
 
         for d in dirs_world:
@@ -164,9 +235,9 @@ class MuJoCoLidar3D:
                 p0,
                 d,
                 geomgroup,
-                1,          # include static geoms
-                -1,         # bodyexclude
-                geomid      # <-- REQUIRED in your version
+                1,
+                bodyexclude,
+                geomid
             )
 
             if dist > 0 and dist < self.max_range:
@@ -431,7 +502,17 @@ mpc_update_time_ms = []
 mpc_solve_time_ms = []
 X_opt = None
 U_opt = None
-
+def debug_plot_heightmap(hmap, res, origin):
+    plt.figure("Global Height Map", clear=True)
+    extent = [
+        origin[0],
+        origin[0] + hmap.shape[1]*res,
+        origin[1],
+        origin[1] + hmap.shape[0]*res
+    ]
+    plt.imshow(heightmap.hmap, origin="lower", extent=extent, vmin=0, vmax=0.5)
+    plt.colorbar(label="World Z (m)")
+    plt.pause(0.001)
 # --------------------------------------------------------------------------------
 # Simulation Initialization
 # --------------------------------------------------------------------------------
@@ -439,11 +520,10 @@ U_opt = None
 go2 = PinGo2Model()
 mujoco_go2 = MuJoCo_GO2_Model()
 lidar = MuJoCoLidar3D(mujoco_go2.model, mujoco_go2.data, n_az=72, n_el=5, max_range=6.0)
+heightmap = GlobalHeightMap(size_xy=12.0, res=0.02)
 leg_controller = LegController()
 traj = ComTraj(go2)
 gait = Gait(GAIT_HZ, GAIT_DUTY)
-# Share terrain with gait via go2
-go2.terrain = traj.terrain
 
 traj.generate_traj(
     go2,
@@ -473,6 +553,8 @@ mujoco_go2.model.opt.timestep = SIM_DT
 
 
 # Safe defaults until first solve
+obstacle_xy = np.zeros((0, 2), dtype=float)
+u0 = np.array([0.0, 0.0, 0.0], dtype=float)
 U_opt = np.zeros((12, traj.N), dtype=float)
 
 # --------------------------------------------------------------------------------
@@ -546,10 +628,39 @@ with mj.viewer.launch_passive(mujoco_go2.model, mujoco_go2.data) as viewer:
 
                 if (ctrl_i % (4 * STEPS_PER_MPC)) == 0:
                     # LiDAR origin (a bit above COM so it doesn't hit the ground instantly)
-                    lidar_origin = np.array([px, py, 0.35], dtype=float)
+                    lidar_origin = go2.current_config.base_pos.copy()
+                    lidar_origin[2] += 0.05
 
-                    hits_world = lidar.scan(lidar_origin, yaw)        # (N,3)
-                    obstacle_xy = hits_world[:, :2]                   # (N,2)
+                    base_body_id = mj.mj_name2id(
+                        mujoco_go2.model,
+                        mj.mjtObj.mjOBJ_BODY,
+                        "trunk"
+                    )
+
+                    Rwb = mujoco_go2.data.xmat[base_body_id].reshape(3,3).copy()
+
+                    # Perform scan using full base rotation
+                    trunk_id = mj.mj_name2id(mujoco_go2.model, mj.mjtObj.mjOBJ_BODY, "trunk")
+                    hits_world = lidar.scan(lidar_origin, Rwb, bodyexclude=trunk_id)
+                    # 1) drop ground returns (tune threshold)
+                    zmin = 0.05              # keep points above 5cm (obstacles)
+                    zmax = 1.20              # optional: ignore very high stuff
+                    keep_z = (hits_world[:,2] > zmin) & (hits_world[:,2] < zmax)
+
+                    # 2) drop points too close to robot (self/noise)
+                    dx = hits_world[:,0] - px
+                    dy = hits_world[:,1] - py
+                    r = np.sqrt(dx*dx + dy*dy)
+                    keep_r = r > 0.45        # keep points farther than ~45cm from COM
+
+                    hits_filt = hits_world[keep_z & keep_r]
+                    obstacle_xy = hits_filt[:, :2]
+
+                    # --- UPDATE GLOBAL HEIGHT MAP ---
+                    heightmap.update(hits_world)
+                    go2.terrain = heightmap
+                    # if ctrl_i % 40 == 0:
+                    #     debug_plot_heightmap(heightmap.hmap, heightmap.res, heightmap.origin_xy)
 
                     # downsample for speed (VERY important)
                     if obstacle_xy.shape[0] > 250:
@@ -558,6 +669,7 @@ with mj.viewer.launch_passive(mujoco_go2.model, mujoco_go2.data) as viewer:
 
                     u0 = mppi.command(state0, goal_xy, obstacle_xy)
                 if ctrl_i % 10 == 0:  # don’t draw every tick
+                    # pass
                     debug_plot_mppi(
                         state0,
                         goal_xy,
