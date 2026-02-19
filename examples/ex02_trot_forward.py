@@ -120,7 +120,7 @@ class GlobalHeightMap:
     def update(self, hits_world):
 
         # clear MAP EVERY FRAME
-        self.hmap[:] = 0.0
+        self.hmap[:] = np.nan
 
         if hits_world.shape[0] == 0:
             return
@@ -142,7 +142,29 @@ class GlobalHeightMap:
         z = z[valid]
 
         for i, j, zz in zip(ix, iy, z):
-            self.hmap[j, i] = zz
+            prev = self.hmap[j, i]
+            if np.isnan(prev):
+                self.hmap[j, i] = zz
+            else:
+                self.hmap[j, i] = max(prev, zz)
+
+    def query_height_batch(self, x, y):
+        ix = ((x - self.origin_xy[0]) / self.res).astype(int)
+        iy = ((y - self.origin_xy[1]) / self.res).astype(int)
+
+        valid = (
+            (ix >= 0) & (ix < self.N) &
+            (iy >= 0) & (iy < self.N)
+        )
+
+        z = np.zeros_like(x)
+        vals = self.hmap[iy[valid], ix[valid]]
+        vals = np.where(np.isnan(vals), 0.0, vals)
+        z[valid] = vals
+
+
+        return z
+
 
 def get_body_cmd(t: float):
     for phase in CMD_SCHEDULE:
@@ -237,7 +259,7 @@ class Nav2StyleMPPI:
 
         # --- MPPI parameters ---
         self.dt = dt
-        self.H = 80              # ~1.66s lookahead with dt=0.0208
+        self.H = 150              # ~1.66s lookahead with dt=0.0208
         self.BATCH = 600         # still feasible
         self.ITERS = 3           # better convergence
 
@@ -245,7 +267,7 @@ class Nav2StyleMPPI:
         self.ALPHA = 0.85        # correlated noise
 
         # velocity limits (keep conservative!)
-        self.vx_min, self.vx_max = 0.0, 0.6
+        self.vx_min, self.vx_max = 0.0, 0.5
         self.vy_min, self.vy_max = -0.3, 0.3
         self.wz_min, self.wz_max = -1.0, 1.0
 
@@ -254,6 +276,9 @@ class Nav2StyleMPPI:
 
         # persistent sequence
         self.U = np.zeros((self.H, 3))
+        self.terrain = None
+    def set_terrain(self, heightmap):
+        self.terrain = heightmap
 
     # --------------------------------------
     # correlated noise
@@ -275,7 +300,7 @@ class Nav2StyleMPPI:
     def rollout(self, state, U_batch):
 
         B, T, _ = U_batch.shape
-        X = np.zeros((B, T, 3))
+        X = np.zeros((B, T, 4))
 
         x = np.full(B, state[0])
         y = np.full(B, state[1])
@@ -291,9 +316,16 @@ class Nav2StyleMPPI:
             y += (vx*np.sin(yaw) + vy*np.cos(yaw)) * self.dt
             yaw += wz * self.dt
 
+            # after updating x, y, yaw
+
+            z = np.full_like(x, 0.27)
+
+
             X[:, t, 0] = x
             X[:, t, 1] = y
-            X[:, t, 2] = yaw
+            X[:, t, 2] = z
+            X[:, t, 3] = yaw
+
 
         return X
 
@@ -305,7 +337,9 @@ class Nav2StyleMPPI:
 
         x = X[:, :, 0]
         y = X[:, :, 1]
-        yaw = X[:, :, 2]
+        z = X[:, :, 2]
+        yaw = X[:, :, 3]
+
 
         # goal distance
         goal_cost = ((x - goal[0])**2 + (y - goal[1])**2).mean(axis=1)
@@ -343,10 +377,81 @@ class Nav2StyleMPPI:
 
             soft = np.exp(-3.0 * dmin).mean(axis=1)
 
-            obs_cost = 500.0 * hard + 20.0 * soft
+            obs_cost_xy = 1000.0 * hard + 50.0 * soft
 
         else:
-            obs_cost = np.zeros(x.shape[0])
+            obs_cost_xy = np.zeros(x.shape[0])
+        # -----------------------------------------
+# CBF-inspired horizontal safety barrier
+# -----------------------------------------
+        if obstacle_xy is not None and obstacle_xy.shape[0] > 0:
+
+            ds = inflation
+            eps = 1e-3
+
+            gap = np.maximum(eps, dmin - ds)
+
+            cbf_raw = 1.0 / (gap**2)
+            cbf_raw = np.clip(cbf_raw, 0.0, 1e4)
+            cbf_pen = cbf_raw.mean(axis=1)
+
+
+            obs_cost_cbf = 5.0 * cbf_pen   # tune
+        else:
+            obs_cost_cbf = np.zeros(x.shape[0])
+        # -----------------------------------------
+# Terrain clearance cost
+# -----------------------------------------
+        z_ground = self.terrain.query_height_batch(
+            x.reshape(-1),
+            y.reshape(-1)
+        ).reshape(x.shape)
+
+        clearance = z - z_ground
+
+        min_clearance = 0.20
+
+        viol = np.maximum(0.0, min_clearance - clearance)
+
+        terrain_cost = 70.0 * (viol**2).mean(axis=1)
+    # -----------------------------------------
+# Slope penalty
+# -----------------------------------------
+        dzdx = np.zeros_like(x)
+        dzdy = np.zeros_like(y)
+
+        delta = self.terrain.res
+
+        # central differences
+        z_x1 = self.terrain.query_height_batch(
+            (x + delta).reshape(-1),
+            y.reshape(-1)
+        ).reshape(x.shape)
+
+        z_x2 = self.terrain.query_height_batch(
+            (x - delta).reshape(-1),
+            y.reshape(-1)
+        ).reshape(x.shape)
+
+        z_y1 = self.terrain.query_height_batch(
+            x.reshape(-1),
+            (y + delta).reshape(-1)
+        ).reshape(x.shape)
+
+        z_y2 = self.terrain.query_height_batch(
+            x.reshape(-1),
+            (y - delta).reshape(-1)
+        ).reshape(x.shape)
+
+        dzdx = (z_x1 - z_x2) / (2*delta)
+        dzdy = (z_y1 - z_y2) / (2*delta)
+
+        slope_mag = np.sqrt(dzdx**2 + dzdy**2)
+
+        slope_cost = 5.0 * (slope_mag**2).mean(axis=1)
+
+
+
 
         
 
@@ -364,15 +469,23 @@ class Nav2StyleMPPI:
         # control effort
         effort = (U_batch**2).mean(axis=(1,2))
 
+        obs_total = (
+            obs_cost_xy +
+            obs_cost_cbf +
+            terrain_cost +
+            slope_cost
+        )
+
         return (
             4.0 * goal_cost +
             10.0 * term +
             3.0 * heading_cost +
-            1.0 * obs_cost +
+            5.0 * obs_total +
             0.2 * smooth +
             0.05 * effort
-            - 6.0 * progress
+            - 2.0 * progress
         )
+
 
     # --------------------------------------
     # main step
@@ -514,6 +627,7 @@ mpc = CentroidalMPC(go2, traj)
 
 # mppi_cfg = MPPIConfig(horizon_steps=traj.N, dt=MPC_DT)
 mppi = Nav2StyleMPPI(MPC_DT)
+mppi.set_terrain(heightmap)
 
 goal_xy = np.array([3.0, 0.0])
 box_radius = 0.75

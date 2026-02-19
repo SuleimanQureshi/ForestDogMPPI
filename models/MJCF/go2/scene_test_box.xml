@@ -42,12 +42,12 @@
     <body name="pillar" pos="0.5 -1.5 0">
       <geom type="box" size="0.2 0.2 0.6" rgba="1 0 0 1"/>
     </body>
-    <geom name="ramp"
+    <!-- <geom name="ramp"
       type="box"
       pos="3 -1 0.15"
       size="0.8 0.6 0.15"
       euler="0 -0.3 0"
-      rgba="0.6 0.3 0.1 1"/>
+      rgba="0.6 0.3 0.1 1"/> -->
 
 
     <!-- 
