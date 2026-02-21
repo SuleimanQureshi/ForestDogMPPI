@@ -23,7 +23,8 @@ from convex_mpc.plot_helper import plot_mpc_result, plot_swing_foot_traj, plot_s
 # Simulation Setting
 INITIAL_X_POS = -2
 INITIAL_Y_POS = 0
-RUN_SIM_LENGTH_S = 10.0
+# How long does the simulation run for How much time 
+RUN_SIM_LENGTH_S = 2.0
 
 RENDER_HZ = 120.0
 RENDER_DT = 1.0 / RENDER_HZ
@@ -131,23 +132,16 @@ def visualize_lidar_hits(viewer, hits_world, max_points=200):
 
 @dataclass
 class GlobalHeightMap:
-    size_xy: float = 10.0
-    res: float = 0.05
+    size_xy: float = 12.0
+    res: float = 0.02
 
     def __post_init__(self):
         self.N = int(self.size_xy / self.res)
         self.hmap = np.full((self.N, self.N), np.nan, dtype=np.float32)
+        self.origin_xy = np.array([-self.size_xy / 2.0, -self.size_xy / 2.0])
 
-        self.origin_xy = np.array([
-            -self.size_xy / 2.0,
-            -self.size_xy / 2.0
-        ])
-
-    def update(self, hits_world):
-
-        # clear MAP EVERY FRAME
-        self.hmap[:] = np.nan
-
+    def update(self, hits_world: np.ndarray):
+        # DO NOT clear every frame (persistence is the point)
         if hits_world.shape[0] == 0:
             return
 
@@ -158,17 +152,31 @@ class GlobalHeightMap:
         ix = ((x - self.origin_xy[0]) / self.res).astype(int)
         iy = ((y - self.origin_xy[1]) / self.res).astype(int)
 
-        valid = (
-            (ix >= 0) & (ix < self.N) &
-            (iy >= 0) & (iy < self.N)
-        )
-
+        valid = (ix >= 0) & (ix < self.N) & (iy >= 0) & (iy < self.N)
         ix = ix[valid]
         iy = iy[valid]
         z = z[valid]
 
+        # keep max height per cell (helps obstacles remain visible)
         for i, j, zz in zip(ix, iy, z):
-            self.hmap[j, i] = zz
+            prev = self.hmap[j, i]
+            if np.isnan(prev):
+                self.hmap[j, i] = zz
+            else:
+                self.hmap[j, i] = max(prev, zz)
+
+    def query_height_batch(self, x: np.ndarray, y: np.ndarray) -> np.ndarray:
+        ix = ((x - self.origin_xy[0]) / self.res).astype(int)
+        iy = ((y - self.origin_xy[1]) / self.res).astype(int)
+
+        valid = (ix >= 0) & (ix < self.N) & (iy >= 0) & (iy < self.N)
+
+        z = np.zeros_like(x, dtype=float)
+        vals = self.hmap[iy[valid], ix[valid]]
+        vals = np.where(np.isnan(vals), 0.0, vals)
+        z[valid] = vals
+        return z
+
     def height_and_normal(self, x: float, y: float):
         """
         Query height map at (x,y).
@@ -208,21 +216,83 @@ class GlobalHeightMap:
         normal /= (np.linalg.norm(normal) + 1e-9)
 
         return float(z), normal
-    def query_height_batch(self, x, y):
+class ObstacleCostMap2D:
+
+    def __init__(self, size_xy=12.0, res=0.05):
+        self.size_xy = size_xy
+        self.res = res
+        self.N = int(size_xy / res)
+
+        self.origin_xy = np.array([-size_xy/2, -size_xy/2])
+        self.grid = np.zeros((self.N, self.N), dtype=np.float32)
+
+        self.decay = 0.98
+        self.inflate_radius = 0.3
+
+    def world_to_grid(self, x, y):
         ix = ((x - self.origin_xy[0]) / self.res).astype(int)
         iy = ((y - self.origin_xy[1]) / self.res).astype(int)
+        return ix, iy
 
-        valid = (
-            (ix >= 0) & (ix < self.N) &
-            (iy >= 0) & (iy < self.N)
-        )
+    def update(self, hits_world):
 
-        z = np.zeros_like(x)
-        vals = self.hmap[iy[valid], ix[valid]]
-        vals = np.where(np.isnan(vals), 0.0, vals)
-        z[valid] = vals
+        # decay persistent cost field
+        self.grid *= self.decay
 
-        return z
+        if hits_world.shape[0] == 0:
+            return
+
+        # --- Create temporary raw obstacle grid ---
+        raw = np.zeros_like(self.grid)
+
+        x = hits_world[:,0]
+        y = hits_world[:,1]
+
+        ix, iy = self.world_to_grid(x,y)
+
+        valid = (ix>=0)&(ix<self.N)&(iy>=0)&(iy<self.N)
+        ix = ix[valid]
+        iy = iy[valid]
+
+        raw[iy, ix] = 1.0
+
+        # --- Inflate raw obstacles ONLY ---
+        inflated = self.inflate_from_raw(raw)
+
+        # --- Merge with persistent grid ---
+        self.grid = np.maximum(self.grid, inflated)
+
+    def inflate_from_raw(self, raw):
+
+        inflated = raw.copy()
+        radius_cells = int(self.inflate_radius / self.res)
+
+        for i in range(self.N):
+            for j in range(self.N):
+                if raw[j,i] > 0.5:
+
+                    for dx in range(-radius_cells, radius_cells+1):
+                        for dy in range(-radius_cells, radius_cells+1):
+
+                            ni = i+dx
+                            nj = j+dy
+
+                            if 0<=ni<self.N and 0<=nj<self.N:
+                                dist = np.sqrt(dx*dx+dy*dy)*self.res
+                                cost = max(0.0, 1.0 - dist/self.inflate_radius)
+                                inflated[nj,ni] = max(inflated[nj,ni], cost)
+
+        return inflated
+
+    def query_cost_batch(self, x, y):
+        ix, iy = self.world_to_grid(x,y)
+
+        valid = (ix>=0)&(ix<self.N)&(iy>=0)&(iy<self.N)
+
+        cost = np.zeros_like(x)
+        cost[valid] = self.grid[iy[valid], ix[valid]]
+        return cost
+
 
 
 class MuJoCoLidar3D:
@@ -308,26 +378,32 @@ class Nav2StyleMPPI:
 
         # --- MPPI parameters ---
         self.dt = dt
-        self.H = 100              # ~1.66s lookahead with dt=0.0208
+        self.H = 130              # ~1.66s lookahead with dt=0.0208
         self.BATCH = 600         # still feasible
-        self.ITERS = 3           # better convergence
+        self.ITERS = 2           # better convergence
 
-        self.LAMBDA = 2.5
-        self.ALPHA = 0.3        # correlated noise
+        self.LAMBDA = 8.0
+        self.ALPHA = 0.1        # correlated noise
 
         # velocity limits (keep conservative!)
         self.vx_min, self.vx_max = 0.0, 0.6
         self.vy_min, self.vy_max = -0.6, 0.6
-        self.wz_min, self.wz_max = -2.0, 2.0
+        self.wz_min, self.wz_max = -1.0, 1.0
+        
+        self.costmap = None
 
+        self.best_traj = np.zeros((self.H,3))
         # noise std
-        self.std = np.array([0.15, 0.35, 0.5]) # allow lateral/turn exploration
+        self.std = np.array([0.06, 0.12, 0.10]) # allow lateral/turn exploration
+
+        self.side_bias = 0.0
 
         # persistent sequence
         self.U = np.zeros((self.H, 3))
 
         self.terrain = None
-
+    def set_costmap(self, costmap):
+        self.costmap = costmap
     def set_terrain(self, heightmap):
         self.terrain = heightmap
 
@@ -344,7 +420,9 @@ class Nav2StyleMPPI:
                 self.ALPHA * eps[:, t-1, :]
                 + (1.0 - self.ALPHA) * eps[:, t, :]
             )
-        eps[:, :, 0] += 0.05   # small forward bias
+        # eps[:, :, 0] += 0.05   # small forward bias
+        eps[:, :, 1] += self.side_bias
+
         return eps
 
     # --------------------------------------
@@ -410,82 +488,53 @@ class Nav2StyleMPPI:
 
         # obstacle cost (soft + hard safety)
         # obstacle cost from point cloud (no single radius / supports many objects)
-        if obstacle_xy is not None and obstacle_xy.shape[0] > 0:
+        if self.costmap is not None:
 
-            px = x[:, :, None]
-            py = y[:, :, None]
-
-            ox = obstacle_xy[:, 0][None, None, :]
-            oy = obstacle_xy[:, 1][None, None, :]
-
-            d = np.sqrt((px - ox)**2 + (py - oy)**2)
-            dmin = d.min(axis=2)
-
-            robot_radius = 0.35
-            safety_margin = 0.4
-            inflation = robot_radius + safety_margin
-
-            inside = np.maximum(0.0, inflation - dmin)
-            hard = (inside**2).mean(axis=1)
-
-            soft = np.exp(-0.8 * dmin).mean(axis=1)   # slower decay = wider field
-            obs_cost = 400.0 * hard + 80.0 * soft
-
-
-        else:
-            obs_cost = np.zeros(x.shape[0])
-        # --------------------------
-        # Terrain clearance
-        # --------------------------
-        if self.terrain is not None:
-            z_ground = self.terrain.query_height_batch(
+            cost_vals = self.costmap.query_cost_batch(
                 x.reshape(-1),
                 y.reshape(-1)
+            ).reshape(x.shape)
+
+            obs_total = 150.0 * cost_vals.mean(axis=1)
+
+        else:
+            obs_total = np.zeros(x.shape[0])
+
+
+
+        # -----------------------------
+        # Terrain clearance term
+        # -----------------------------
+        if self.terrain is not None:
+            z_ground = self.terrain.query_height_batch(
+                x.reshape(-1), y.reshape(-1)
             ).reshape(x.shape)
 
             clearance = z - z_ground
             min_clearance = 0.20
-
             viol = np.maximum(0.0, min_clearance - clearance)
-            terrain_cost = 40.0 * (viol**2).mean(axis=1)
-        else:
-            terrain_cost = np.zeros(x.shape[0])
+            terrain_cost = 70.0 * (viol**2).mean(axis=1)
 
-        # --------------------------
-        # Slope penalty
-        # --------------------------
-        if self.terrain is not None:
+            # -----------------------------
+            # Slope term (terrain gradient)
+            # -----------------------------
             delta = self.terrain.res
+            z_x1 = self.terrain.query_height_batch((x + delta).reshape(-1), y.reshape(-1)).reshape(x.shape)
+            z_x2 = self.terrain.query_height_batch((x - delta).reshape(-1), y.reshape(-1)).reshape(x.shape)
+            z_y1 = self.terrain.query_height_batch(x.reshape(-1), (y + delta).reshape(-1)).reshape(x.shape)
+            z_y2 = self.terrain.query_height_batch(x.reshape(-1), (y - delta).reshape(-1)).reshape(x.shape)
 
-            z_x1 = self.terrain.query_height_batch(
-                (x + delta).reshape(-1),
-                y.reshape(-1)
-            ).reshape(x.shape)
-
-            z_x2 = self.terrain.query_height_batch(
-                (x - delta).reshape(-1),
-                y.reshape(-1)
-            ).reshape(x.shape)
-
-            z_y1 = self.terrain.query_height_batch(
-                x.reshape(-1),
-                (y + delta).reshape(-1)
-            ).reshape(x.shape)
-
-            z_y2 = self.terrain.query_height_batch(
-                x.reshape(-1),
-                (y - delta).reshape(-1)
-            ).reshape(x.shape)
-
-            dzdx = (z_x1 - z_x2) / (2*delta)
-            dzdy = (z_y1 - z_y2) / (2*delta)
+            dzdx = (z_x1 - z_x2) / (2 * delta)
+            dzdy = (z_y1 - z_y2) / (2 * delta)
 
             slope_mag = np.sqrt(dzdx**2 + dzdy**2)
-            slope_cost = 4.0 * (slope_mag**2).mean(axis=1)
+            slope_cost = 5.0 * (slope_mag**2).mean(axis=1)
         else:
+            terrain_cost = np.zeros(x.shape[0])
             slope_cost = np.zeros(x.shape[0])
 
 
+        # obs_total = obs_cost + obs_cost_cbf + terrain_cost + slope_cost
 
         #Progress param
         d0 = np.sqrt((x[:, 0] - goal[0])**2 + (y[:, 0] - goal[1])**2)      # distance at start of rollout
@@ -500,17 +549,34 @@ class Nav2StyleMPPI:
         # control effort
         effort = (U_batch**2).mean(axis=(1,2))
 
+        # Penalize lateral motion (prefer forward motion)
+        lateral_cost = (U_batch[:,:,1]**2).mean(axis=1)
+
+        # Prefer velocity aligned with heading
+        vx = U_batch[:,:,0]
+        vy = U_batch[:,:,1]
+
+        speed = np.sqrt(vx**2 + vy**2) + 1e-6
+        forward_ratio = vx / speed
+
+        # penalize sideways ratio
+        direction_cost = ((1.0 - forward_ratio)**2).mean(axis=1)
+
+
+
+
         return (
-            1.5 * goal_cost +
-            4.0 * term +
-            1.0 * heading_cost +
-            1.0 * obs_cost +
-            terrain_cost +
-            slope_cost +
+            2.0 * goal_cost +
+            6.0 * term +
+            3.0 * heading_cost +
+            1.8 * obs_total +
             0.2 * smooth +
-            0.05 * effort
-            - 6.0 * progress
+            0.05 * effort +
+            0.8 * lateral_cost +
+            1.5 * direction_cost
+            - 2.5 * progress
         )
+
 
 
 
@@ -522,7 +588,7 @@ class Nav2StyleMPPI:
         for _ in range(self.ITERS):
 
             eps = self.correlated_noise()
-            U_batch = self.U[None, :, :] + eps
+            U_batch = self.best_traj[None,:,:] + eps
             # Inject symmetric lateral bias
             # lateral_bias = np.linspace(-0.5, 0.5, self.BATCH)
             # U_batch[:, :, 1] += lateral_bias[:, None]
@@ -530,12 +596,27 @@ class Nav2StyleMPPI:
             X = self.rollout(state, U_batch)
             costs = self.cost(X, U_batch, goal, obstacle_xy)
 
-            beta = costs.min()
-            w = np.exp(-(costs - beta) / self.LAMBDA)
+            best_idx = np.argmin(costs)
+            best_traj = U_batch[best_idx].copy()
+            self.best_traj = best_traj
+            # --- Select elite subset ---
+            elite_frac = 0.2      # top 20%
+            K = int(elite_frac * self.BATCH)
+            elite_idx = np.argsort(costs)[:K]
+
+            costs_elite = costs[elite_idx]
+            U_elite = U_batch[elite_idx]
+
+            # --- Temperature parameter ---
+            tau = 0.4   # tuning knob (try 1.0–5.0)
+
+            beta = costs_elite.min()
+            w = np.exp(-(costs_elite - beta) / tau)
             w /= (w.sum() + 1e-9)
 
-            dU = (w[:, None, None] * eps).sum(axis=0)
-            self.U += dU
+            # --- Weighted mean of elite trajectories ---
+            self.U = np.sum(w[:, None, None] * U_elite, axis=0)
+
 
             # clip feasible
             self.U[:, 0] = np.clip(self.U[:, 0], self.vx_min, self.vx_max)
@@ -545,11 +626,19 @@ class Nav2StyleMPPI:
         # execute first control
         u0 = self.U[0].copy()
 
+        # If obstacle present, determine relative lateral offset
+        if obstacle_xy is not None and obstacle_xy.shape[0] > 0:
+            mean_y = obstacle_xy[:,1].mean()
+            self.side_bias = -0.2 if mean_y > 0 else 0.2
+
+
         # receding horizon
         self.U[:-1] = self.U[1:]
         self.U[-1] = self.U[-2]
 
         self.last_U_batch = U_batch
+        self.best_traj[:-1] = self.best_traj[1:]
+        self.best_traj[-1] = self.best_traj[-2]
 
         return u0
 
@@ -560,26 +649,63 @@ def debug_plot_mppi(state, goal, obstacle_xy, U_batch, mppi):
 
     plt.clf()
 
-    # --- Rollout all trajectories ---
-    X = mppi.rollout(state, U_batch)
+    # -----------------------------
+    # 1️⃣ Draw Costmap
+    # -----------------------------
+    if mppi.costmap is not None:
 
-    for i in range(min(80, X.shape[0])):  # don't plot all 600
-        plt.plot(X[i,:,0], X[i,:,1], color='blue', alpha=0.1)
+        grid = mppi.costmap.grid
+        res = mppi.costmap.res
+        origin = mppi.costmap.origin_xy
 
-    # --- Robot position ---
+        extent = [
+            origin[0],
+            origin[0] + grid.shape[1] * res,
+            origin[1],
+            origin[1] + grid.shape[0] * res,
+        ]
+
+        plt.imshow(
+            grid,
+            origin="lower",
+            extent=extent,
+            cmap="hot",
+            alpha=0.5,
+            vmin=0,
+            vmax=1
+        )
+
+    # -----------------------------
+    # 2️⃣ Rollouts
+    # -----------------------------
+    if U_batch is not None:
+        X = mppi.rollout(state, U_batch)
+
+        for i in range(min(120, X.shape[0])):
+            plt.plot(
+                X[i,:,0],
+                X[i,:,1],
+                color='blue',
+                alpha=0.15
+            )
+
+    # -----------------------------
+    # 3️⃣ Robot + Goal
+    # -----------------------------
     plt.scatter(state[0], state[1], c='black', s=80, label="Robot")
-
-    # --- Goal ---
     plt.scatter(goal[0], goal[1], c='green', s=120, label="Goal")
 
-    # --- Obstacles (LiDAR points) ---
+    # -----------------------------
+    # 4️⃣ Raw LiDAR points (optional)
+    # -----------------------------
     if obstacle_xy is not None and obstacle_xy.shape[0] > 0:
-        plt.scatter(obstacle_xy[:,0], obstacle_xy[:,1], c='red', s=5)
+        plt.scatter(obstacle_xy[:,0], obstacle_xy[:,1],
+                    c='cyan', s=5, label="LiDAR")
 
     plt.axis("equal")
-    plt.xlim(-4,4)
+    plt.xlim(-4, 4)
     plt.ylim(-4, 4)
-    plt.legend()
+    plt.legend(loc="upper right")
     plt.pause(0.001)
 
 # --------------------------------------------------------------------------------
@@ -643,6 +769,7 @@ lidar = MuJoCoLidar3D(
     max_range=6.0
 )
 heightmap = GlobalHeightMap(size_xy=12.0, res=0.02)
+costmap = ObstacleCostMap2D(size_xy=12.0, res=0.05)
 leg_controller = LegController()
 traj = ComTraj(go2)
 gait = Gait(GAIT_HZ, GAIT_DUTY)
@@ -661,7 +788,8 @@ mpc = CentroidalMPC(go2, traj)
 
 # mppi_cfg = MPPIConfig(horizon_steps=traj.N, dt=MPC_DT)
 mppi = Nav2StyleMPPI(MPC_DT)
-
+mppi.set_terrain(heightmap)
+mppi.set_costmap(costmap)
 goal_xy = np.array([3.0, 0.0])
 box_radius = 0.75
 
@@ -696,6 +824,7 @@ sim_start_time = time.perf_counter()
 
 ctrl_i = 0
 tau_hold = np.zeros(12, dtype=float)
+debug_frames = []
 with mj.viewer.launch_passive(mujoco_go2.model, mujoco_go2.data) as viewer:
 
     viewer.cam.distance = 3
@@ -753,7 +882,7 @@ with mj.viewer.launch_passive(mujoco_go2.model, mujoco_go2.data) as viewer:
                     lidar_origin = go2.current_config.base_pos.copy()
                     lidar_origin[2] -= 0.1
                     
-                    print("LiDAR origin:", lidar_origin)
+                    # print("LiDAR origin:", lidar_origin)
 
 
                     base_body_id = mj.mj_name2id(
@@ -768,9 +897,9 @@ with mj.viewer.launch_passive(mujoco_go2.model, mujoco_go2.data) as viewer:
                     trunk_id = mj.mj_name2id(mujoco_go2.model, mj.mjtObj.mjOBJ_BODY, "trunk")
                     hits_world = lidar.scan(lidar_origin, Rwb, bodyexclude=trunk_id)
                     
-                    print("Raw hits:", hits_world.shape[0])
-                    if hits_world.shape[0] > 0:
-                        print("Max hit Z:", hits_world[:,2].max())
+                    # print("Raw hits:", hits_world.shape[0])
+                    # if hits_world.shape[0] > 0:
+                    #     print("Max hit Z:", hits_world[:,2].max())
 
 
                     # 1) drop ground returns (tune threshold)
@@ -785,13 +914,13 @@ with mj.viewer.launch_passive(mujoco_go2.model, mujoco_go2.data) as viewer:
                     keep_r = r > 0.45        # keep points farther than ~45cm from COM
 
                     hits_filt = hits_world[keep_z & keep_r]
+                    costmap.update(hits_filt)
                     obstacle_xy = hits_filt[:, :2]
                     visualize_lidar_hits(viewer, hits_filt)
 
                     # --- UPDATE GLOBAL HEIGHT MAP ---
                     heightmap.update(hits_world)
                     go2.terrain = heightmap
-                    mppi.set_terrain(heightmap)
 
                     # if ctrl_i % 40 == 0:
                     #     debug_plot_heightmap(heightmap.hmap, heightmap.res, heightmap.origin_xy)
@@ -802,15 +931,23 @@ with mj.viewer.launch_passive(mujoco_go2.model, mujoco_go2.data) as viewer:
                         obstacle_xy = obstacle_xy[idx]
 
                     u0 = mppi.command(state0, goal_xy, obstacle_xy)
-                if ctrl_i % 10 == 0:  # don’t draw every tick
-                    # pass
-                    debug_plot_mppi(
-                        state0,
-                        goal_xy,
-                        obstacle_xy,
-                        mppi.last_U_batch,
-                        mppi
-                    )
+                    debug_frames.append({
+                        "state": state0.copy(),
+                        "U_batch": mppi.last_U_batch.copy(),
+                        "costmap": costmap.grid.copy(),
+                        "obstacles": obstacle_xy.copy()
+                    })
+
+
+                # if ctrl_i % 10 == 0:  # don’t draw every tick
+                #     # pass
+                #     debug_plot_mppi(
+                #         state0,
+                #         goal_xy,
+                #         obstacle_xy,
+                #         mppi.last_U_batch,
+                #         mppi
+                #     )
 
 
                 vx_des_body = float(u0[0])
@@ -897,7 +1034,7 @@ with mj.viewer.launch_passive(mujoco_go2.model, mujoco_go2.data) as viewer:
         mj.mj_step1(mujoco_go2.model, mujoco_go2.data)
         mujoco_go2.set_joint_torque(tau_hold)
         mj.mj_step2(mujoco_go2.model, mujoco_go2.data)
-        viewer.sync()
+        # viewer.sync()
         #Render-rate logging for smooth replay
         t_after = float(mujoco_go2.data.time)
         if t_after + 1e-12 >= next_render_t:
@@ -916,6 +1053,59 @@ print(
 # --------------------------------------------------------------------------------
 # Simulation Results
 # --------------------------------------------------------------------------------
+print("Replaying MPPI debug...")
+
+plt.figure(figsize=(8,8))
+
+for frame in debug_frames:
+
+    plt.clf()
+
+    grid = frame["costmap"]
+    res = costmap.res
+    origin = costmap.origin_xy
+
+    extent = [
+        origin[0],
+        origin[0] + grid.shape[1] * res,
+        origin[1],
+        origin[1] + grid.shape[0] * res,
+    ]
+
+    plt.imshow(grid,
+               origin="lower",
+               extent=extent,
+               cmap="hot",
+               alpha=0.6,
+               vmin=0,
+               vmax=1)
+
+    state = frame["state"]
+    U_batch = frame["U_batch"]
+
+    X = mppi.rollout(state, U_batch)
+
+    for i in range(min(120, X.shape[0])):
+        plt.plot(X[i,:,0], X[i,:,1],
+                 color="blue",
+                 alpha=0.1)
+
+    plt.scatter(state[0], state[1], c='black', s=60)
+    plt.scatter(goal_xy[0], goal_xy[1], c='green', s=100)
+
+    if frame["obstacles"].shape[0] > 0:
+        plt.scatter(frame["obstacles"][:,0],
+                    frame["obstacles"][:,1],
+                    c='cyan', s=5)
+
+    plt.axis("equal")
+    plt.xlim(-4,4)
+    plt.ylim(-4,4)
+
+    plt.pause(0.03)
+
+plt.show()
+
 
 # Plot results
 t_vec = np.arange(ctrl_i) * CTRL_DT
