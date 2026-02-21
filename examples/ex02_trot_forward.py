@@ -24,7 +24,7 @@ from convex_mpc.plot_helper import plot_mpc_result, plot_swing_foot_traj, plot_s
 INITIAL_X_POS = -2
 INITIAL_Y_POS = 0
 # How long does the simulation run for How much time 
-RUN_SIM_LENGTH_S = 2.0
+RUN_SIM_LENGTH_S = 15.0
 
 RENDER_HZ = 120.0
 RENDER_DT = 1.0 / RENDER_HZ
@@ -386,15 +386,15 @@ class Nav2StyleMPPI:
         self.ALPHA = 0.1        # correlated noise
 
         # velocity limits (keep conservative!)
-        self.vx_min, self.vx_max = 0.0, 0.6
+        self.vx_min, self.vx_max = 0.0, 0.8
         self.vy_min, self.vy_max = -0.6, 0.6
-        self.wz_min, self.wz_max = -1.0, 1.0
+        self.wz_min, self.wz_max = -1.5, 1.5
         
         self.costmap = None
 
         self.best_traj = np.zeros((self.H,3))
         # noise std
-        self.std = np.array([0.06, 0.12, 0.10]) # allow lateral/turn exploration
+        self.std = np.array([0.06, 0.12, 0.12]) # allow lateral/turn exploration
 
         self.side_bias = 0.0
 
@@ -495,10 +495,10 @@ class Nav2StyleMPPI:
                 y.reshape(-1)
             ).reshape(x.shape)
 
-            obs_total = 150.0 * cost_vals.mean(axis=1)
+            obs_cost = 150.0 * cost_vals.mean(axis=1)
 
         else:
-            obs_total = np.zeros(x.shape[0])
+            obs_cost = np.zeros(x.shape[0])
 
 
 
@@ -534,7 +534,7 @@ class Nav2StyleMPPI:
             slope_cost = np.zeros(x.shape[0])
 
 
-        # obs_total = obs_cost + obs_cost_cbf + terrain_cost + slope_cost
+        obs_total = obs_cost 
 
         #Progress param
         d0 = np.sqrt((x[:, 0] - goal[0])**2 + (y[:, 0] - goal[1])**2)      # distance at start of rollout
@@ -563,19 +563,32 @@ class Nav2StyleMPPI:
         direction_cost = ((1.0 - forward_ratio)**2).mean(axis=1)
 
 
+        # change behaviours near goal
+        dist_to_goal = np.sqrt((x[:,0] - goal[0])**2 + (y[:,0] - goal[1])**2)
+        near_goal = dist_to_goal < 0.6
 
+        w_goal = 2.0
+        w_term = 6.0
+        w_heading = 3.0
+        w_progress = -2.5
+
+        # amplify terminal behavior near goal
+        # w_term = np.where(near_goal, 15.0, w_term)
+        # w_heading = np.where(near_goal, 6.0, w_heading)
+        # w_progress = np.where(near_goal, -5.0, w_progress)
 
         return (
-            2.0 * goal_cost +
-            6.0 * term +
-            3.0 * heading_cost +
+            w_goal * goal_cost +
+            w_term * term +
+            w_heading * heading_cost +
             1.8 * obs_total +
             0.2 * smooth +
             0.05 * effort +
             0.8 * lateral_cost +
-            1.5 * direction_cost
-            - 2.5 * progress
+            1.5 * direction_cost +
+            w_progress * progress
         )
+
 
 
 
@@ -627,9 +640,9 @@ class Nav2StyleMPPI:
         u0 = self.U[0].copy()
 
         # If obstacle present, determine relative lateral offset
-        if obstacle_xy is not None and obstacle_xy.shape[0] > 0:
-            mean_y = obstacle_xy[:,1].mean()
-            self.side_bias = -0.2 if mean_y > 0 else 0.2
+        # if obstacle_xy is not None and obstacle_xy.shape[0] > 0:
+        #     mean_y = obstacle_xy[:,1].mean()
+        #     self.side_bias = -0.2 if mean_y > 0 else 0.2
 
 
         # receding horizon
