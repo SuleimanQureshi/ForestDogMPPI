@@ -46,7 +46,7 @@ class ComTraj:
                         z_pos_des_body: float,
                         yaw_rate_des_body: float,
                         time_step: float):
-        
+        self.terrain = getattr(go2, "terrain", self.terrain)
         self.initial_x_vec= go2.compute_com_x_vec()
         initial_pos = self.initial_x_vec[0:3]
         self.m = go2.data.Ig.mass

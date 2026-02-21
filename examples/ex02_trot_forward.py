@@ -386,7 +386,7 @@ class Nav2StyleMPPI:
         self.ALPHA = 0.1        # correlated noise
 
         # velocity limits (keep conservative!)
-        self.vx_min, self.vx_max = 0.0, 0.8
+        self.vx_min, self.vx_max = -0.25, 0.8
         self.vy_min, self.vy_max = -0.6, 0.6
         self.wz_min, self.wz_max = -1.5, 1.5
         
@@ -472,14 +472,16 @@ class Nav2StyleMPPI:
     def cost(self, X, U_batch, goal, obstacle_xy):
 
 
-        x = X[:, :, 0]
-        y = X[:, :, 1]
-        z = X[:, :, 2]
-        yaw = X[:, :, 3]
+        x   = X[:, :, 0]
+        y   = X[:, :, 1]
+        yaw = X[:, :, 2]
+        vx  = X[:, :, 3]
+        vy  = X[:, :, 4]
+        wz  = X[:, :, 5]
 
-        vx = U_batch[:,:,0]
-        vy = U_batch[:,:,1]
-        wz = U_batch[:,:,2]
+        # vx = U_batch[:,:,0]
+        # vy = U_batch[:,:,1]
+        # wz = U_batch[:,:,2]
 
 
 
@@ -506,7 +508,7 @@ class Nav2StyleMPPI:
                 y.reshape(-1)
             ).reshape(x.shape)
 
-            obs_cost = 150.0 * cost_vals.mean(axis=1)
+            obs_cost = 80.0 * (cost_vals**2).mean(axis=1)
 
         else:
             obs_cost = np.zeros(x.shape[0])
@@ -517,15 +519,6 @@ class Nav2StyleMPPI:
         # Terrain clearance term
         # -----------------------------
         if self.terrain is not None:
-            z_ground = self.terrain.query_height_batch(
-                x.reshape(-1), y.reshape(-1)
-            ).reshape(x.shape)
-
-            clearance = z - z_ground
-            min_clearance = 0.20
-            viol = np.maximum(0.0, min_clearance - clearance)
-            terrain_cost = 70.0 * (viol**2).mean(axis=1)
-
             # -----------------------------
             # Slope term (terrain gradient)
             # -----------------------------
@@ -587,17 +580,25 @@ class Nav2StyleMPPI:
         w_goal = 2.0
         w_term = 6.0
         w_heading = 3.0
-        w_progress = -2.5
-
+        w_progress = -1.0
+        
         # amplify terminal behavior near goal
-        w_term = np.where(near_goal, 15.0, w_term)
-        w_heading = np.where(near_goal, 6.0, w_heading)
-        w_progress = np.where(near_goal, -5.0, w_progress)
-        vel_penalty = np.where(
-            near_goal,
-            15.0 * terminal_speed + 5.0 * terminal_yaw_rate,
-            0.0
-        )
+        # Kill progress reward near goal
+        w_progress = np.where(near_goal, 0.0, w_progress)
+
+        # Much stronger terminal pull
+        w_term = np.where(near_goal, 40.0, w_term)
+
+        # Strong velocity damping
+        Ktail = 20  # ~0.25s tail if dt~0.0125
+        vx_tail = U_batch[:, -Ktail:, 0]
+        vy_tail = U_batch[:, -Ktail:, 1]
+        wz_tail = U_batch[:, -Ktail:, 2]
+
+        tail_speed = (vx_tail**2 + vy_tail**2).mean(axis=1)
+        tail_yaw   = (wz_tail**2).mean(axis=1)
+
+        vel_penalty = np.where(near_goal, 80.0 * tail_speed + 20.0 * tail_yaw, 0.0)
 
 
         return (
@@ -605,10 +606,11 @@ class Nav2StyleMPPI:
             w_term * term +
             w_heading * heading_cost +
             1.8 * obs_total +
+            # 2.0 * slope_cost +
             0.2 * smooth +
             0.05 * effort +
-            0.8 * lateral_cost +
-            1.5 * direction_cost +
+            # 0.8 * lateral_cost +
+            # 1.5 * direction_cost +
             w_progress * progress +
             vel_penalty
         )
@@ -622,8 +624,13 @@ class Nav2StyleMPPI:
     # --------------------------------------
     def command(self, state, goal, obstacle_xy):
         
+        
         for _ in range(self.ITERS):
-
+            dist = np.hypot(state[0] - goal[0], state[1] - goal[1])
+            if dist < 0.2:
+                self.U[:] = 0.0
+                self.best_traj[:] = 0.0
+                return np.array([0.0, 0.0, 0.0])
             eps = self.correlated_noise()
             U_batch = self.best_traj[None,:,:] + eps
             # Inject symmetric lateral bias
@@ -632,7 +639,10 @@ class Nav2StyleMPPI:
 
             X = self.rollout(state, U_batch)
             costs = self.cost(X, U_batch, goal, obstacle_xy)
-
+            # if np.mean(cost_vals) > 0.15:
+            #     self.std = np.array([0.12, 0.25, 0.25])
+            # else:
+            #     self.std = np.array([0.06, 0.12, 0.12])
             best_idx = np.argmin(costs)
             best_traj = U_batch[best_idx].copy()
             self.best_traj = best_traj
@@ -645,7 +655,7 @@ class Nav2StyleMPPI:
             U_elite = U_batch[elite_idx]
 
             # --- Temperature parameter ---
-            tau = 0.4   # tuning knob (try 1.0–5.0)
+            tau = 1.5   # tuning knob (try 1.0–5.0)
 
             beta = costs_elite.min()
             w = np.exp(-(costs_elite - beta) / tau)
@@ -825,7 +835,7 @@ mpc = CentroidalMPC(go2, traj)
 
 # mppi_cfg = MPPIConfig(horizon_steps=traj.N, dt=MPC_DT)
 mppi = Nav2StyleMPPI(MPC_DT)
-mppi.set_terrain(heightmap)
+# mppi.set_terrain(heightmap)
 mppi.set_costmap(costmap)
 goal_xy = np.array([3.0, 0.0])
 box_radius = 0.75
@@ -909,13 +919,14 @@ with mj.viewer.launch_passive(mujoco_go2.model, mujoco_go2.data) as viewer:
                 print(f"\rSimulation Time: {time_now_s:.3f} s", end="", flush=True)
                 # --- Provide desired velocities to gait/leg controller (used for swing touchdown prediction) ---
                 # MPPI u is in BODY frame (vx, vy, wz) in our planner
-                
-
                 vx_world = x_vec[6, ctrl_i]
                 vy_world = x_vec[7, ctrl_i]
                 wz_world = x_vec[11, ctrl_i]
 
-                state0 = np.array([px, py, yaw, vx_world, vy_world, wz_world])
+                Rwb = go2.R_world_to_body  # 3x3
+                v_body = Rwb @ np.array([vx_world, vy_world, 0.0])
+                vx_body, vy_body = v_body[0], v_body[1]
+                state0 = np.array([px, py, yaw, vx_body, vy_body, wz_world])
 
 
                 if (ctrl_i % (4 * STEPS_PER_MPC)) == 0:
@@ -960,8 +971,8 @@ with mj.viewer.launch_passive(mujoco_go2.model, mujoco_go2.data) as viewer:
                     visualize_lidar_hits(viewer, hits_filt)
 
                     # --- UPDATE GLOBAL HEIGHT MAP ---
-                    heightmap.update(hits_world)
-                    go2.terrain = heightmap
+                    # heightmap.update(hits_world)
+                    # go2.terrain = heightmap
 
                     # if ctrl_i % 40 == 0:
                     #     debug_plot_heightmap(heightmap.hmap, heightmap.res, heightmap.origin_xy)
@@ -970,7 +981,9 @@ with mj.viewer.launch_passive(mujoco_go2.model, mujoco_go2.data) as viewer:
                     if obstacle_xy.shape[0] > 250:
                         idx = np.random.choice(obstacle_xy.shape[0], 250, replace=False)
                         obstacle_xy = obstacle_xy[idx]
-
+                    if ctrl_i % 50 == 0:
+                        print("vx_world, vy_world:", vx_world, vy_world)
+                        print("vx_body, vy_body:", vx_body, vy_body)
                     u0 = mppi.command(state0, goal_xy, obstacle_xy)
                     debug_frames.append({
                         "state": state0.copy(),
@@ -1012,6 +1025,8 @@ with mj.viewer.launch_passive(mujoco_go2.model, mujoco_go2.data) as viewer:
                     wz_des_body,
                     time_step=MPC_DT,
                 )
+                if ctrl_i % 20 == 0:
+                    print("norm_z min/mean:", traj.contact_normals[:,:,2].min(), traj.contact_normals[:,:,2].mean())
 
                 sol = mpc.solve_QP(go2, traj, False)
 
