@@ -227,7 +227,7 @@ class ObstacleCostMap2D:
         self.grid = np.zeros((self.N, self.N), dtype=np.float32)
 
         self.decay = 0.98
-        self.inflate_radius = 0.3
+        self.inflate_radius = 0.8
 
     def world_to_grid(self, x, y):
         ix = ((x - self.origin_xy[0]) / self.res).astype(int)
@@ -431,32 +431,38 @@ class Nav2StyleMPPI:
     def rollout(self, state, U_batch):
 
         B, T, _ = U_batch.shape
-        X = np.zeros((B, T, 4))
+        X = np.zeros((B, T, 6))
 
         x = np.full(B, state[0])
         y = np.full(B, state[1])
         yaw = np.full(B, state[2])
+        vx = np.full(B, state[3])
+        vy = np.full(B, state[4])
+        wz = np.full(B, state[5])
+
+        tau = 0.4  # time constant (tune)
 
         for t in range(T):
 
-            vx = np.clip(U_batch[:, t, 0], self.vx_min, self.vx_max)
-            vy = np.clip(U_batch[:, t, 1], self.vy_min, self.vy_max)
-            wz = np.clip(U_batch[:, t, 2], self.wz_min, self.wz_max)
+            vx_cmd = np.clip(U_batch[:, t, 0], self.vx_min, self.vx_max)
+            vy_cmd = np.clip(U_batch[:, t, 1], self.vy_min, self.vy_max)
+            wz_cmd = np.clip(U_batch[:, t, 2], self.wz_min, self.wz_max)
+
+            # first-order velocity tracking
+            vx += (vx_cmd - vx) * self.dt / tau
+            vy += (vy_cmd - vy) * self.dt / tau
+            wz += (wz_cmd - wz) * self.dt / tau
 
             x += (vx*np.cos(yaw) - vy*np.sin(yaw)) * self.dt
             y += (vx*np.sin(yaw) + vy*np.cos(yaw)) * self.dt
             yaw += wz * self.dt
 
-            if self.terrain is not None:
-                z = self.terrain.query_height_batch(x, y) + 0.27
-            else:
-                z = np.full_like(x, 0.27)
-
             X[:, t, 0] = x
             X[:, t, 1] = y
-            X[:, t, 2] = z
-            X[:, t, 3] = yaw
-
+            X[:, t, 2] = yaw
+            X[:, t, 3] = vx
+            X[:, t, 4] = vy
+            X[:, t, 5] = wz
 
         return X
 
@@ -470,6 +476,11 @@ class Nav2StyleMPPI:
         y = X[:, :, 1]
         z = X[:, :, 2]
         yaw = X[:, :, 3]
+
+        vx = U_batch[:,:,0]
+        vy = U_batch[:,:,1]
+        wz = U_batch[:,:,2]
+
 
 
         # goal distance
@@ -566,6 +577,12 @@ class Nav2StyleMPPI:
         # change behaviours near goal
         dist_to_goal = np.sqrt((x[:,0] - goal[0])**2 + (y[:,0] - goal[1])**2)
         near_goal = dist_to_goal < 0.6
+        vx_T = U_batch[:, -1, 0]
+        vy_T = U_batch[:, -1, 1]
+        wz_T = U_batch[:, -1, 2]
+
+        terminal_speed = vx_T**2 + vy_T**2
+        terminal_yaw_rate = wz_T**2
 
         w_goal = 2.0
         w_term = 6.0
@@ -573,9 +590,15 @@ class Nav2StyleMPPI:
         w_progress = -2.5
 
         # amplify terminal behavior near goal
-        # w_term = np.where(near_goal, 15.0, w_term)
-        # w_heading = np.where(near_goal, 6.0, w_heading)
-        # w_progress = np.where(near_goal, -5.0, w_progress)
+        w_term = np.where(near_goal, 15.0, w_term)
+        w_heading = np.where(near_goal, 6.0, w_heading)
+        w_progress = np.where(near_goal, -5.0, w_progress)
+        vel_penalty = np.where(
+            near_goal,
+            15.0 * terminal_speed + 5.0 * terminal_yaw_rate,
+            0.0
+        )
+
 
         return (
             w_goal * goal_cost +
@@ -586,7 +609,8 @@ class Nav2StyleMPPI:
             0.05 * effort +
             0.8 * lateral_cost +
             1.5 * direction_cost +
-            w_progress * progress
+            w_progress * progress +
+            vel_penalty
         )
 
 
@@ -887,8 +911,12 @@ with mj.viewer.launch_passive(mujoco_go2.model, mujoco_go2.data) as viewer:
                 # MPPI u is in BODY frame (vx, vy, wz) in our planner
                 
 
-                state0 = np.array([px, py, yaw])
-                state0 = np.array([px, py, yaw])
+                vx_world = x_vec[6, ctrl_i]
+                vy_world = x_vec[7, ctrl_i]
+                wz_world = x_vec[11, ctrl_i]
+
+                state0 = np.array([px, py, yaw, vx_world, vy_world, wz_world])
+
 
                 if (ctrl_i % (4 * STEPS_PER_MPC)) == 0:
                     # LiDAR origin (a bit above COM so it doesn't hit the ground instantly)
