@@ -102,7 +102,32 @@ class ComTraj:
         self.pos_traj_world[:, :] = (
             self.pos_des_world.reshape(3, 1) + (vel_desired_world.reshape(3, 1) * t_vec.reshape(1, N))
         )
+        # ----------------------------------------------------
+        # Terrain-consistent COM height and orientation
+        # ----------------------------------------------------
 
+        for i in range(N):
+
+            x_i = self.pos_traj_world[0, i]
+            y_i = self.pos_traj_world[1, i]
+
+            z_ground, n_world = self.terrain.height_and_normal(x_i, y_i)
+
+            # 1️⃣ Raise COM relative to terrain
+            desired_com_height = z_pos_des_body   # relative to ground
+            self.pos_traj_world[2, i] = z_ground + desired_com_height
+
+            # 2️⃣ Light base alignment to terrain slope (small angles)
+            # Convert normal to roll/pitch reference
+            nx, ny, nz = n_world
+
+            pitch = np.arctan2(nx, nz)
+            roll  = -np.arctan2(ny, nz)
+
+            # Blend slightly (do NOT fully align)
+            slope_blend = 0.25  # small blending factor
+            self.rpy_traj_world[0, i] = slope_blend * roll
+            self.rpy_traj_world[1, i] = slope_blend * pitch
 
         # Linear velocity in world: constant over horizon
         self.vel_traj_world[:, :] = vel_desired_world.reshape(3, 1)
