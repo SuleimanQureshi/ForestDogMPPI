@@ -731,23 +731,40 @@ class Nav2StyleMPPI:
         distT = np.sqrt(dxT**2 + dyT**2)
 
         # Gaussian activation near goal
-        sigma = 0.4        # activation radius (meters)
+        sigma = 0.2        # activation radius (meters)
         activation = np.exp(-(distT**2) / (sigma**2))
         radial_pull = activation * 15.0 * distT
-        
+        # -------------------------------------------------
+        # Light terminal yaw alignment
+        # -------------------------------------------------
+
+        yawT = yaw[:, -1]
+
+        goal_ang_T = np.arctan2(
+            goal[1] - y[:, -1],
+            goal[0] - x[:, -1]
+        )
+
+        yaw_error = np.arctan2(
+            np.sin(yawT - goal_ang_T),
+            np.cos(yawT - goal_ang_T)
+        )
+
+        terminal_yaw = 8.0 * activation * (yaw_error**2)
         return (
             w_goal * goal_cost +
             w_term * term +
             w_heading * heading_cost +
             2.0 * obs_total +
-            # 2.0 * slope_cost +
+            1.0 * slope_cost +
             0.2 * smooth +
             0.05 * effort +
             # 0.8 * lateral_cost +
             # 1.5 * direction_cost +
             w_progress * progress +
             vel_penalty +
-            radial_pull
+            radial_pull +
+            terminal_yaw
         )
 
 
