@@ -135,13 +135,31 @@ class GlobalHeightMap:
     size_xy: float = 12.0
     res: float = 0.02
 
+    # Tuning
+    ema_alpha_ground: float = 0.25   # smoothing for ground estimate
+    ema_alpha_top: float = 0.50      # smoothing for top estimate
+    min_points_per_cell: int = 1     # observed mask threshold
+    ground_quantile: float = 0.20    # robust "near-ground" percentile (ramp-safe)
+
     def __post_init__(self):
         self.N = int(self.size_xy / self.res)
-        self.hmap = np.full((self.N, self.N), np.nan, dtype=np.float32)
         self.origin_xy = np.array([-self.size_xy / 2.0, -self.size_xy / 2.0])
 
+        # Dual layers
+        self.h_ground = np.full((self.N, self.N), np.nan, dtype=np.float32)
+        self.h_top    = np.full((self.N, self.N), np.nan, dtype=np.float32)
+
+        # Observed count (mask)
+        self.count = np.zeros((self.N, self.N), dtype=np.uint16)
+        self.obs = np.zeros((self.N, self.N), dtype=np.uint8)
+
+    def world_to_grid(self, x, y):
+        ix = ((x - self.origin_xy[0]) / self.res).astype(int)
+        iy = ((y - self.origin_xy[1]) / self.res).astype(int)
+        return ix, iy
+
     def update(self, hits_world: np.ndarray):
-        # DO NOT clear every frame (persistence is the point)
+        
         if hits_world.shape[0] == 0:
             return
 
@@ -149,66 +167,105 @@ class GlobalHeightMap:
         y = hits_world[:, 1]
         z = hits_world[:, 2]
 
-        ix = ((x - self.origin_xy[0]) / self.res).astype(int)
-        iy = ((y - self.origin_xy[1]) / self.res).astype(int)
+        ix, iy = self.world_to_grid(x, y)
 
         valid = (ix >= 0) & (ix < self.N) & (iy >= 0) & (iy < self.N)
         ix = ix[valid]
         iy = iy[valid]
-        z = z[valid]
+        z  = z[valid]
 
-        # keep max height per cell (helps obstacles remain visible)
-        for i, j, zz in zip(ix, iy, z):
-            prev = self.hmap[j, i]
-            if np.isnan(prev):
-                self.hmap[j, i] = zz
+        # Group points by cell (simple loop; ok at your rates)
+        # For each cell, compute:
+        #   ground_z = quantile(z, ground_quantile)
+        #   top_z    = max(z)
+        # and update with EMA.
+        # NOTE: We iterate only over occupied cells for speed.
+        lin = iy * self.N + ix
+        uniq = np.unique(lin)
+
+        for u in uniq:
+            j = u // self.N
+            i = u % self.N
+            zz = z[lin == u]
+            if zz.size == 0:
+                continue
+
+            ground_z = float(np.quantile(zz, self.ground_quantile))
+            top_z    = float(np.max(zz))
+
+            # EMA update ground
+            prev_g = self.h_ground[j, i]
+            if np.isnan(prev_g):
+                self.h_ground[j, i] = ground_z
             else:
-                self.hmap[j, i] = max(prev, zz)
+                a = self.ema_alpha_ground
+                self.h_ground[j, i] = (1 - a) * prev_g + a * ground_z
 
-    def query_height_batch(self, x: np.ndarray, y: np.ndarray) -> np.ndarray:
-        ix = ((x - self.origin_xy[0]) / self.res).astype(int)
-        iy = ((y - self.origin_xy[1]) / self.res).astype(int)
+            # EMA update top
+            prev_t = self.h_top[j, i]
+            if np.isnan(prev_t):
+                self.h_top[j, i] = top_z
+            else:
+                a = self.ema_alpha_top
+                self.h_top[j, i] = (1 - a) * prev_t + a * top_z
 
+            self.count[j, i] = min(65535, int(self.count[j, i]) + int(zz.size))
+
+    def observed_mask(self):
+        return self.count >= self.min_points_per_cell
+
+    def query_ground_batch(self, x: np.ndarray, y: np.ndarray) -> np.ndarray:
+        ix, iy = self.world_to_grid(x, y)
         valid = (ix >= 0) & (ix < self.N) & (iy >= 0) & (iy < self.N)
 
-        z = np.zeros_like(x, dtype=float)
-        vals = self.hmap[iy[valid], ix[valid]]
+        out = np.zeros_like(x, dtype=float)
+        vals = self.h_ground[iy[valid], ix[valid]]
         vals = np.where(np.isnan(vals), 0.0, vals)
-        z[valid] = vals
-        return z
+        out[valid] = vals
+        return out
+
+    def query_top_batch(self, x: np.ndarray, y: np.ndarray) -> np.ndarray:
+        ix, iy = self.world_to_grid(x, y)
+        valid = (ix >= 0) & (ix < self.N) & (iy >= 0) & (iy < self.N)
+
+        out = np.zeros_like(x, dtype=float)
+        vals = self.h_top[iy[valid], ix[valid]]
+        vals = np.where(np.isnan(vals), 0.0, vals)
+        out[valid] = vals
+        return out
+
+    def query_clearance_batch(self, x: np.ndarray, y: np.ndarray) -> np.ndarray:
+        g = self.query_ground_batch(x, y)
+        t = self.query_top_batch(x, y)
+        return np.maximum(0.0, t - g)
 
     def height_and_normal(self, x: float, y: float):
-        """
-        Query height map at (x,y).
-        Returns:
-            z (float)
-            normal (3,) numpy array
-        """
 
+        # Guard against NaNs from upstream
+        if not np.isfinite(x) or not np.isfinite(y):
+            return 0.0, np.array([0.0, 0.0, 1.0])
+        # Use ground layer for normals
         ix = int((x - self.origin_xy[0]) / self.res)
         iy = int((y - self.origin_xy[1]) / self.res)
 
         if ix < 0 or ix >= self.N or iy < 0 or iy >= self.N:
             return 0.0, np.array([0.0, 0.0, 1.0])
 
-        z = self.hmap[iy, ix]
-
+        z = self.h_ground[iy, ix]
         if np.isnan(z):
             return 0.0, np.array([0.0, 0.0, 1.0])
 
-        # Simple normal estimate using central differences
         dzdx = 0.0
         dzdy = 0.0
 
         if 1 <= ix < self.N-1 and 1 <= iy < self.N-1:
-            z_x1 = self.hmap[iy, ix+1]
-            z_x0 = self.hmap[iy, ix-1]
-            z_y1 = self.hmap[iy+1, ix]
-            z_y0 = self.hmap[iy-1, ix]
+            z_x1 = self.h_ground[iy, ix+1]
+            z_x0 = self.h_ground[iy, ix-1]
+            z_y1 = self.h_ground[iy+1, ix]
+            z_y0 = self.h_ground[iy-1, ix]
 
             if not np.isnan(z_x1) and not np.isnan(z_x0):
                 dzdx = (z_x1 - z_x0) / (2*self.res)
-
             if not np.isnan(z_y1) and not np.isnan(z_y0):
                 dzdy = (z_y1 - z_y0) / (2*self.res)
 
@@ -216,8 +273,15 @@ class GlobalHeightMap:
         normal /= (np.linalg.norm(normal) + 1e-9)
 
         return float(z), normal
-class ObstacleCostMap2D:
+    def query_height_batch(self, x: np.ndarray, y: np.ndarray) -> np.ndarray:
+        """
+        Backward-compatible alias.
+        For terrain slope/normals we want the WALKABLE ground surface.
+        """
+        return self.query_ground_batch(x, y)
+    
 
+class ObstacleCostMap2D:
     def __init__(self, size_xy=12.0, res=0.05):
         self.size_xy = size_xy
         self.res = res
@@ -229,70 +293,124 @@ class ObstacleCostMap2D:
         self.decay = 0.98
         self.inflate_radius = 0.8
 
+        # Clearance thresholds (tune)
+        self.step_thresh   = 0.06   # rock/log (used later for swing clearance)
+        self.lethal_thresh = 0.35   # tree/wall (MPPI must avoid)
+    def min_pool_nan(self, a, r):
+        """
+        r = radius in cells (r=2 means 5x5 neighborhood)
+        NaNs ignored. Returns NaN if all neighbors are NaN.
+        """
+        pad = r
+        ap = np.pad(a, ((pad, pad), (pad, pad)), mode="constant", constant_values=np.nan)
+        out = np.full_like(a, np.nan, dtype=np.float32)
+
+        for dy in range(-r, r+1):
+            for dx in range(-r, r+1):
+                w = ap[pad+dy:pad+dy+a.shape[0], pad+dx:pad+dx+a.shape[1]]
+                # nanmin across shifts
+                out = np.fmin(out, w) if np.any(np.isfinite(out)) else w.copy()
+                # ^ fmin keeps NaNs weirdly; so do explicit:
+        # Better explicit nanmin accumulation:
+        out = np.full_like(a, np.inf, dtype=np.float32)
+        for dy in range(-r, r+1):
+            for dx in range(-r, r+1):
+                w = ap[pad+dy:pad+dy+a.shape[0], pad+dx:pad+dx+a.shape[1]]
+                out = np.minimum(out, np.where(np.isfinite(w), w, np.inf))
+        out = np.where(np.isfinite(out) & (out < np.inf), out, np.nan)
+        return out
+    def update_from_heightmap(self, heightmap,
+                          clearance_lethal=0.25,
+                          clearance_soft=0.08,
+                          inflate_radius=None):
+
+        if inflate_radius is None:
+            inflate_radius = self.inflate_radius
+
+        # --------------------------------------
+        # 1️⃣ Compute clearance at heightmap resolution
+        # --------------------------------------
+
+        clearance_hm = heightmap.h_top - heightmap.h_ground
+        clearance_hm = np.nan_to_num(clearance_hm, nan=0.0)
+
+        # --------------------------------------
+        # 2️⃣ Downsample to costmap resolution via MAX pooling
+        # --------------------------------------
+
+        scale = int(self.res / heightmap.res)
+        if scale < 1:
+            scale = 1
+
+        clearance = np.zeros((self.N, self.N), dtype=np.float32)
+
+        for j in range(self.N):
+            for i in range(self.N):
+
+                iy0 = j * scale
+                iy1 = min((j + 1) * scale, heightmap.N)
+
+                ix0 = i * scale
+                ix1 = min((i + 1) * scale, heightmap.N)
+
+                block = clearance_hm[iy0:iy1, ix0:ix1]
+
+                if block.size > 0:
+                    clearance[j, i] = np.max(block)
+
+        print("[DBG] clearance max/mean:",
+            float(np.max(clearance)),
+            float(np.mean(clearance)))
+
+        # --------------------------------------
+        # 3️⃣ Obstacle classification
+        # --------------------------------------
+
+        raw = np.zeros_like(clearance, dtype=np.float32)
+
+        raw[clearance >= clearance_lethal] = 1.0
+
+        print("Raw obstacle cells:", int(np.sum(raw > 0.05)))
+        print("Raw max:", float(raw.max()))
+
+        # --------------------------------------
+        # 4️⃣ Inflation
+        # --------------------------------------
+
+        inflated = self.inflate_from_raw(raw)
+
+        self.grid *= self.decay
+        self.grid = np.maximum(self.grid, inflated)
+    def inflate_from_raw(self, raw):
+        inflated = raw.copy()
+        radius_cells = int(self.inflate_radius / self.res)
+        occ = np.argwhere(raw > 0.05)  # only iterate obstacle cells
+
+        for (j, i) in occ:
+            for dx in range(-radius_cells, radius_cells+1):
+                for dy in range(-radius_cells, radius_cells+1):
+                    ni = i + dx
+                    nj = j + dy
+                    if 0 <= ni < self.N and 0 <= nj < self.N:
+                        dist = np.sqrt(dx*dx + dy*dy) * self.res
+                        seed = raw[j, i]
+                        cost = seed * max(0.0, 1.0 - dist/self.inflate_radius)
+                        if cost > inflated[nj, ni]:
+                            inflated[nj, ni] = cost
+
+        return inflated
+
     def world_to_grid(self, x, y):
         ix = ((x - self.origin_xy[0]) / self.res).astype(int)
         iy = ((y - self.origin_xy[1]) / self.res).astype(int)
         return ix, iy
 
-    def update(self, hits_world):
-
-        # decay persistent cost field
-        self.grid *= self.decay
-
-        if hits_world.shape[0] == 0:
-            return
-
-        # --- Create temporary raw obstacle grid ---
-        raw = np.zeros_like(self.grid)
-
-        x = hits_world[:,0]
-        y = hits_world[:,1]
-
-        ix, iy = self.world_to_grid(x,y)
-
-        valid = (ix>=0)&(ix<self.N)&(iy>=0)&(iy<self.N)
-        ix = ix[valid]
-        iy = iy[valid]
-
-        raw[iy, ix] = 1.0
-
-        # --- Inflate raw obstacles ONLY ---
-        inflated = self.inflate_from_raw(raw)
-
-        # --- Merge with persistent grid ---
-        self.grid = np.maximum(self.grid, inflated)
-
-    def inflate_from_raw(self, raw):
-
-        inflated = raw.copy()
-        radius_cells = int(self.inflate_radius / self.res)
-
-        for i in range(self.N):
-            for j in range(self.N):
-                if raw[j,i] > 0.5:
-
-                    for dx in range(-radius_cells, radius_cells+1):
-                        for dy in range(-radius_cells, radius_cells+1):
-
-                            ni = i+dx
-                            nj = j+dy
-
-                            if 0<=ni<self.N and 0<=nj<self.N:
-                                dist = np.sqrt(dx*dx+dy*dy)*self.res
-                                cost = max(0.0, 1.0 - dist/self.inflate_radius)
-                                inflated[nj,ni] = max(inflated[nj,ni], cost)
-
-        return inflated
-
     def query_cost_batch(self, x, y):
-        ix, iy = self.world_to_grid(x,y)
-
+        ix, iy = self.world_to_grid(x, y)
         valid = (ix>=0)&(ix<self.N)&(iy>=0)&(iy<self.N)
-
-        cost = np.zeros_like(x)
+        cost = np.zeros_like(x, dtype=float)
         cost[valid] = self.grid[iy[valid], ix[valid]]
         return cost
-
 
 
 class MuJoCoLidar3D:
@@ -508,7 +626,7 @@ class Nav2StyleMPPI:
                 y.reshape(-1)
             ).reshape(x.shape)
 
-            obs_cost = 80.0 * (cost_vals**2).mean(axis=1)
+            obs_cost = 100.0 * (cost_vals**2).mean(axis=1)
 
         else:
             obs_cost = np.zeros(x.shape[0])
@@ -589,6 +707,9 @@ class Nav2StyleMPPI:
         # Much stronger terminal pull
         w_term = np.where(near_goal, 40.0, w_term)
 
+        #Increasing Heading cost close to goal
+        w_heading = np.where(near_goal, 10.0, w_heading)
+
         # Strong velocity damping
         Ktail = 20  # ~0.25s tail if dt~0.0125
         vx_tail = U_batch[:, -Ktail:, 0]
@@ -605,7 +726,7 @@ class Nav2StyleMPPI:
             w_goal * goal_cost +
             w_term * term +
             w_heading * heading_cost +
-            1.8 * obs_total +
+            2.2 * obs_total +
             # 2.0 * slope_cost +
             0.2 * smooth +
             0.05 * effort +
@@ -639,6 +760,10 @@ class Nav2StyleMPPI:
 
             X = self.rollout(state, U_batch)
             costs = self.cost(X, U_batch, goal, obstacle_xy)
+
+            # Kill NaNs aggressively
+            if not np.all(np.isfinite(costs)):
+                costs = np.where(np.isfinite(costs), costs, 1e6)
             # if np.mean(cost_vals) > 0.15:
             #     self.std = np.array([0.12, 0.25, 0.25])
             # else:
@@ -659,7 +784,11 @@ class Nav2StyleMPPI:
 
             beta = costs_elite.min()
             w = np.exp(-(costs_elite - beta) / tau)
-            w /= (w.sum() + 1e-9)
+            w_sum = w.sum()
+            if w_sum <= 1e-9 or not np.isfinite(w_sum):
+                w = np.ones_like(w) / len(w)
+            else:
+                w /= w_sum
 
             # --- Weighted mean of elite trajectories ---
             self.U = np.sum(w[:, None, None] * U_elite, axis=0)
@@ -815,7 +944,7 @@ lidar = MuJoCoLidar3D(
     el_max_deg=15.0,
     max_range=6.0
 )
-heightmap = GlobalHeightMap(size_xy=12.0, res=0.02)
+heightmap = GlobalHeightMap(size_xy=12.0, res=0.05)
 costmap = ObstacleCostMap2D(size_xy=12.0, res=0.05)
 leg_controller = LegController()
 traj = ComTraj(go2)
@@ -835,7 +964,7 @@ mpc = CentroidalMPC(go2, traj)
 
 # mppi_cfg = MPPIConfig(horizon_steps=traj.N, dt=MPC_DT)
 mppi = Nav2StyleMPPI(MPC_DT)
-# mppi.set_terrain(heightmap)
+mppi.set_terrain(heightmap)
 mppi.set_costmap(costmap)
 goal_xy = np.array([3.0, 0.0])
 box_radius = 0.75
@@ -954,21 +1083,46 @@ with mj.viewer.launch_passive(mujoco_go2.model, mujoco_go2.data) as viewer:
                     #     print("Max hit Z:", hits_world[:,2].max())
 
 
-                    # 1) drop ground returns (tune threshold)
-                    zmin = 0.05              # keep points above 5cm (obstacles)
-                    zmax = 1.20              # optional: ignore very high stuff
-                    keep_z = (hits_world[:,2] > zmin) & (hits_world[:,2] < zmax)
+                    # Keep BOTH ground + obstacle points. Only remove robot-near / extreme outliers.
+                    zmin = -0.50
+                    zmax =  2.00
+                    keep_z = (hits_world[:, 2] > zmin) & (hits_world[:, 2] < zmax)
 
-                    # 2) drop points too close to robot (self/noise)
-                    dx = hits_world[:,0] - px
-                    dy = hits_world[:,1] - py
+                    dx = hits_world[:, 0] - px
+                    dy = hits_world[:, 1] - py
                     r = np.sqrt(dx*dx + dy*dy)
-                    keep_r = r > 0.45        # keep points farther than ~45cm from COM
+                    keep_r = r > 0.45
 
                     hits_filt = hits_world[keep_z & keep_r]
-                    costmap.update(hits_filt)
-                    obstacle_xy = hits_filt[:, :2]
-                    visualize_lidar_hits(viewer, hits_filt)
+
+                    # Update maps
+                    heightmap.update(hits_filt)            # <-- NEW (uses all points)
+                    print("h_ground finite:", np.sum(np.isfinite(heightmap.h_ground)))
+                    print("h_top finite:", np.sum(np.isfinite(heightmap.h_top)))
+                    print("h_ground max:", np.nanmax(heightmap.h_ground))
+                    print("h_top max:", np.nanmax(heightmap.h_top))
+                    go2.terrain = heightmap
+                    costmap.update_from_heightmap(heightmap, clearance_lethal=0.12, clearance_soft=0.05)  # <-- NEW (lethal derived from clearance)
+                    if ctrl_i % 20 == 0:
+                        print("Clearance stats:",
+                            "max=", np.nanmax(heightmap.h_top - heightmap.h_ground),
+                            "mean=", np.nanmean(heightmap.h_top - heightmap.h_ground))
+                        print("Costmap max:", float(costmap.grid.max()))
+                    # For visualization / debug only
+                    # Compute clearance per hit cell (object vs ground)
+                    ix, iy = heightmap.world_to_grid(hits_filt[:,0], hits_filt[:,1])
+                    valid = (ix>=0)&(ix<heightmap.N)&(iy>=0)&(iy<heightmap.N)
+
+                    clear = np.zeros(len(hits_filt))
+                    clear[valid] = (
+                        heightmap.h_top[iy[valid], ix[valid]] -
+                        heightmap.h_ground[iy[valid], ix[valid]]
+                    )
+
+                    # Only visualize meaningful obstacles
+                    obstacle_mask = clear > 0.08   # same as soft threshold
+                    obstacle_xy = hits_filt[obstacle_mask, :2]
+                    # visualize_lidar_hits(viewer, hits_filt)
 
                     # --- UPDATE GLOBAL HEIGHT MAP ---
                     # heightmap.update(hits_world)
@@ -1025,8 +1179,8 @@ with mj.viewer.launch_passive(mujoco_go2.model, mujoco_go2.data) as viewer:
                     wz_des_body,
                     time_step=MPC_DT,
                 )
-                if ctrl_i % 20 == 0:
-                    print("norm_z min/mean:", traj.contact_normals[:,:,2].min(), traj.contact_normals[:,:,2].mean())
+                # if ctrl_i % 20 == 0:
+                #     print("norm_z min/mean:", traj.contact_normals[:,:,2].min(), traj.contact_normals[:,:,2].mean())
 
                 sol = mpc.solve_QP(go2, traj, False)
 
@@ -1134,7 +1288,7 @@ for frame in debug_frames:
                cmap="hot",
                alpha=0.6,
                vmin=0,
-               vmax=1)
+               vmax= max(1e-3, float(grid.max())))
 
     state = frame["state"]
     U_batch = frame["U_batch"]
