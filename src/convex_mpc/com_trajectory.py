@@ -134,8 +134,6 @@ class ComTraj:
 
         # RPY in world:
         # Keep roll, pitch constant; integrate yaw with desired yaw rate
-        self.rpy_traj_world[0, :] = 0.0
-        self.rpy_traj_world[1, :] = 0.0
         self.rpy_traj_world[2, :] = yaw + yaw_rate_des_body * t_vec
 
         # RPY rates in BODY frame: only yaw rate non-zero
@@ -201,6 +199,8 @@ class ComTraj:
             # =======================
             # FRONT LEFT  (leg = 0)
             # =======================
+            FOOT_Z_OFF = 0.02
+
             leg = 0
 
             if current_mask[leg] != mask_previous[leg] and current_mask[leg] == 0:
@@ -208,7 +208,7 @@ class ComTraj:
                 pos_td = gait.compute_touchdown_world_for_traj_purpose_only(self.dummy_go2, "FL", time_now + i * time_step)
 
                 z_td, n_td = self.terrain.height_and_normal(pos_td[0], pos_td[1])
-                pos_td[2] = z_td
+                pos_td[2] = z_td + FOOT_Z_OFF
                 n_td = n_td / (np.linalg.norm(n_td) + 1e-9)
 
                 # Persist touchdown point + normal for stance phase
@@ -260,7 +260,7 @@ class ComTraj:
                 pos_td = gait.compute_touchdown_world_for_traj_purpose_only(self.dummy_go2, "FR", time_now + i * time_step)
             
                 z_td, n_td = self.terrain.height_and_normal(pos_td[0], pos_td[1])
-                pos_td[2] = z_td
+                pos_td[2] = z_td + FOOT_Z_OFF
                 n_td = n_td / (np.linalg.norm(n_td) + 1e-9)
             
                 # Persist touchdown point + normal for stance phase
@@ -310,7 +310,7 @@ class ComTraj:
                 pos_td = gait.compute_touchdown_world_for_traj_purpose_only(self.dummy_go2, "RL", time_now + i * time_step)
 
                 z_td, n_td = self.terrain.height_and_normal(pos_td[0], pos_td[1])
-                pos_td[2] = z_td
+                pos_td[2] = z_td + FOOT_Z_OFF
                 n_td = n_td / (np.linalg.norm(n_td) + 1e-9)
 
                 # Persist touchdown point + normal for stance phase
@@ -361,7 +361,7 @@ class ComTraj:
                 pos_td = gait.compute_touchdown_world_for_traj_purpose_only(self.dummy_go2, "RR", time_now + i * time_step)
 
                 z_td, n_td = self.terrain.height_and_normal(pos_td[0], pos_td[1])
-                pos_td[2] = z_td
+                pos_td[2] = z_td + FOOT_Z_OFF
                 n_td = n_td / (np.linalg.norm(n_td) + 1e-9)
 
                 # Persist touchdown point + normal for stance phase

@@ -410,7 +410,8 @@ class CentroidalMPC:
         r0 = 0
 
         # Expect shape (4, N, 3)
-        normals = getattr(traj, "contact_normals", None)
+        # normals = getattr(traj, "contact_normals", None)
+        normals = None
         if normals is None:
             # fallback: flat ground
             normals = np.zeros((4, self.N, 3), dtype=float)

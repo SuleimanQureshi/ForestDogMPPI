@@ -6,7 +6,7 @@ from .go2_robot_data import PinGo2Model
 # --------------------------------------------------------------------------------
 
 PHASE_OFFSET = np.array([0.5, 0.0, 0.0, 0.5]).reshape(4)    # trotting gait
-HEIGHT_SWING = 0.1 # Height of the swing leg trajectory apex
+HEIGHT_SWING = 0.12 # Height of the swing leg trajectory apex
 
 
 class Gait():
@@ -21,6 +21,22 @@ class Gait():
     def compute_current_mask(self, time):
 
         return self.compute_contact_table(time, 0.0, 1).reshape(-1)
+    def _estimate_local_clearance(self, terrain, x, y, r=0.08):
+        """
+        Rough clearance estimate around (x,y).
+        Samples a small ring and checks height variation.
+        """
+        angles = np.linspace(0, 2*np.pi, 8, endpoint=False)
+        heights = []
+
+        for a in angles:
+            xs = x + r*np.cos(a)
+            ys = y + r*np.sin(a)
+            z, _ = terrain.height_and_normal(xs, ys)
+            heights.append(z)
+
+        heights = np.array(heights)
+        return float(np.max(heights) - np.min(heights))
     
     def compute_contact_table(self, t0: float, dt: float, N: int) -> np.ndarray:
 
@@ -125,21 +141,45 @@ class Gait():
                                 dtheta * r_xy[0],
                                 0.0
                                 ])
-    
-        pos_touchdown_world = (np.array(pos_norminal_term)
-                                + np.array(pos_drift_term)
-                                + np.array(pos_correction_term)
-                                + np.array(vel_correction_term)
-                                + np.array(rotation_correction_term)
-                                )
+            
+        pos_touchdown_world = (
+            np.array(pos_norminal_term)
+            + np.array(pos_drift_term)
+            + np.array(pos_correction_term)
+            + np.array(vel_correction_term)
+            + np.array(rotation_correction_term)
+        )
         
-        pos_foot_traj_eval_at_world = self.make_swing_trajectory(foot_pos, pos_touchdown_world, t_swing, h_sw=HEIGHT_SWING)
         terrain = getattr(go2, "terrain", None)
+        
+        # 1) FIRST pick/snap touchdown
         if terrain is not None:
             pos_touchdown_world = self.select_foothold(go2, leg, pos_touchdown_world, terrain, time_now)
-
+        
+            # IMPORTANT: add a small touchdown z offset so we don't command into ground
+            FOOT_Z_OFF = 0.015  # start with 1.5cm; tune 1–2cm
+            z_td, _ = terrain.height_and_normal(pos_touchdown_world[0], pos_touchdown_world[1])
+            pos_touchdown_world[2] = z_td + FOOT_Z_OFF
+        
+        # 2) THEN compute clearance-aware swing apex (now using FINAL touchdown)
+        h_sw_dynamic = HEIGHT_SWING
+        if terrain is not None:
+            clearance = self._estimate_local_clearance(
+                terrain,
+                pos_touchdown_world[0],
+                pos_touchdown_world[1]
+            )
+            k_clear = 2.0
+            h_sw_dynamic = HEIGHT_SWING + k_clear * clearance
+            h_sw_dynamic = np.clip(h_sw_dynamic, 0.08, 0.26)
+        
+        # 3) FINALLY generate swing trajectory to the FINAL touchdown
+        pos_foot_traj_eval_at_world = self.make_swing_trajectory(
+            foot_pos, pos_touchdown_world, t_swing, h_sw=h_sw_dynamic
+        )
+        
         return pos_foot_traj_eval_at_world, pos_touchdown_world
-
+        
 
     def make_swing_trajectory(self, p0, pf, t_swing, h_sw):
 

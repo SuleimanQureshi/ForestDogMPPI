@@ -138,7 +138,7 @@ class GlobalHeightMap:
     # Tuning
     ema_alpha_ground: float = 0.25   # smoothing for ground estimate
     ema_alpha_top: float = 0.50      # smoothing for top estimate
-    min_points_per_cell: int = 1     # observed mask threshold
+    min_points_per_cell: int = 2     # observed mask threshold
     ground_quantile: float = 0.20    # robust "near-ground" percentile (ramp-safe)
 
     def __post_init__(self):
@@ -504,8 +504,8 @@ class Nav2StyleMPPI:
         self.ALPHA = 0.1        # correlated noise
 
         # velocity limits (keep conservative!)
-        self.vx_min, self.vx_max = -0.25, 0.8
-        self.vy_min, self.vy_max = -0.6, 0.6
+        self.vx_min, self.vx_max = -0.25, 0.7
+        self.vy_min, self.vy_max = -0.2, 0.2
         self.wz_min, self.wz_max = -1.75, 1.75
         
         self.costmap = None
@@ -1052,14 +1052,14 @@ mujoco_go2 = MuJoCo_GO2_Model()
 lidar = MuJoCoLidar3D(
     mujoco_go2.model,
     mujoco_go2.data,
-    n_az=90,
-    n_el=15,
+    n_az=180,
+    n_el=21,
     el_min_deg=-30.0,
     el_max_deg=15.0,
     max_range=6.0
 )
-heightmap = GlobalHeightMap(size_xy=12.0, res=0.05)
-costmap = ObstacleCostMap2D(size_xy=12.0, res=0.05)
+heightmap = GlobalHeightMap(size_xy=12.0, res=0.02)
+costmap = ObstacleCostMap2D(size_xy=12.0, res=0.02)
 leg_controller = LegController()
 traj = ComTraj(go2)
 gait = Gait(GAIT_HZ, GAIT_DUTY)
