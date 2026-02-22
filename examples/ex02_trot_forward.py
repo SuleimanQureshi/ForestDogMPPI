@@ -358,9 +358,9 @@ class ObstacleCostMap2D:
                 if block.size > 0:
                     clearance[j, i] = np.max(block)
 
-        print("[DBG] clearance max/mean:",
-            float(np.max(clearance)),
-            float(np.mean(clearance)))
+        # print("[DBG] clearance max/mean:",
+        #     float(np.max(clearance)),
+        #     float(np.mean(clearance)))
 
         # --------------------------------------
         # 3️⃣ Obstacle classification
@@ -370,8 +370,8 @@ class ObstacleCostMap2D:
 
         raw[clearance >= clearance_lethal] = 1.0
 
-        print("Raw obstacle cells:", int(np.sum(raw > 0.05)))
-        print("Raw max:", float(raw.max()))
+        # print("Raw obstacle cells:", int(np.sum(raw > 0.05)))
+        # print("Raw max:", float(raw.max()))
 
         # --------------------------------------
         # 4️⃣ Inflation
@@ -626,7 +626,7 @@ class Nav2StyleMPPI:
                 y.reshape(-1)
             ).reshape(x.shape)
 
-            obs_cost = 125.0 * (cost_vals**2).mean(axis=1)
+            obs_cost = 150.0 * (cost_vals**2).mean(axis=1)
 
         else:
             obs_cost = np.zeros(x.shape[0])
@@ -658,6 +658,30 @@ class Nav2StyleMPPI:
 
         obs_total = obs_cost 
 
+
+        # -------------------------------------------------
+        # Soft clearance discouragement (very light)
+        # -------------------------------------------------
+
+        if self.terrain is not None:
+
+            clearance_vals = self.terrain.query_clearance_batch(
+                x.reshape(-1),
+                y.reshape(-1)
+            ).reshape(x.shape)
+
+            # Medium obstacle band
+            step_thresh = self.costmap.step_thresh
+            lethal_thresh = self.costmap.lethal_thresh
+
+            soft_mask = (clearance_vals > step_thresh) & (clearance_vals < lethal_thresh)
+
+            # VERY light penalty
+            soft_clear_cost = 8.0 * (clearance_vals * soft_mask)**2
+            soft_clear_cost = soft_clear_cost.mean(axis=1)
+
+        else:
+            soft_clear_cost = np.zeros(x.shape[0])
         #Progress param
         d0 = np.sqrt((x[:, 0] - goal[0])**2 + (y[:, 0] - goal[1])**2)      # distance at start of rollout
         dT = np.sqrt((x[:, -1] - goal[0])**2 + (y[:, -1] - goal[1])**2)    # distance at end
@@ -751,6 +775,61 @@ class Nav2StyleMPPI:
         )
 
         terminal_yaw = 8.0 * activation * (yaw_error**2)
+
+        # -------------------------------------------------
+        # Radial braking term (prevents overshoot)
+        # -------------------------------------------------
+
+        # Direction toward goal at terminal state
+        goal_dir_x = goal[0] - x[:, -1]
+        goal_dir_y = goal[1] - y[:, -1]
+
+        norm = np.sqrt(goal_dir_x**2 + goal_dir_y**2) + 1e-6
+        goal_dir_x /= norm
+        goal_dir_y /= norm
+
+        # Terminal velocity (from rollout state, not control!)
+        vxT_world = vx[:, -1]
+        vyT_world = vy[:, -1]
+
+        # Velocity component toward goal
+        v_radial = vxT_world * goal_dir_x + vyT_world * goal_dir_y
+
+        # Only penalize when moving toward goal
+        radial_brake = activation * 20.0 * np.maximum(v_radial, 0.0)**2
+
+        # -------------------------------------------------
+        # Terminal "approach-speed" shaping (prevents bounce / orbit)
+        # -------------------------------------------------
+
+        dxT = goal[0] - x[:, -1]
+        dyT = goal[1] - y[:, -1]
+        distT = np.sqrt(dxT**2 + dyT**2) + 1e-6
+
+        # unit vector pointing from terminal state to goal
+        ux = dxT / distT
+        uy = dyT / distT
+
+        # terminal velocity from rollout (world frame)
+        vxT = X[:, -1, 3]
+        vyT = X[:, -1, 4]
+
+        # radial speed toward goal (positive means moving toward goal)
+        v_rad = vxT * ux + vyT * uy
+
+        # desired radial speed profile: proportional far away, goes to 0 near goal
+        k_v = 1.2                       # tune 0.8–2.0
+        v_des = np.clip(k_v * distT, 0.0, 0.45)
+
+        # penalize deviation from desired (both too fast AND wrong direction)
+        w_v = 35.0                      # tune 20–60
+        terminal_speed_cost = activation * w_v * (v_rad - v_des)**2
+
+        # Encourage ending near goal for the last few steps (prevents "fly-by")
+        K = 30  # last ~0.25s if dt~0.0125; adjust to your dt
+        dx_tail = x[:, -K:] - goal[0]
+        dy_tail = y[:, -K:] - goal[1]
+        dwell_cost = 50.0 * activation * (dx_tail**2 + dy_tail**2).mean(axis=1)
         return (
             w_goal * goal_cost +
             w_term * term +
@@ -763,8 +842,12 @@ class Nav2StyleMPPI:
             # 1.5 * direction_cost +
             w_progress * progress +
             vel_penalty +
-            radial_pull +
-            terminal_yaw
+            terminal_speed_cost +
+            dwell_cost +
+            # radial_pull +
+            # radial_brake +
+            terminal_yaw +
+            0.5 * soft_clear_cost
         )
 
 
@@ -1128,17 +1211,17 @@ with mj.viewer.launch_passive(mujoco_go2.model, mujoco_go2.data) as viewer:
 
                     # Update maps
                     heightmap.update(hits_filt)            # <-- NEW (uses all points)
-                    print("h_ground finite:", np.sum(np.isfinite(heightmap.h_ground)))
-                    print("h_top finite:", np.sum(np.isfinite(heightmap.h_top)))
-                    print("h_ground max:", np.nanmax(heightmap.h_ground))
-                    print("h_top max:", np.nanmax(heightmap.h_top))
+                    # print("h_ground finite:", np.sum(np.isfinite(heightmap.h_ground)))
+                    # print("h_top finite:", np.sum(np.isfinite(heightmap.h_top)))
+                    # print("h_ground max:", np.nanmax(heightmap.h_ground))
+                    # print("h_top max:", np.nanmax(heightmap.h_top))
                     go2.terrain = heightmap
                     costmap.update_from_heightmap(heightmap, clearance_lethal=0.12, clearance_soft=0.05)  # <-- NEW (lethal derived from clearance)
-                    if ctrl_i % 20 == 0:
-                        print("Clearance stats:",
-                            "max=", np.nanmax(heightmap.h_top - heightmap.h_ground),
-                            "mean=", np.nanmean(heightmap.h_top - heightmap.h_ground))
-                        print("Costmap max:", float(costmap.grid.max()))
+                    # if ctrl_i % 20 == 0:
+                    #     print("Clearance stats:",
+                    #         "max=", np.nanmax(heightmap.h_top - heightmap.h_ground),
+                    #         "mean=", np.nanmean(heightmap.h_top - heightmap.h_ground))
+                    #     print("Costmap max:", float(costmap.grid.max()))
                     # For visualization / debug only
                     # Compute clearance per hit cell (object vs ground)
                     ix, iy = heightmap.world_to_grid(hits_filt[:,0], hits_filt[:,1])
@@ -1166,9 +1249,9 @@ with mj.viewer.launch_passive(mujoco_go2.model, mujoco_go2.data) as viewer:
                     if obstacle_xy.shape[0] > 250:
                         idx = np.random.choice(obstacle_xy.shape[0], 250, replace=False)
                         obstacle_xy = obstacle_xy[idx]
-                    if ctrl_i % 50 == 0:
-                        print("vx_world, vy_world:", vx_world, vy_world)
-                        print("vx_body, vy_body:", vx_body, vy_body)
+                    # if ctrl_i % 50 == 0:
+                    #     print("vx_world, vy_world:", vx_world, vy_world)
+                    #     print("vx_body, vy_body:", vx_body, vy_body)
                     u0 = mppi.command(state0, goal_xy, obstacle_xy)
                     debug_frames.append({
                         "state": state0.copy(),
