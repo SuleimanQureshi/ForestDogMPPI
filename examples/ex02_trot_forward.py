@@ -110,7 +110,7 @@ def get_body_cmd(t: float):
             return phase.x_vel, phase.y_vel, phase.z_pos, phase.yaw_rate
     return 0.0, 0.0, 0.27, 0.0
 
-def visualize_lidar_hits(viewer, hits_world, max_points=200):
+def visualize_lidar_hits(viewer, hits_world, max_points=400):
     viewer.user_scn.ngeom = 0  # clear previous frame markers
 
     if hits_world.shape[0] == 0:
@@ -1163,15 +1163,15 @@ with mj.viewer.launch_passive(mujoco_go2.model, mujoco_go2.data) as viewer:
                     })
 
 
-                # if ctrl_i % 10 == 0:  # don’t draw every tick
-                #     # pass
-                #     debug_plot_mppi(
-                #         state0,
-                #         goal_xy,
-                #         obstacle_xy,
-                #         mppi.last_U_batch,
-                #         mppi
-                #     )
+                if ctrl_i % 10 == 0:  # don’t draw every tick
+                    # pass
+                    debug_plot_mppi(
+                        state0,
+                        goal_xy,
+                        obstacle_xy,
+                        mppi.last_U_batch,
+                        mppi
+                    )
 
 
                 vx_des_body = float(u0[0])
