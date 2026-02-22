@@ -506,7 +506,7 @@ class Nav2StyleMPPI:
         # velocity limits (keep conservative!)
         self.vx_min, self.vx_max = -0.25, 0.8
         self.vy_min, self.vy_max = -0.6, 0.6
-        self.wz_min, self.wz_max = -1.5, 1.5
+        self.wz_min, self.wz_max = -1.75, 1.75
         
         self.costmap = None
 
@@ -626,7 +626,7 @@ class Nav2StyleMPPI:
                 y.reshape(-1)
             ).reshape(x.shape)
 
-            obs_cost = 100.0 * (cost_vals**2).mean(axis=1)
+            obs_cost = 125.0 * (cost_vals**2).mean(axis=1)
 
         else:
             obs_cost = np.zeros(x.shape[0])
@@ -721,19 +721,33 @@ class Nav2StyleMPPI:
 
         vel_penalty = np.where(near_goal, 80.0 * tail_speed + 20.0 * tail_yaw, 0.0)
 
+        # -----------------------------------
+        # Terminal radial tightening
+        # -----------------------------------
 
+        dxT = x[:, -1] - goal[0]
+        dyT = y[:, -1] - goal[1]
+
+        distT = np.sqrt(dxT**2 + dyT**2)
+
+        # Gaussian activation near goal
+        sigma = 0.4        # activation radius (meters)
+        activation = np.exp(-(distT**2) / (sigma**2))
+        radial_pull = activation * 15.0 * distT
+        
         return (
             w_goal * goal_cost +
             w_term * term +
             w_heading * heading_cost +
-            2.2 * obs_total +
+            2.0 * obs_total +
             # 2.0 * slope_cost +
             0.2 * smooth +
             0.05 * effort +
             # 0.8 * lateral_cost +
             # 1.5 * direction_cost +
             w_progress * progress +
-            vel_penalty
+            vel_penalty +
+            radial_pull
         )
 
 
