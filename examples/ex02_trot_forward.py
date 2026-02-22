@@ -1046,6 +1046,8 @@ with mj.viewer.launch_passive(mujoco_go2.model, mujoco_go2.data) as viewer:
             py = x_vec[1, ctrl_i]
             yaw = x_vec[5, ctrl_i]
             robot_xy = x_vec[0:2, ctrl_i]
+            if ctrl_i % 20 == 0:   # every 20 control ticks (~10 Hz)
+                print(f"[POS] t={time_now_s:6.2f}  x={px: .3f}  y={py: .3f}")
             # box_xy = box_pos[0:2]
 
             # dist = np.linalg.norm(robot_xy - box_xy)
@@ -1258,7 +1260,7 @@ with mj.viewer.launch_passive(mujoco_go2.model, mujoco_go2.data) as viewer:
         mj.mj_step1(mujoco_go2.model, mujoco_go2.data)
         mujoco_go2.set_joint_torque(tau_hold)
         mj.mj_step2(mujoco_go2.model, mujoco_go2.data)
-        # viewer.sync()
+        viewer.sync()
         #Render-rate logging for smooth replay
         t_after = float(mujoco_go2.data.time)
         if t_after + 1e-12 >= next_render_t:
