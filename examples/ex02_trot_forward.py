@@ -1373,7 +1373,7 @@ print(
     f"\nElapsed time: {sim_end_time - sim_start_time:.3f}s"
     f"\nControl ticks: {ctrl_i}/{CTRL_STEPS}"
 )
-
+stopper = input("Would you like to see your results?")
 # --------------------------------------------------------------------------------
 # Simulation Results
 # --------------------------------------------------------------------------------
@@ -1432,10 +1432,10 @@ plt.show()
 
 
 # Plot results
-t_vec = np.arange(ctrl_i) * CTRL_DT
-plot_swing_foot_traj(t_vec, foot_traj, False)
-plot_mpc_result(t_vec, mpc_force_world, tau_cmd, x_vec, block=False)
-plot_solve_time(mpc_solve_time_ms, mpc_update_time_ms, MPC_DT, MPC_HZ, block=True)
+# t_vec = np.arange(ctrl_i) * CTRL_DT
+# plot_swing_foot_traj(t_vec, foot_traj, False)
+# plot_mpc_result(t_vec, mpc_force_world, tau_cmd, x_vec, block=False)
+# plot_solve_time(mpc_solve_time_ms, mpc_update_time_ms, MPC_DT, MPC_HZ, block=True)
 
 # Replay simulation
 time_log_render = np.asarray(time_log_render, dtype=float)
