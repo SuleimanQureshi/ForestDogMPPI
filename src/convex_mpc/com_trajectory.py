@@ -199,7 +199,7 @@ class ComTraj:
             # =======================
             # FRONT LEFT  (leg = 0)
             # =======================
-            FOOT_Z_OFF = 0.02
+            FOOT_Z_OFF = 0.015
 
             leg = 0
 

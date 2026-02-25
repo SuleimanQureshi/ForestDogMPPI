@@ -5,7 +5,7 @@ from .go2_robot_data import PinGo2Model
 # Gait Setting
 # --------------------------------------------------------------------------------
 
-PHASE_OFFSET = np.array([0.5, 0.0, 0.0, 0.5]).reshape(4)    # trotting gait
+PHASE_OFFSET = np.array([0.0, 0.25, 0.5, 0.75]).reshape(4)    # trotting gait
 HEIGHT_SWING = 0.12 # Height of the swing leg trajectory apex
 
 
@@ -437,10 +437,32 @@ class Gait():
 
         # precompute nominal z
         z0, _ = terrain.height_and_normal(td0[0], td0[1])
-
+        gate = ""
         for i in range(min(self.FH_K, len(offs_world))):
             xy = td0[:2] + offs_world[i]
             x, y = float(xy[0]), float(xy[1])
+            cand_xy = xy
+            cand_xy = np.atleast_2d(cand_xy)
+
+            # Gate: candidate must stay on correct side of body in BODY frame
+            Rwb_full = go2.R_world_to_body   # 3x3
+            Rwb = Rwb_full[:2, :2]           # 2x2 planar yaw
+            # subtract base XY only
+            rel_xy = cand_xy - base_pos[:2]     # (K,2)
+
+            # rotate into body frame
+            cand_body_xy = (Rwb @ rel_xy.T).T   # (K,2)
+
+            
+            # +y is left in your conventions (you already use vy left)
+            if leg in ["FR", "RR"]:
+                side_ok = cand_body_xy[:,1] < -0.015   # right side
+            else:
+                side_ok = cand_body_xy[:,1] >  0.015   # left side
+
+            if side_ok == False:
+                gate = "Side"
+                continue
 
             z, n = terrain.height_and_normal(x, y)
             n = np.asarray(n, dtype=float)
@@ -450,20 +472,24 @@ class Gait():
             # slope
             slope_deg = np.degrees(np.arctan2(np.linalg.norm(n[:2]), n[2]))
             if slope_deg > self.FH_MAX_SLOPE_DEG:
+                gate = "slope"
                 continue
 
             # reachability in XY
             dxy = np.linalg.norm(xy - hip_xy)
             if dxy < self.FH_REACH_XY_MIN or dxy > self.FH_REACH_XY_MAX:
+                gate = "reach"
                 continue
 
             # z jump limit
             if abs(float(z) - float(z0)) > self.FH_DZ_MAX:
+                gate = "z"
                 continue
 
             # plane-fit residual (curvature / hole / rim awareness)
             resid = self._plane_fit_residual(terrain, x, y)
             if resid > self.FH_PLANE_RES_MAX:
+                gate = "resid"
                 continue
             
             # --- stance set at touchdown time ---
@@ -517,6 +543,7 @@ class Gait():
 
             # ---- stability gate ----
             if margin < self.FH_STAB_MARGIN_MIN:
+                gate = "stab"
                 continue
 
             # ---- soft term: larger margin is better ----
@@ -546,6 +573,7 @@ class Gait():
             z, n = terrain.height_and_normal(td0[0], td0[1])
             td = td0.copy()
             td[2] = z
+            print("EVERYTHING GOT GATED OUT" + gate)
             return td
 
         # ---- normalize helper (0..1) ----

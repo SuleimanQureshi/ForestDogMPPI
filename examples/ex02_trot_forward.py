@@ -24,7 +24,7 @@ from convex_mpc.plot_helper import plot_mpc_result, plot_swing_foot_traj, plot_s
 INITIAL_X_POS = -2
 INITIAL_Y_POS = 0
 # How long does the simulation run for How much time 
-RUN_SIM_LENGTH_S = 15.0
+RUN_SIM_LENGTH_S = 5.0
 
 RENDER_HZ = 120.0
 RENDER_DT = 1.0 / RENDER_HZ
@@ -48,8 +48,8 @@ BodyCmdPhase(0.0, 5.0,  0.8, 0.0, 0.27, 0.0),   # Forward 0.8 m/s
 ]
 
 # Gait Setting
-GAIT_HZ = 3
-GAIT_DUTY = 0.6
+GAIT_HZ = 1.5
+GAIT_DUTY = 0.8 # I CHANGED THIS FROM 0.6 to 0.75 - SUL, 75% stance, 25% swing for stability
 GAIT_T = 1.0 / GAIT_HZ
 
 # Trajectory Reference Setting (defaults)

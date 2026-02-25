@@ -23,7 +23,7 @@ def make_forest(h=512, w=512, seed=5):
     undulations = gaussian_blur(undulations, passes=12)
     undulations = (undulations - undulations.min()) / (undulations.max() - undulations.min())
 
-    height = 0.45 * base + 0.25 * undulations
+    height = 0.4 * base + 0.2 * undulations
 
     # --- Sparse soft bumps (rocks under soil, roots) ---
     for _ in range(25):   # FEW bumps
@@ -32,7 +32,7 @@ def make_forest(h=512, w=512, seed=5):
         r = rng.integers(12, 35)   # LARGE radius → gentle
         yy, xx = np.ogrid[:h, :w]
         bump = np.exp(-((xx - cx)**2 + (yy - cy)**2) / (2 * r * r))
-        height += 0.06 * bump      # SMALL amplitude
+        height += 0.04 * bump      # SMALL amplitude
     # # Flatten spawn zone (~1.5m radius)
     #     h, w = height.shape
     #     cx, cy = h // 2, w // 2

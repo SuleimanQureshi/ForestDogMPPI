@@ -13,25 +13,31 @@ COST_MATRIX_Q = np.diag([1, 1, 50,  10, 20, 1,  2, 2, 1,  1, 1, 1])     # State 
 COST_MATRIX_R = np.diag([1e-5] * 12)                                    # Input cost weight matrix
 F_MIN = 10
 
-MU = 0.8    # Friction coefficient
+MU = 0.7    # Friction coefficient
 NX = 12     # State size (6-DOF 12 states)
 NU = 12     # Input size (4 x 3D force)
 
 # Solver Option
 OPTS = {
-    'warm_start_primal': True,
-    'warm_start_dual': True,
-
+    "error_on_fail": False,   # <--- IMPORTANT: don't throw, return a failed status instead
+    "warm_start_primal": True,
+    "warm_start_dual": True,
     "osqp": {
-        "eps_abs": 1e-4,
-        "eps_rel": 1e-4,
-        "max_iter": 1000,
-        "polish": False,
         "verbose": False,
-        'adaptive_rho': True,
+
+        # tighter tolerances help stability; increase iter budget
+        "eps_abs": 1e-5,
+        "eps_rel": 1e-5,
+        "max_iter": 4000,
+
+        # polishing can help when near-feasible
+        "polish": True,
+
+        # scaling / rho adaptation improve numerics
+        "adaptive_rho": True,
+        "adaptive_rho_interval": 25,
         "check_termination": 10,
-        'adaptive_rho_interval': 25,
-        "scaling": 5,
+        "scaling": 10,
         "scaled_termination": True
     }
 }
@@ -45,7 +51,7 @@ class CentroidalMPC:
         self.nvars = traj.N * NX + traj.N * NU    # Total number of decision variables                          
         self.solve_time: float = 0 
         self.N = traj.N
-
+        self.last_good_sol = None
         # Below we compute the constant elements of the MPC controller
         # This heavily reduces the time needed for update between each iteration
 
@@ -65,7 +71,7 @@ class CentroidalMPC:
         self.dyn_builder = self._create_dynamics_function()
 
         # 4. Initialize Solver
-        self._build_sparse_matrix(traj, verbose=True)
+        self._build_sparse_matrix(traj, verbose=False)
 
     def solve_QP(self, go2:PinGo2Model, traj: ComTraj, verbose: bool = False):
         """
@@ -96,7 +102,29 @@ class CentroidalMPC:
             qp_args['lam_a0'] = self.lam_a_prev    # Dual guess (linear constraints)
 
         # 4) Solve the QP
-        sol = self.solver(**qp_args)
+        try:
+            sol = self.solver(**qp_args)
+        except RuntimeError as e:
+            # Hard failure from CasADi/OSQP
+            if self.last_good_sol is not None:
+                if verbose:
+                    print("[QP SOLVER] RuntimeError -> using last_good_sol fallback:", str(e))
+                return self.last_good_sol
+            raise  # if no fallback yet, let it crash so you see it early
+
+        stats = self.solver.stats()
+        status = stats.get("return_status", "")
+        success = ("solved" in status.lower()) or ("success" in status.lower())
+        if not success:
+            if self.last_good_sol is not None:
+                if verbose:
+                    print(f"[QP SOLVER] status={status} -> fallback to last_good_sol")
+                return self.last_good_sol
+            # if no fallback, still return sol but warn
+            if verbose:
+                print(f"[QP SOLVER] status={status} (no fallback available)")
+        if success:
+            self.last_good_sol = sol
         t2 = time.perf_counter()
 
         # 5) Document time spent
@@ -410,8 +438,8 @@ class CentroidalMPC:
         r0 = 0
 
         # Expect shape (4, N, 3)
-        # normals = getattr(traj, "contact_normals", None)
-        normals = None
+        normals = getattr(traj, "contact_normals", None)
+        # normals = None
         if normals is None:
             # fallback: flat ground
             normals = np.zeros((4, self.N, 3), dtype=float)
@@ -421,6 +449,24 @@ class CentroidalMPC:
             uk0 = baseU + k * NU
             for leg in range(4):
                 n_leg = normals[leg, k, :]
+                n_leg = np.asarray(n_leg, dtype=float)
+
+                # 1) finite check
+                if not np.all(np.isfinite(n_leg)):
+                    n_leg = np.array([0.0, 0.0, 1.0], dtype=float)
+
+                # 2) normalize, fallback if near-zero
+                nn = np.linalg.norm(n_leg)
+                if nn < 1e-6:
+                    n_leg = np.array([0.0, 0.0, 1.0], dtype=float)
+                else:
+                    n_leg = n_leg / nn
+
+                # 3) enforce "up-ish" normals to avoid insane tilt from noise
+                # (tune nz_min; start 0.6–0.8)
+                nz_min = 0.7
+                if n_leg[2] < nz_min:
+                    n_leg = np.array([0.0, 0.0, 1.0], dtype=float)
                 t1, t2, n = self._tangent_basis_from_normal(n_leg)
 
                 # each row is coeffs on [fx,fy,fz] for this leg at this timestep
@@ -446,8 +492,16 @@ class CentroidalMPC:
                 #   -n^T f <= -f_min
                 # -------------------------------------------------
 
-              
-                c_norm = -n   # because -n^T f <= -f_min
+                        
+                            # Use WORLD UP for minimum support to avoid infeasibility from noisy normals
+                # -------------------------------------------------
+                # Normal force minimum: n_support^T f >= F_MIN
+                # Convert to inequality:
+                #   -n_support^T f <= -F_MIN
+                # This is the 5th row per leg per timestep
+                # -------------------------------------------------
+                n_support = np.array([0.0, 0.0, 1.0], dtype=float)   # world-up support direction
+                c_norm = -n_support                                  # coefficients on [fx, fy, fz]
 
                 rows.extend([r0, r0, r0])
                 cols.extend([uk0 + fx, uk0 + fy, uk0 + fz])

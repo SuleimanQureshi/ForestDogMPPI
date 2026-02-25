@@ -12,7 +12,7 @@ import pinocchio as pin
 # --------------------------------------------------------------------------------
 
 REPO = Path(__file__).resolve().parents[2]
-XML_PATH = REPO / "models" / "MJCF" / "go2" / "scene_test_box.xml"
+XML_PATH = REPO / "models" / "MJCF" / "go2" / "scene_test_box copy.xml"
 
 class MuJoCo_GO2_Model:
     def __init__(self):
