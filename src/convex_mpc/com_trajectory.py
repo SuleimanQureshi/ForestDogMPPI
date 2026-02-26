@@ -152,6 +152,23 @@ class ComTraj:
         td_n_world   = np.zeros((4, 3), dtype=float)           # per-leg normal (WORLD)
         td_n_world[:, 2] = 1.0
 
+        # ── Anchor to reality ───────────────────────────────────────────────────
+        # generate_traj() is called every MPC tick. Without this, td_pos_world starts
+        # as NaN each call and lever arms rebuild from PREDICTED touchdowns — drifting
+        # away from the actual foot positions over many gait cycles.
+        # Fix: for every leg currently in stance, seed td_pos_world with the ACTUAL
+        # foot position from Pinocchio kinematics. This resets drift at every MPC call.
+        init_mask = gait.compute_current_mask(time_now)
+        actual_feet = go2.get_foot_placement_in_world()  # (FL, FR, RL, RR) world positions
+        for li, foot_pos in enumerate(actual_feet):
+            if init_mask[li] == 1:  # currently stance → use real position
+                td_pos_world[li, :] = np.array(foot_pos, dtype=float)
+                if self.terrain is not None:
+                    _, n_act = self.terrain.height_and_normal(float(foot_pos[0]), float(foot_pos[1]))
+                    n_act = np.asarray(n_act, dtype=float)
+                    td_n_world[li, :] = n_act / (np.linalg.norm(n_act) + 1e-9)
+        # ────────────────────────────────────────────────────────────────────────
+
         [r_fl_next_td_world, r_fr_next_td_world, r_rl_next_td_world, r_rr_next_td_world] = go2.get_foot_lever_world()
         # Initialize td_pos_world for legs that start in stance, using current lever arms
         # (This prevents NaNs on the very first stance tick.)
@@ -199,7 +216,7 @@ class ComTraj:
             # =======================
             # FRONT LEFT  (leg = 0)
             # =======================
-            FOOT_Z_OFF = 0.015
+            FOOT_Z_OFF = 0.003  # 3 mm (was 0.015: caused phantom stance on flat terrain)
 
             leg = 0
 

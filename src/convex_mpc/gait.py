@@ -69,7 +69,7 @@ class Gait():
         T = t_swing + 0.5*t_stance
         pred_time = T / 2.0
 
-        pos_norminal_term = [hip_pos_world[0], hip_pos_world[1], 0.02]
+        pos_norminal_term = [hip_pos_world[0], hip_pos_world[1], 0.003]  # 3mm above ground (was 0.02: foot missed flat ground)
         pos_drift_term = [base_vel[0] * pred_time, base_vel[1] * pred_time, 0]
 
         dtheta = yaw_rate * pred_time
@@ -85,7 +85,7 @@ class Gait():
                                 + np.array(pos_drift_term)
                                 + np.array(rotation_correction_term)
                                 )
-        terrain = getattr(go2, "terrain", None)
+        terrain =None
         if terrain is not None:
             pos_touchdown_world = self.select_foothold(go2, leg, pos_touchdown_world, terrain, time_now)
         return pos_touchdown_world
@@ -127,7 +127,7 @@ class Gait():
         k_v_y = 0.2 * T          # ~0.1
         k_p_y = 0.05
 
-        pos_norminal_term = [hip_pos_world[0], hip_pos_world[1], 0.02]
+        pos_norminal_term = [hip_pos_world[0], hip_pos_world[1], 0.003]  # 3mm above ground (was 0.02: foot missed flat ground)
         pos_drift_term = [x_vel_des * pred_time, y_vel_des * pred_time, 0]
         pos_correction_term = [k_p_x * (pos_com_world[0] - x_pos_des), k_p_y * (pos_com_world[1] - y_pos_des), 0]
         vel_correction_term = [k_v_x * (vel_com_world[0] - x_vel_des), k_v_y * (vel_com_world[1] - y_vel_des), 0]
@@ -150,14 +150,14 @@ class Gait():
             + np.array(rotation_correction_term)
         )
         
-        terrain = getattr(go2, "terrain", None)
+        terrain = None
         
         # 1) FIRST pick/snap touchdown
         if terrain is not None:
             pos_touchdown_world = self.select_foothold(go2, leg, pos_touchdown_world, terrain, time_now)
         
-            # IMPORTANT: add a small touchdown z offset so we don't command into ground
-            FOOT_Z_OFF = 0.015  # start with 1.5cm; tune 1–2cm
+            # Small z offset to avoid numeric ground penetration (was 0.015, caused phantom stance on flat)
+            FOOT_Z_OFF = 0.003  # 3 mm
             z_td, _ = terrain.height_and_normal(pos_touchdown_world[0], pos_touchdown_world[1])
             pos_touchdown_world[2] = z_td + FOOT_Z_OFF
         
@@ -220,7 +220,7 @@ class Gait():
     # -----------------------------
     # Foothold selection constants
     # -----------------------------
-    FH_R_SAMPLE = 0.15          # meters
+    FH_R_SAMPLE = 0.08          # meters (tightened: was 0.15)
     FH_K = 24                   # number of candidates
     FH_MAX_SLOPE_DEG = 25.0
     FH_PLANE_RES_MAX = 0.015    # meters (1.5 cm)

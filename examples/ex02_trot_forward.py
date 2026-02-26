@@ -48,7 +48,7 @@ BodyCmdPhase(0.0, 5.0,  0.8, 0.0, 0.27, 0.0),   # Forward 0.8 m/s
 ]
 
 # Gait Setting
-GAIT_HZ = 1.5
+GAIT_HZ = 1.2  # was 1.5: longer swing+stance times for stable crawl
 GAIT_DUTY = 0.8 # I CHANGED THIS FROM 0.6 to 0.75 - SUL, 75% stance, 25% swing for stability
 GAIT_T = 1.0 / GAIT_HZ
 
@@ -504,8 +504,8 @@ class Nav2StyleMPPI:
         self.ALPHA = 0.1        # correlated noise
 
         # velocity limits (keep conservative!)
-        self.vx_min, self.vx_max = -0.25, 0.7
-        self.vy_min, self.vy_max = -0.2, 0.2
+        self.vx_min, self.vx_max = -0.25, 0.3  # capped for stable crawl gait
+        self.vy_min, self.vy_max = -0.1, 0.1
         self.wz_min, self.wz_max = -1.75, 1.75
         
         self.costmap = None
@@ -1276,7 +1276,7 @@ with mj.viewer.launch_passive(mujoco_go2.model, mujoco_go2.data) as viewer:
                 vy_des_body = float(u0[1])
                 wz_des_body = float(u0[2])
                 z_pos_des_body = 0.27
-                vx_des_body = np.clip(vx_des_body, -0.8, 0.8)
+                vx_des_body = np.clip(vx_des_body, -0.3, 0.3)   # match MPPI vx_max (was ±0.8, bypassed the cap)
                 vy_des_body = np.clip(vy_des_body, -0.3, 0.3)
                 wz_des_body = np.clip(wz_des_body, -0.6, 0.6)
                 # vx_des_body = 0.8
