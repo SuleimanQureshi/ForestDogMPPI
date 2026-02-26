@@ -49,7 +49,7 @@ BodyCmdPhase(0.0, 5.0,  0.8, 0.0, 0.27, 0.0),   # Forward 0.8 m/s
 
 # Gait Setting
 GAIT_HZ = 3
-GAIT_DUTY = 0.6
+GAIT_DUTY = 0.75
 GAIT_T = 1.0 / GAIT_HZ
 
 # Trajectory Reference Setting (defaults)
@@ -504,8 +504,8 @@ class Nav2StyleMPPI:
         self.ALPHA = 0.1        # correlated noise
 
         # velocity limits (keep conservative!)
-        self.vx_min, self.vx_max = -0.25, 0.8
-        self.vy_min, self.vy_max = -0.6, 0.6
+        self.vx_min, self.vx_max = -0.25, 0.75
+        self.vy_min, self.vy_max = -0.15, 0.15
         self.wz_min, self.wz_max = -1.75, 1.75
         
         self.costmap = None
@@ -1377,6 +1377,8 @@ print(
 # --------------------------------------------------------------------------------
 # Simulation Results
 # --------------------------------------------------------------------------------
+blocker = input("Press Enter to continue...")
+
 print("Replaying MPPI debug...")
 
 plt.figure(figsize=(8,8))
@@ -1430,12 +1432,11 @@ for frame in debug_frames:
 
 plt.show()
 
-
 # Plot results
 t_vec = np.arange(ctrl_i) * CTRL_DT
-plot_swing_foot_traj(t_vec, foot_traj, False)
-plot_mpc_result(t_vec, mpc_force_world, tau_cmd, x_vec, block=False)
-plot_solve_time(mpc_solve_time_ms, mpc_update_time_ms, MPC_DT, MPC_HZ, block=True)
+# plot_swing_foot_traj(t_vec, foot_traj, False)
+# plot_mpc_result(t_vec, mpc_force_world, tau_cmd, x_vec, block=False)
+# plot_solve_time(mpc_solve_time_ms, mpc_update_time_ms, MPC_DT, MPC_HZ, block=True)
 
 # Replay simulation
 time_log_render = np.asarray(time_log_render, dtype=float)
