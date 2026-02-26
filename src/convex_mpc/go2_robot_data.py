@@ -237,9 +237,9 @@ class PinGo2Model:
         qw = cr*cp*cy + sr*sp*sy
 
         q_full = np.concatenate([
-            q[0:3],                # base position
-            [qx, qy, qz, qw],      # base quaternion
-            np.zeros(12)           # 12 leg joint angles
+            q[0:3],                              # base position
+            [qx, qy, qz, qw],                   # base quaternion
+            self.current_config.get_q()[7:19]    # preserve existing joint angles
         ])
 
         dq_full = np.concatenate([

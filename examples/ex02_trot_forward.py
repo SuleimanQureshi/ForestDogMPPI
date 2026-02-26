@@ -24,7 +24,7 @@ from convex_mpc.plot_helper import plot_mpc_result, plot_swing_foot_traj, plot_s
 INITIAL_X_POS = -2
 INITIAL_Y_POS = 0
 # How long does the simulation run for How much time 
-RUN_SIM_LENGTH_S = 15.0
+RUN_SIM_LENGTH_S = 10.0
 
 RENDER_HZ = 120.0
 RENDER_DT = 1.0 / RENDER_HZ
@@ -504,7 +504,7 @@ class Nav2StyleMPPI:
         self.ALPHA = 0.1        # correlated noise
 
         # velocity limits (keep conservative!)
-        self.vx_min, self.vx_max = -0.25, 0.75
+        self.vx_min, self.vx_max = -0.25, 0.7
         self.vy_min, self.vy_max = -0.15, 0.15
         self.wz_min, self.wz_max = -1.75, 1.75
         
