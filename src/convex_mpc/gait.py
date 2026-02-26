@@ -5,7 +5,7 @@ from .go2_robot_data import PinGo2Model
 # Gait Setting
 # --------------------------------------------------------------------------------
 
-PHASE_OFFSET = np.array([0.5, 0.0, 0.0, 0.5]).reshape(4)    # trotting gait
+PHASE_OFFSET = np.array([0, 0.25, 0.5, 0.75]).reshape(4)    # trotting gait
 HEIGHT_SWING = 0.1 # Height of the swing leg trajectory apex
 
 
