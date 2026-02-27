@@ -10,6 +10,10 @@ from dataclasses import dataclass
 KP_SWING = np.diag([400, 400, 400])
 KD_SWING = np.diag([75, 75, 75])
 
+# Stance foot-hold gains (resist foot sliding)
+KP_STANCE = np.diag([300, 300, 0])    # xy position hold, no z (ground handles z)
+KD_STANCE = np.diag([40, 40, 20])     # velocity damping in all axes
+
 # Mapping from leg name to index in the mask
 LEG_INDEX = {
     "FL": 0,
@@ -71,6 +75,11 @@ class LegController():
             setattr(self, f"{leg}_traj", traj)
             setattr(self, f"{leg}_td_pos", td_pos)
 
+        # Detect touchdown transition (swing → stance)
+        if self.last_mask[leg_idx] != current_mask[leg_idx] and current_mask[leg_idx] == 1:
+            # This leg just touched down — record foot position for stance hold
+            setattr(self, f"{leg}_stance_pos", foot_pos_now.copy())
+
         # Swing vs stance
         if current_mask[leg_idx] == 0:  # Swing phase
             takeoff_time = getattr(self, f"{leg}_takeoff_time")
@@ -98,7 +107,20 @@ class LegController():
             tau_cmd = J_foot_world.T @ force + (C @ go2.current_config.get_dq() + g)[joint_slice]
 
         else:  # Stance phase
-            tau_cmd = J_foot_world.T @ -contact_force
+            # MPC contact force (feedforward)
+            f_mpc = -contact_force
+
+            # Stance foot-hold PD feedback (resist sliding)
+            stance_pos = getattr(self, f"{leg}_stance_pos", foot_pos_now)
+            foot_pos_des = stance_pos
+            foot_vel_des = np.zeros(3)
+
+            pos_error = stance_pos - foot_pos_now
+            vel_error = -foot_vel_now   # desired vel = 0
+
+            f_hold = KP_STANCE @ pos_error + KD_STANCE @ vel_error
+
+            tau_cmd = J_foot_world.T @ (f_mpc + f_hold) + (C @ go2.current_config.get_dq() + g)[joint_slice]
 
         # Update mask memory
         self.last_mask[leg_idx] = current_mask[leg_idx]

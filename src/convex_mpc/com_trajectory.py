@@ -49,6 +49,7 @@ class ComTraj:
 
         # Use live terrain if provided by robot
         self.terrain = getattr(go2, "terrain", self.terrain)
+        self.dummy_go2.terrain = self.terrain   # propagate terrain to dummy
 
         self.initial_x_vec= go2.compute_com_x_vec()
         initial_pos = self.initial_x_vec[0:3]
@@ -73,7 +74,8 @@ class ComTraj:
         if y0 - self.pos_des_world[1] > max_pos_error:
             self.pos_des_world[1] = y0 - max_pos_error
 
-        self.pos_des_world[2] = z_pos_des_body
+        z_ground_now, _ = self.terrain.height_and_normal(x0, y0)
+        self.pos_des_world[2] = z_ground_now + z_pos_des_body
 
         go2.x_pos_des_world = self.pos_des_world[0]
         go2.y_pos_des_world = self.pos_des_world[1]
@@ -129,13 +131,17 @@ class ComTraj:
             self.rpy_traj_world[0, i] = slope_blend * roll
             self.rpy_traj_world[1, i] = slope_blend * pitch
 
-        # Linear velocity in world: constant over horizon
-        self.vel_traj_world[:, :] = vel_desired_world.reshape(3, 1)
+        # Linear velocity in world: xy constant, z from terrain height gradient
+        self.vel_traj_world[0:2, :] = vel_desired_world[0:2].reshape(2, 1)
+        if N > 1:
+            self.vel_traj_world[2, 1:] = np.diff(self.pos_traj_world[2, :]) / time_step
+            self.vel_traj_world[2, 0] = self.vel_traj_world[2, 1]
+        else:
+            self.vel_traj_world[2, :] = 0.0
 
         # RPY in world:
-        # Keep roll, pitch constant; integrate yaw with desired yaw rate
-        self.rpy_traj_world[0, :] = 0.0
-        self.rpy_traj_world[1, :] = 0.0
+        # Roll/pitch: keep terrain-aligned values from loop above
+        # Yaw: integrate with desired yaw rate
         self.rpy_traj_world[2, :] = yaw + yaw_rate_des_body * t_vec
 
         # RPY rates in BODY frame: only yaw rate non-zero
@@ -174,16 +180,20 @@ class ComTraj:
         dq = np.zeros(6)
 
         for i in range(N):
-            current_mask = gait.compute_current_mask(time_now + i * time_step)
+            # Use contact_table directly for phase consistency (Bug 8)
+            current_mask = self.contact_table[:, i]
 
             q[0:3] = self.pos_traj_world[:,i]
             q[3:6] = self.rpy_traj_world[:,i]
             # pinocchio needs body frame velocity
-            R = go2.R_world_to_body
+            # Use per-step yaw rotation instead of stale go2.R_world_to_body (Bug 4)
+            yaw_i = self.rpy_traj_world[2, i]
+            c_y, s_y = np.cos(yaw_i), np.sin(yaw_i)
+            R_z_i = np.array([[c_y, s_y, 0], [-s_y, c_y, 0], [0, 0, 1]])  # world-to-body (yaw only)
             v_world = self.vel_traj_world[:,i]
             w_world = self.omega_traj_world[:,i]
-            w_body = R @ w_world
-            v_body = R @ v_world
+            w_body = R_z_i @ w_world
+            v_body = R_z_i @ v_world
             dq[0:3] = v_body
             dq[3:6] = w_body # assume rpy rate = omega here
             self.dummy_go2.update_model_simplified(q, dq)
