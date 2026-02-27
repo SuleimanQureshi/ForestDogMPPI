@@ -133,10 +133,12 @@ class Gait():
                                 + np.array(rotation_correction_term)
                                 )
         
-        pos_foot_traj_eval_at_world = self.make_swing_trajectory(foot_pos, pos_touchdown_world, t_swing, h_sw=HEIGHT_SWING)
+        # Refine touchdown with terrain BEFORE building swing trajectory (Bug 2)
         terrain = getattr(go2, "terrain", None)
         if terrain is not None:
             pos_touchdown_world = self.select_foothold(go2, leg, pos_touchdown_world, terrain, time_now)
+
+        pos_foot_traj_eval_at_world = self.make_swing_trajectory(foot_pos, pos_touchdown_world, t_swing, h_sw=HEIGHT_SWING)
 
         return pos_foot_traj_eval_at_world, pos_touchdown_world
 

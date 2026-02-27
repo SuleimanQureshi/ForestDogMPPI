@@ -24,7 +24,7 @@ from convex_mpc.plot_helper import plot_mpc_result, plot_swing_foot_traj, plot_s
 INITIAL_X_POS = -2
 INITIAL_Y_POS = 0
 # How long does the simulation run for How much time 
-RUN_SIM_LENGTH_S = 15.0
+RUN_SIM_LENGTH_S = 7.0
 
 RENDER_HZ = 120.0
 RENDER_DT = 1.0 / RENDER_HZ
@@ -49,7 +49,7 @@ BodyCmdPhase(0.0, 5.0,  0.8, 0.0, 0.27, 0.0),   # Forward 0.8 m/s
 
 # Gait Setting
 GAIT_HZ = 3
-GAIT_DUTY = 0.75
+GAIT_DUTY = 0.8
 GAIT_T = 1.0 / GAIT_HZ
 
 # Trajectory Reference Setting (defaults)
@@ -626,7 +626,7 @@ class Nav2StyleMPPI:
                 y.reshape(-1)
             ).reshape(x.shape)
 
-            obs_cost = 150.0 * (cost_vals**2).mean(axis=1)
+            obs_cost = 175.0 * (cost_vals**2).mean(axis=1)
 
         else:
             obs_cost = np.zeros(x.shape[0])
@@ -834,7 +834,7 @@ class Nav2StyleMPPI:
             w_goal * goal_cost +
             w_term * term +
             w_heading * heading_cost +
-            2.0 * obs_total +
+            2.5 * obs_total +
             1.0 * slope_cost +
             0.2 * smooth +
             0.05 * effort +
@@ -1428,7 +1428,7 @@ for frame in debug_frames:
     plt.xlim(-4,4)
     plt.ylim(-4,4)
 
-    plt.pause(0.03)
+    plt.pause(0.001)
 
 plt.show()
 
