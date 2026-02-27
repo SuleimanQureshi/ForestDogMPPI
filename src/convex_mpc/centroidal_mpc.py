@@ -13,7 +13,7 @@ COST_MATRIX_Q = np.diag([1, 1, 50,  10, 20, 1,  2, 2, 1,  1, 1, 1])     # State 
 COST_MATRIX_R = np.diag([1e-5] * 12)                                    # Input cost weight matrix
 F_MIN = 10
 
-MU = 0.8    # Friction coefficient
+MU = 0.6    # Friction coefficient
 NX = 12     # State size (6-DOF 12 states)
 NU = 12     # Input size (4 x 3D force)
 
@@ -125,7 +125,7 @@ class CentroidalMPC:
         This method returns box constriant bounds
         """
 
-        # fz_min = 10     # Prevent slipping
+        fz_min = 10     # Prevent slipping
         N = traj.N      
         nvars = self.nvars
         start_u = N*12
@@ -162,13 +162,13 @@ class CentroidalMPC:
         ubx_np[swing_idx, 0] = 0.0
 
         # 5) Stance legs → fz >= fz_min (only the z row of each leg: rows 2,5,8,11)
-        # fz_rows = np.array([2, 5, 8, 11])
-        # stance_idx_2d = force_idx[fz_rows[:, None], np.arange(N)[None, :]]
-        # stance_mask   = contact
-        # stance_idx    = stance_idx_2d[stance_mask]
+        fz_rows = np.array([2, 5, 8, 11])
+        stance_idx_2d = force_idx[fz_rows[:, None], np.arange(N)[None, :]]
+        stance_mask   = contact
+        stance_idx    = stance_idx_2d[stance_mask]
 
-        # # keep the tighter lower bound if any
-        # lbx_np[stance_idx, 0] = np.maximum(lbx_np[stance_idx, 0], fz_min)
+        # keep the tighter lower bound if any
+        lbx_np[stance_idx, 0] = np.maximum(lbx_np[stance_idx, 0], fz_min)
 
         # 6) Convert to CasADi
         lbx = ca.DM(lbx_np)

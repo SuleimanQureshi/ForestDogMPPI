@@ -109,9 +109,19 @@ class ComTraj:
         self.vel_traj_world[:, :] = vel_desired_world.reshape(3, 1)
 
         # RPY in world:
-        # Keep roll, pitch constant; integrate yaw with desired yaw rate
-        self.rpy_traj_world[0, :] = 0.0
-        self.rpy_traj_world[1, :] = 0.0
+        # Roll/pitch reference adapts to terrain slope; yaw integrates desired yaw rate.
+        # Query terrain normal at current robot position and decompose into roll/pitch
+        # in the yaw-aligned frame so heading doesn't bleed into tilt references.
+        active_terrain = getattr(go2, 'terrain', None) or self.terrain
+        _, n_terrain = active_terrain.height_and_normal(float(x0), float(y0))
+        n_terrain = np.asarray(n_terrain, dtype=float)
+        n_terrain /= (np.linalg.norm(n_terrain) + 1e-9)
+        n_yaw = R_z.T @ n_terrain                          # normal in yaw-aligned frame
+        terrain_roll  = float(np.clip(np.arctan2( n_yaw[1], n_yaw[2]), -0.3, 0.3))
+        terrain_pitch = float(np.clip(np.arctan2(-n_yaw[0], n_yaw[2]), -0.3, 0.3))
+
+        self.rpy_traj_world[0, :] = terrain_roll
+        self.rpy_traj_world[1, :] = terrain_pitch
         self.rpy_traj_world[2, :] = yaw + yaw_rate_des_body * t_vec
 
         # RPY rates in BODY frame: only yaw rate non-zero

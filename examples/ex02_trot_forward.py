@@ -49,7 +49,7 @@ BodyCmdPhase(0.0, 5.0,  0.8, 0.0, 0.27, 0.0),   # Forward 0.8 m/s
 
 # Gait Setting
 GAIT_HZ = 3
-GAIT_DUTY = 0.75
+GAIT_DUTY = 0.8
 GAIT_T = 1.0 / GAIT_HZ
 
 # Trajectory Reference Setting (defaults)
@@ -501,18 +501,18 @@ class Nav2StyleMPPI:
         self.ITERS = 2           # better convergence
 
         self.LAMBDA = 8.0
-        self.ALPHA = 0.1        # correlated noise
+        self.ALPHA = 0.4        # correlated noise
 
         # velocity limits (keep conservative!)
-        self.vx_min, self.vx_max = -0.25, 0.7
+        self.vx_min, self.vx_max = -0.25, 0.6
         self.vy_min, self.vy_max = -0.15, 0.15
-        self.wz_min, self.wz_max = -1.75, 1.75
+        self.wz_min, self.wz_max = -1.8, 1.8
         
         self.costmap = None
 
         self.best_traj = np.zeros((self.H,3))
         # noise std
-        self.std = np.array([0.06, 0.12, 0.12]) # allow lateral/turn exploration
+        self.std = np.array([0.06, 0.12, 0.15]) # allow lateral/turn exploration
 
         self.side_bias = 0.0
 
