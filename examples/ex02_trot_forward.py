@@ -835,7 +835,7 @@ class Nav2StyleMPPI:
             w_term * term +
             w_heading * heading_cost +
             2.5 * obs_total +
-            1.0 * slope_cost +
+            2.5 * slope_cost +
             0.2 * smooth +
             0.05 * effort +
             # 0.8 * lateral_cost +
