@@ -12,3 +12,4 @@ __pycache__/
 *.pyc
 .env
 models/MJCF/scripts/lidar.tif
+models/MJCF/scripts/lidar.tif
