@@ -932,17 +932,17 @@ mpc_update_time_ms = []
 mpc_solve_time_ms = []
 X_opt = None
 U_opt = None
-def debug_plot_heightmap(hmap, res, origin):
-    plt.figure("Global Height Map", clear=True)
-    extent = [
-        origin[0],
-        origin[0] + hmap.shape[1]*res,
-        origin[1],
-        origin[1] + hmap.shape[0]*res
-    ]
-    plt.imshow(heightmap.hmap, origin="lower", extent=extent, vmin=0, vmax=0.5)
-    plt.colorbar(label="World Z (m)")
-    plt.pause(0.001)
+# def debug_plot_heightmap(hmap, res, origin):
+#     plt.figure("Global Height Map", clear=True)
+#     extent = [
+#         origin[0],
+#         origin[0] + hmap.shape[1]*res,
+#         origin[1],
+#         origin[1] + hmap.shape[0]*res
+#     ]
+#     plt.imshow(heightmap.hmap, origin="lower", extent=extent, vmin=0, vmax=0.5)
+#     plt.colorbar(label="World Z (m)")
+#     plt.pause(0.001)
 # --------------------------------------------------------------------------------
 # Simulation Initialization
 # --------------------------------------------------------------------------------
@@ -1164,14 +1164,14 @@ with mj.viewer.launch_passive(mujoco_go2.model, mujoco_go2.data) as viewer:
 
 
                 if ctrl_i % 10 == 0:  # don’t draw every tick
-                    # pass
-                    debug_plot_mppi(
-                        state0,
-                        goal_xy,
-                        obstacle_xy,
-                        mppi.last_U_batch,
-                        mppi
-                    )
+                     pass
+                    # debug_plot_mppi(
+                    #     state0,
+                    #     goal_xy,
+                    #     obstacle_xy,
+                    #     mppi.last_U_batch,
+                    #     mppi
+                    # )
 
 
                 vx_des_body = float(u0[0])
@@ -1281,56 +1281,56 @@ print(
 # --------------------------------------------------------------------------------
 print("Replaying MPPI debug...")
 
-plt.figure(figsize=(8,8))
+# plt.figure(figsize=(8,8))
 
-for frame in debug_frames:
+# for frame in debug_frames:
 
-    plt.clf()
+#     plt.clf()
 
-    grid = frame["costmap"]
-    res = costmap.res
-    origin = costmap.origin_xy
+#     grid = frame["costmap"]
+#     res = costmap.res
+#     origin = costmap.origin_xy
 
-    extent = [
-        origin[0],
-        origin[0] + grid.shape[1] * res,
-        origin[1],
-        origin[1] + grid.shape[0] * res,
-    ]
+#     extent = [
+#         origin[0],
+#         origin[0] + grid.shape[1] * res,
+#         origin[1],
+#         origin[1] + grid.shape[0] * res,
+#     ]
 
-    plt.imshow(grid,
-               origin="lower",
-               extent=extent,
-               cmap="hot",
-               alpha=0.6,
-               vmin=0,
-               vmax= max(1e-3, float(grid.max())))
+#     plt.imshow(grid,
+#                origin="lower",
+#                extent=extent,
+#                cmap="hot",
+#                alpha=0.6,
+#                vmin=0,
+#                vmax= max(1e-3, float(grid.max())))
 
-    state = frame["state"]
-    U_batch = frame["U_batch"]
+#     state = frame["state"]
+#     U_batch = frame["U_batch"]
 
-    X = mppi.rollout(state, U_batch)
+#     X = mppi.rollout(state, U_batch)
 
-    for i in range(min(120, X.shape[0])):
-        plt.plot(X[i,:,0], X[i,:,1],
-                 color="blue",
-                 alpha=0.1)
+#     for i in range(min(120, X.shape[0])):
+#         plt.plot(X[i,:,0], X[i,:,1],
+#                  color="blue",
+#                  alpha=0.1)
 
-    plt.scatter(state[0], state[1], c='black', s=60)
-    plt.scatter(goal_xy[0], goal_xy[1], c='green', s=100)
+#     plt.scatter(state[0], state[1], c='black', s=60)
+#     plt.scatter(goal_xy[0], goal_xy[1], c='green', s=100)
 
-    if frame["obstacles"].shape[0] > 0:
-        plt.scatter(frame["obstacles"][:,0],
-                    frame["obstacles"][:,1],
-                    c='cyan', s=5)
+#     if frame["obstacles"].shape[0] > 0:
+#         plt.scatter(frame["obstacles"][:,0],
+#                     frame["obstacles"][:,1],
+#                     c='cyan', s=5)
 
-    plt.axis("equal")
-    plt.xlim(-4,4)
-    plt.ylim(-4,4)
+#     plt.axis("equal")
+#     plt.xlim(-4,4)
+#     plt.ylim(-4,4)
 
-    plt.pause(0.03)
+#     plt.pause(0.03)
 
-plt.show()
+# plt.show()
 
 
 # Plot results
