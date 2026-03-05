@@ -141,6 +141,12 @@ class GlobalHeightMap:
     min_points_per_cell: int = 1     # observed mask threshold
     ground_quantile: float = 0.20    # robust "near-ground" percentile (ramp-safe)
 
+    # Fallback height for unobserved cells — set to match the hfield geom z-offset
+    # in scene_test_forest.xml: <geom ... pos="0 0 -0.09" .../>.
+    # Without this, unobserved cells return z=0 which is 9 cm ABOVE the actual
+    # minimum ground surface, causing the swing foot to target the wrong height.
+    ground_z_fallback: float = 0.0
+
     def __post_init__(self):
         self.N = int(self.size_xy / self.res)
         self.origin_xy = np.array([-self.size_xy / 2.0, -self.size_xy / 2.0])
@@ -218,9 +224,9 @@ class GlobalHeightMap:
         ix, iy = self.world_to_grid(x, y)
         valid = (ix >= 0) & (ix < self.N) & (iy >= 0) & (iy < self.N)
 
-        out = np.zeros_like(x, dtype=float)
+        out = np.full(x.shape, self.ground_z_fallback, dtype=float)
         vals = self.h_ground[iy[valid], ix[valid]]
-        vals = np.where(np.isnan(vals), 0.0, vals)
+        vals = np.where(np.isnan(vals), self.ground_z_fallback, vals)
         out[valid] = vals
         return out
 
@@ -228,9 +234,11 @@ class GlobalHeightMap:
         ix, iy = self.world_to_grid(x, y)
         valid = (ix >= 0) & (ix < self.N) & (iy >= 0) & (iy < self.N)
 
-        out = np.zeros_like(x, dtype=float)
+        # Use ground_z_fallback for unobserved cells so clearance = top - ground = 0,
+        # avoiding false obstacle detections in unexplored areas.
+        out = np.full(x.shape, self.ground_z_fallback, dtype=float)
         vals = self.h_top[iy[valid], ix[valid]]
-        vals = np.where(np.isnan(vals), 0.0, vals)
+        vals = np.where(np.isnan(vals), self.ground_z_fallback, vals)
         out[valid] = vals
         return out
 
@@ -243,17 +251,17 @@ class GlobalHeightMap:
 
         # Guard against NaNs from upstream
         if not np.isfinite(x) or not np.isfinite(y):
-            return 0.0, np.array([0.0, 0.0, 1.0])
+            return self.ground_z_fallback, np.array([0.0, 0.0, 1.0])
         # Use ground layer for normals
         ix = int((x - self.origin_xy[0]) / self.res)
         iy = int((y - self.origin_xy[1]) / self.res)
 
         if ix < 0 or ix >= self.N or iy < 0 or iy >= self.N:
-            return 0.0, np.array([0.0, 0.0, 1.0])
+            return self.ground_z_fallback, np.array([0.0, 0.0, 1.0])
 
         z = self.h_ground[iy, ix]
         if np.isnan(z):
-            return 0.0, np.array([0.0, 0.0, 1.0])
+            return self.ground_z_fallback, np.array([0.0, 0.0, 1.0])
 
         dzdx = 0.0
         dzdy = 0.0
@@ -1254,7 +1262,10 @@ lidar = MuJoCoLidar3D(
     el_max_deg=15.0,
     max_range=6.0
 )
-heightmap = GlobalHeightMap(size_xy=12.0, res=0.05)
+# ground_z_fallback matches the hfield geom z-offset in scene_test_forest.xml
+# (<geom ... pos="0 0 -0.09" hfield="forest" .../>), so that unobserved cells
+# return the correct baseline ground height instead of world-z 0.
+heightmap = GlobalHeightMap(size_xy=12.0, res=0.05, ground_z_fallback=-0.09)
 costmap = ObstacleCostMap2D(size_xy=12.0, res=0.05)
 leg_controller = LegController()
 traj = ComTraj(go2)
@@ -1635,9 +1646,9 @@ t_vec = np.arange(ctrl_i) * CTRL_DT
 # plot_solve_time(mpc_solve_time_ms, mpc_update_time_ms, MPC_DT, MPC_HZ, block=True)
 
 # Replay simulation
-# time_log_render = np.asarray(time_log_render, dtype=float)
-# q_log_render = np.asarray(q_log_render, dtype=float)
-# tau_log_render = np.asarray(tau_log_render, dtype=float)
+time_log_render = np.asarray(time_log_render, dtype=float)
+q_log_render = np.asarray(q_log_render, dtype=float)
+tau_log_render = np.asarray(tau_log_render, dtype=float)
 
-# mujoco_go2.replay_simulation(time_log_render, q_log_render, tau_log_render, RENDER_DT, REALTIME_FACTOR)
-# hold_until_all_fig_closed()
+mujoco_go2.replay_simulation(time_log_render, q_log_render, tau_log_render, RENDER_DT, REALTIME_FACTOR)
+hold_until_all_fig_closed()
