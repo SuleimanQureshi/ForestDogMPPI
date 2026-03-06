@@ -107,8 +107,8 @@ class Gait():
         k_v_x = 0.4 * T          # ~0.2–0.3
         k_p_x = 0.1              # small
 
-        # Lateral (y) direction – usually weaker
-        k_v_y = 0.2 * T          # ~0.1
+        # Lateral (y) direction – strong because Go2 stance is narrow (~10cm)
+        k_v_y = 0.5 * T          # lateral balance is critical
         k_p_y = 0.05
 
         pos_norminal_term = [hip_pos_world[0], hip_pos_world[1], 0.02]
@@ -125,12 +125,37 @@ class Gait():
                                 dtheta * r_xy[0],
                                 0.0
                                 ])
-    
+
+        # ---- Change 4: Capture-point lateral offset (roll-reactive) ----
+        # When the robot tilts right, right-side feet step further right to
+        # widen the support polygon on the falling side.
+        roll = go2.current_config.compute_euler_angle_world()[0]
+        omega_0 = np.sqrt(9.81 / 0.27)  # inverted pendulum natural freq ~6 rad/s
+
+        # Lateral COM velocity in body frame
+        v_lat_body = (go2.R_world_to_body @ go2.vel_com_world)[1]
+
+        # Capture point offset in body Y (positive = left in body frame)
+        # When tilting right: v_lat_body < 0 (COM moving -Y = rightward)
+        #                     sin(roll) > 0
+        # Both terms must push capture point RIGHTWARD (-Y), so subtract the roll term
+        capture_lat = v_lat_body / omega_0 - np.sin(roll) * 0.27
+
+        # For right legs (FR, RR): body-Y is negative, so push more negative
+        # For left legs (FL, RL): body-Y is positive, so push more positive
+        is_right = leg in ("FR", "RR")
+        if (is_right and capture_lat < 0) or (not is_right and capture_lat > 0):
+            # Capture point is on this leg's side → widen stance
+            capture_world = R_z @ np.array([0.0, capture_lat * 0.6, 0.0])
+        else:
+            capture_world = np.zeros(3)
+
         pos_touchdown_world = (np.array(pos_norminal_term)
                                 + np.array(pos_drift_term)
                                 + np.array(pos_correction_term)
                                 + np.array(vel_correction_term)
                                 + np.array(rotation_correction_term)
+                                + capture_world
                                 )
         
         # Refine touchdown with terrain BEFORE building swing trajectory (Bug 2)
@@ -471,8 +496,24 @@ class Gait():
             pts2 = np.array([self._project_to_plane2(p, origin, t1, t2) for p in support_pts])
             poly = self._convex_hull_2d(pts2)
 
-            # COM point for stability check
-            p_com = go2.pos_com_world + go2.vel_com_world * self.swing_time
+            # ---- Change 1: Roll-aware COM prediction ----
+            # Linear extrapolation misses the lateral acceleration caused by
+            # gravity when the body is rolled.  We add g·sin(roll) kinematics.
+            roll_angle = go2.current_config.compute_euler_angle_world()[0]
+            g_gravity = 9.81
+            lat_accel = -g_gravity * np.sin(roll_angle)   # -Y body when tilted right
+            t_pred = self.swing_time
+
+            # Lateral displacement in body frame → world via R_z
+            lat_disp = 0.5 * lat_accel * t_pred**2
+            lat_vel_extra = lat_accel * t_pred
+            R_z_local = go2.R_z
+            lat_world = R_z_local @ np.array([0.0, lat_disp, 0.0])
+            lat_vel_world = R_z_local @ np.array([0.0, lat_vel_extra, 0.0])
+
+            p_com = (go2.pos_com_world
+                     + (go2.vel_com_world + lat_vel_world) * t_pred
+                     + lat_world)
             q2 = self._project_to_plane2(p_com, origin, t1, t2)
 
             margin = self._point_margin_to_poly(poly, q2)
@@ -525,13 +566,23 @@ class Gait():
         ngr    = norm01(terms["grade"])
         nstab = norm01(terms["stab"])
 
+        # ---- Change 3: Adaptive stability weight based on roll severity ----
+        roll_angle = go2.current_config.compute_euler_angle_world()[0]
+        roll_rate = go2.current_config.base_ang_vel[0]
+        roll_severity = np.clip(
+            abs(roll_angle) / np.radians(10) + abs(roll_rate) / 1.0,
+            0.0, 1.0
+        )
+        # Boost from 0.20 → up to 0.70 when rolling hard
+        w_stab_adaptive = self.W_STAB + 0.50 * roll_severity
+
         # ---- total score (lower is better) ----
         score = (self.W_DIST  * ndist +
                  self.W_SLOPE * nslope +
                  self.W_RESID * nres +
                  self.W_SPEED * nspd +
                  self.W_GRADE * ngr +
-                 self.W_STAB * nstab)
+                 w_stab_adaptive * nstab)
 
         best = int(np.argmin(score))
         x, y, z, n = cand[best]
