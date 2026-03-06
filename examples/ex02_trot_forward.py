@@ -1462,6 +1462,7 @@ with mj.viewer.launch_passive(mujoco_go2.model, mujoco_go2.data) as viewer:
                     u0 = mppi.command(state0, goal_xy, obstacle_xy)
                     debug_frames.append({
                         "state": state0.copy(),
+                        "u0": u0.copy(),
                         "U_batch": mppi.last_U_batch.copy(),
                         "costmap": costmap.grid.copy(),
                         "obstacles": obstacle_xy.copy()
@@ -1587,12 +1588,17 @@ print(
 blocker = input("Press Enter to continue...")
 
 print("Replaying MPPI debug...")
+from matplotlib.patches import Arc
 
 plt.figure(figsize=(8,8))
 
-for frame in debug_frames:
+ARROW_SCALE = 0.8  # scale factor: arrow length = speed * ARROW_SCALE
+YAW_ARC_RADIUS = 0.25  # radius of yaw-rate arc indicators
+
+for fi, frame in enumerate(debug_frames):
 
     plt.clf()
+    ax = plt.gca()
 
     grid = frame["costmap"]
     res = costmap.res
@@ -1605,37 +1611,122 @@ for frame in debug_frames:
         origin[1] + grid.shape[0] * res,
     ]
 
-    plt.imshow(grid,
-               origin="lower",
-               extent=extent,
-               cmap="hot",
-               alpha=0.6,
-               vmin=0,
-               vmax= max(1e-3, float(grid.max())))
+    ax.imshow(grid,
+              origin="lower",
+              extent=extent,
+              cmap="hot",
+              alpha=0.6,
+              vmin=0,
+              vmax=max(1e-3, float(grid.max())))
 
-    state = frame["state"]
+    state = frame["state"]   # [px, py, yaw, vx_body, vy_body, wz]
+    u0 = frame["u0"]         # [vx_cmd, vy_cmd, wz_cmd] (body frame)
     U_batch = frame["U_batch"]
 
+    px, py, yaw = state[0], state[1], state[2]
+    vx_body, vy_body, wz_actual = state[3], state[4], state[5]
+    vx_cmd, vy_cmd, wz_cmd = u0[0], u0[1], u0[2]
+
+    cos_yaw = np.cos(yaw)
+    sin_yaw = np.sin(yaw)
+
+    # --- Convert body-frame velocities to world frame for arrows ---
+    # Actual velocity (world frame)
+    actual_wx = vx_body * cos_yaw - vy_body * sin_yaw
+    actual_wy = vx_body * sin_yaw + vy_body * cos_yaw
+
+    # Desired velocity (world frame)
+    desired_wx = vx_cmd * cos_yaw - vy_cmd * sin_yaw
+    desired_wy = vx_cmd * sin_yaw + vy_cmd * cos_yaw
+
+    # --- Rollouts ---
     X = mppi.rollout(state, U_batch)
 
     for i in range(min(300, X.shape[0])):
-        plt.plot(X[i,:,0], X[i,:,1],
-                 color="blue",
-                 alpha=0.1)
+        ax.plot(X[i,:,0], X[i,:,1],
+                color="blue",
+                alpha=0.1)
 
-    plt.scatter(state[0], state[1], c='black', s=60)
-    plt.scatter(goal_xy[0], goal_xy[1], c='green', s=100)
+    # --- Robot dot ---
+    ax.scatter(px, py, c='black', s=80, zorder=5)
+    ax.scatter(goal_xy[0], goal_xy[1], c='limegreen', s=120, zorder=5,
+              edgecolors='darkgreen', linewidths=1.5)
 
+    # --- Heading line (shows current yaw direction) ---
+    head_len = 0.20
+    ax.plot([px, px + head_len * cos_yaw],
+            [py, py + head_len * sin_yaw],
+            color='black', linewidth=2.5, solid_capstyle='round', zorder=6)
+
+    # --- MPPI desired velocity arrow (GREEN) ---
+    des_speed = np.sqrt(desired_wx**2 + desired_wy**2)
+    if des_speed > 0.01:
+        ax.annotate('',
+                    xy=(px + desired_wx * ARROW_SCALE,
+                        py + desired_wy * ARROW_SCALE),
+                    xytext=(px, py),
+                    arrowprops=dict(arrowstyle='->', color='limegreen',
+                                   lw=2.5, mutation_scale=15),
+                    zorder=7)
+
+    # --- Actual velocity arrow (RED) ---
+    act_speed = np.sqrt(actual_wx**2 + actual_wy**2)
+    if act_speed > 0.01:
+        ax.annotate('',
+                    xy=(px + actual_wx * ARROW_SCALE,
+                        py + actual_wy * ARROW_SCALE),
+                    xytext=(px, py),
+                    arrowprops=dict(arrowstyle='->', color='red',
+                                   lw=2.5, mutation_scale=15),
+                    zorder=7)
+
+    # --- Yaw rate arcs ---
+    # Arc sweep angle proportional to yaw rate (rad/s -> degrees for display)
+    yaw_heading_deg = np.degrees(yaw)  # current heading in degrees
+
+    # Desired yaw rate arc (green, dashed)
+    if abs(wz_cmd) > 0.02:
+        sweep_deg = np.clip(np.degrees(wz_cmd) * 0.5, -90, 90)
+        arc_des = Arc((px, py), 2*YAW_ARC_RADIUS, 2*YAW_ARC_RADIUS,
+                      angle=yaw_heading_deg,
+                      theta1=0 if sweep_deg > 0 else sweep_deg,
+                      theta2=sweep_deg if sweep_deg > 0 else 0,
+                      color='limegreen', lw=2.5, linestyle='--', zorder=7)
+        ax.add_patch(arc_des)
+
+    # Actual yaw rate arc (red, solid)
+    if abs(wz_actual) > 0.02:
+        sweep_deg = np.clip(np.degrees(wz_actual) * 0.5, -90, 90)
+        arc_act = Arc((px, py), 2*YAW_ARC_RADIUS, 2*YAW_ARC_RADIUS,
+                      angle=yaw_heading_deg,
+                      theta1=0 if sweep_deg > 0 else sweep_deg,
+                      theta2=sweep_deg if sweep_deg > 0 else 0,
+                      color='red', lw=2.5, zorder=7)
+        ax.add_patch(arc_act)
+
+    # --- LiDAR points ---
     if frame["obstacles"].shape[0] > 0:
-        plt.scatter(frame["obstacles"][:,0],
-                    frame["obstacles"][:,1],
-                    c='cyan', s=5)
+        ax.scatter(frame["obstacles"][:,0],
+                   frame["obstacles"][:,1],
+                   c='cyan', s=5)
 
-    plt.axis("equal")
-    plt.xlim(-4,4)
-    plt.ylim(-4,4)
+    # --- Legend ---
+    from matplotlib.lines import Line2D
+    legend_items = [
+        Line2D([0],[0], color='limegreen', lw=2.5, label=f'MPPI desired (v={des_speed:.2f} m/s)'),
+        Line2D([0],[0], color='red',       lw=2.5, label=f'Actual (v={act_speed:.2f} m/s)'),
+        Line2D([0],[0], color='black',     lw=2.5, label=f'Heading (yaw={np.degrees(yaw):.1f}°)'),
+        Line2D([0],[0], color='limegreen', lw=2, linestyle='--', label=f'Des ωz={wz_cmd:.2f} rad/s'),
+        Line2D([0],[0], color='red',       lw=2,                label=f'Act ωz={wz_actual:.2f} rad/s'),
+    ]
+    ax.legend(handles=legend_items, loc='upper right', fontsize=8)
 
-    plt.pause(0.001)
+    ax.set_title(f'MPPI Frame {fi}/{len(debug_frames)}', fontsize=10)
+    ax.set_aspect('equal')
+    ax.set_xlim(-4, 4)
+    ax.set_ylim(-4, 4)
+
+    plt.pause(0.05)
 
 plt.show()
 
