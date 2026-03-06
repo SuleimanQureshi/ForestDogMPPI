@@ -75,7 +75,21 @@ class ComTraj:
             self.pos_des_world[1] = y0 - max_pos_error
 
         z_ground_now, _ = self.terrain.height_and_normal(x0, y0)
-        self.pos_des_world[2] = z_ground_now + z_pos_des_body
+
+        # Also check terrain height at foot positions — on uneven terrain
+        # the feet land on high spots while the COM is over a gap.
+        # Use the max of COM-under and foot-average to prevent body sag.
+        foot_z_sum = 0.0
+        foot_count = 0
+        for lname in ["FL", "FR", "RL", "RR"]:
+            fp, _ = go2.get_single_foot_state_in_world(lname)
+            fz, _ = self.terrain.height_and_normal(fp[0], fp[1])
+            foot_z_sum += fz
+            foot_count += 1
+        foot_z_avg = foot_z_sum / max(foot_count, 1)
+        z_ground_effective = max(z_ground_now, foot_z_avg)
+
+        self.pos_des_world[2] = z_ground_effective + z_pos_des_body
 
         go2.x_pos_des_world = self.pos_des_world[0]
         go2.y_pos_des_world = self.pos_des_world[1]
@@ -117,7 +131,20 @@ class ComTraj:
 
             # 1️⃣ Raise COM relative to terrain
             desired_com_height = z_pos_des_body   # relative to ground
-            self.pos_traj_world[2, i] = z_ground + desired_com_height
+
+            # On uneven terrain, also consider predicted hip/foot heights
+            # to avoid sagging when COM is over a low spot but feet are higher
+            hip_offset_xy = go2.get_hip_offset("FL")  # any leg, just for forward offset
+            yaw_i = self.pos_traj_world[0, i]  # approximate
+            hip_z_samples = []
+            for dhx, dhy in [(0.19, 0.05), (0.19, -0.05), (-0.19, 0.05), (-0.19, -0.05)]:
+                hx = x_i + dhx * np.cos(self.rpy_traj_world[2, i]) - dhy * np.sin(self.rpy_traj_world[2, i])
+                hy = y_i + dhx * np.sin(self.rpy_traj_world[2, i]) + dhy * np.cos(self.rpy_traj_world[2, i])
+                hz, _ = self.terrain.height_and_normal(hx, hy)
+                hip_z_samples.append(hz)
+            z_ground_support = max(z_ground, np.mean(hip_z_samples))
+
+            self.pos_traj_world[2, i] = z_ground_support + desired_com_height
 
             # 2️⃣ Light base alignment to terrain slope (small angles)
             # Convert normal to roll/pitch reference
