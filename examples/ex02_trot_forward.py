@@ -1383,9 +1383,6 @@ with mj.viewer.launch_passive(mujoco_go2.model, mujoco_go2.data) as viewer:
                     # LiDAR origin (a bit above COM so it doesn't hit the ground instantly)
                     lidar_origin = go2.current_config.base_pos.copy()
                     lidar_origin[2] -= 0.1
-                    
-                    # print("LiDAR origin:", lidar_origin)
-
 
                     base_body_id = mj.mj_name2id(
                         mujoco_go2.model,
@@ -1398,11 +1395,6 @@ with mj.viewer.launch_passive(mujoco_go2.model, mujoco_go2.data) as viewer:
                     # Perform scan using full base rotation
                     trunk_id = mj.mj_name2id(mujoco_go2.model, mj.mjtObj.mjOBJ_BODY, "trunk")
                     hits_world = lidar.scan(lidar_origin, Rwb, bodyexclude=trunk_id)
-                    
-                    # print("Raw hits:", hits_world.shape[0])
-                    # if hits_world.shape[0] > 0:
-                    #     print("Max hit Z:", hits_world[:,2].max())
-
 
                     # Keep BOTH ground + obstacle points. Only remove robot-near / extreme outliers.
                     zmin = -0.50
@@ -1417,19 +1409,10 @@ with mj.viewer.launch_passive(mujoco_go2.model, mujoco_go2.data) as viewer:
                     hits_filt = hits_world[keep_z & keep_r]
 
                     # Update maps
-                    heightmap.update(hits_filt)            # <-- NEW (uses all points)
-                    # print("h_ground finite:", np.sum(np.isfinite(heightmap.h_ground)))
-                    # print("h_top finite:", np.sum(np.isfinite(heightmap.h_top)))
-                    # print("h_ground max:", np.nanmax(heightmap.h_ground))
-                    # print("h_top max:", np.nanmax(heightmap.h_top))
+                    heightmap.update(hits_filt)
                     go2.terrain = heightmap
-                    costmap.update_from_heightmap(heightmap, clearance_lethal=0.12, clearance_soft=0.05)  # <-- NEW (lethal derived from clearance)
-                    # if ctrl_i % 20 == 0:
-                    #     print("Clearance stats:",
-                    #         "max=", np.nanmax(heightmap.h_top - heightmap.h_ground),
-                    #         "mean=", np.nanmean(heightmap.h_top - heightmap.h_ground))
-                    #     print("Costmap max:", float(costmap.grid.max()))
-                    # For visualization / debug only
+                    costmap.update_from_heightmap(heightmap, clearance_lethal=0.12, clearance_soft=0.05)
+
                     # Compute clearance per hit cell (object vs ground)
                     ix, iy = heightmap.world_to_grid(hits_filt[:,0], hits_filt[:,1])
                     valid = (ix>=0)&(ix<heightmap.N)&(iy>=0)&(iy<heightmap.N)
@@ -1441,25 +1424,21 @@ with mj.viewer.launch_passive(mujoco_go2.model, mujoco_go2.data) as viewer:
                     )
 
                     # Only visualize meaningful obstacles
-                    obstacle_mask = clear > 0.08   # same as soft threshold
+                    obstacle_mask = clear > 0.08
                     obstacle_xy = hits_filt[obstacle_mask, :2]
-                    # visualize_lidar_hits(viewer, hits_filt)
-
-                    # --- UPDATE GLOBAL HEIGHT MAP ---
-                    # heightmap.update(hits_world)
-                    # go2.terrain = heightmap
-
-                    # if ctrl_i % 40 == 0:
-                    #     debug_plot_heightmap(heightmap.hmap, heightmap.res, heightmap.origin_xy)
 
                     # downsample for speed (VERY important)
                     if obstacle_xy.shape[0] > 250:
                         idx = np.random.choice(obstacle_xy.shape[0], 250, replace=False)
                         obstacle_xy = obstacle_xy[idx]
-                    # if ctrl_i % 50 == 0:
-                    #     print("vx_world, vy_world:", vx_world, vy_world)
-                    #     print("vx_body, vy_body:", vx_body, vy_body)
+
+                # --- MPPI runs at 2× MPC rate (~24 Hz) ---
+                # Higher-level planner should run slower than the MPC it feeds
+                if (ctrl_i % (8 * STEPS_PER_MPC)) == 0:
                     u0 = mppi.command(state0, goal_xy, obstacle_xy)
+
+                # Log debug frame every 4th MPPI call (same rate as before)
+                if (ctrl_i % (8 * STEPS_PER_MPC)) == 0:
                     debug_frames.append({
                         "state": state0.copy(),
                         "u0": u0.copy(),
@@ -1485,8 +1464,8 @@ with mj.viewer.launch_passive(mujoco_go2.model, mujoco_go2.data) as viewer:
                 wz_des_body = float(u0[2])
                 z_pos_des_body = 0.27
                 vx_des_body = np.clip(vx_des_body, -0.8, 0.8)
-                vy_des_body = np.clip(vy_des_body, -0.3, 0.3)
-                wz_des_body = np.clip(wz_des_body, -0.6, 0.6)
+                vy_des_body = np.clip(vy_des_body, -0.5, 0.5)
+                wz_des_body = np.clip(wz_des_body, -1.5, 1.5)
                 # vx_des_body = 0.8
                 # vy_des_body = 0.0
                 # wz_des_body = 0.0
@@ -1726,7 +1705,7 @@ for fi, frame in enumerate(debug_frames):
     ax.set_xlim(-4, 4)
     ax.set_ylim(-4, 4)
 
-    plt.pause(0.05)
+    plt.pause(0.001)
 
 plt.show()
 
