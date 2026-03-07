@@ -1558,7 +1558,7 @@ for fi, frame in enumerate(debug_frames):
 
     # --- Noisy rollout cloud ---
     X = mppi.rollout(state, U_batch)
-    for i in range(min(300, X.shape[0])):
+    for i in range(min(12000, X.shape[0])):
         ax.plot(X[i,:,0], X[i,:,1],
                 color="blue",
                 alpha=0.08)
