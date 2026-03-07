@@ -24,7 +24,7 @@ from convex_mpc.plot_helper import plot_mpc_result, plot_swing_foot_traj, plot_s
 INITIAL_X_POS = -2
 INITIAL_Y_POS = 0
 # How long does the simulation run for How much time 
-RUN_SIM_LENGTH_S = 10.0
+RUN_SIM_LENGTH_S = 6.0
 
 RENDER_HZ = 120.0
 RENDER_DT = 1.0 / RENDER_HZ
@@ -609,19 +609,21 @@ class Nav2StyleMPPI:
                 self.ALPHA * eps[:, t-1, :]
                 + (1.0 - self.ALPHA) * eps[:, t, :]
             )
-
+        if (self._near_obstacle or self._stuck_counter > 3) and self._adaptive_bias > 0:
+            bias = self._adaptive_bias * self._committed_side
+            eps[:, :, 1] += bias
         # Obstacle-gated side commitment: bias rollouts to one
         # side ONLY when near an obstacle. In open space, noise
         # stays symmetric so the robot goes straight to goal.
-        if (self._near_obstacle or self._stuck_counter > 3) and self._adaptive_bias > 0:
-            n_major = int(0.8 * self.BATCH)
-            bias = self._adaptive_bias
-            if self._committed_side >= 0:
-                eps[:n_major, :, 1] += bias
-                eps[n_major:, :, 1] -= bias
-            else:
-                eps[:n_major, :, 1] -= bias
-                eps[n_major:, :, 1] += bias
+        # if (self._near_obstacle or self._stuck_counter > 3) and self._adaptive_bias > 0:
+        #     n_major = int(0.8 * self.BATCH)
+        #     bias = self._adaptive_bias
+        #     if self._committed_side >= 0:
+        #         eps[:n_major, :, 1] += bias
+        #         eps[n_major:, :, 1] -= bias
+        #     else:
+        #         eps[:n_major, :, 1] -= bias
+        #         eps[n_major:, :, 1] += bias
 
         return eps
 
