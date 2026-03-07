@@ -569,16 +569,28 @@ class Nav2StyleMPPI:
 
         self.best_traj = np.zeros((self.H,3))
         # noise std — wider lateral/yaw for obstacle avoidance
-        self.std = np.array([0.08, 0.15, 0.20])
+        self.std = np.array([0.12, 0.25, 0.40])
 
         self.side_bias = 0.0
         self._adaptive_bias = 0.03  # updated adaptively in command()
         self._committed_side = 1    # +1 = right, -1 = left (start with right)
+        self._side_commit_counter = 0  # how many planning calls to hold current side
+        self._side_commit_hold = 10    # minimum hold duration (planning steps)
 
         # persistent sequence
         self.U = np.zeros((self.H, 3))
+        self._near_obstacle = False   # obstacle-gated side commitment
+
+        # Stuck detection — track progress over a sliding window
+        self._dist_history = []
+        self._stuck_counter = 0
 
         self.terrain = None
+
+        # Acceleration rate limits (per second)
+        self._prev_u0 = np.zeros(3)
+        self._accel_max = np.array([2.0, 1.5, 10.0])  # vx (m/s²), vy (m/s²), wz (rad/s²)
+        self._mppi_dt = dt * 2  # effective dt between MPPI calls (2×MPC intervals)
     def set_costmap(self, costmap):
         self.costmap = costmap
     def set_terrain(self, heightmap):
@@ -598,22 +610,18 @@ class Nav2StyleMPPI:
                 + (1.0 - self.ALPHA) * eps[:, t, :]
             )
 
-        # Persistent side commitment: instead of 50/50 split,
-        # bias 80% of rollouts toward the committed side.
-        # The committed side is updated in command() based on which
-        # side produced better trajectories.
-        n_major = int(0.8 * self.BATCH)
-        n_minor = self.BATCH - n_major
-        if self._committed_side >= 0:
-            # Committed right (+vy)
-            eps[:n_major, :, 1] += self._adaptive_bias
-            eps[n_major:, :, 1] -= self._adaptive_bias
-        else:
-            # Committed left (-vy)
-            eps[:n_major, :, 1] -= self._adaptive_bias
-            eps[n_major:, :, 1] += self._adaptive_bias
-
-        eps[:, :, 1] += self.side_bias
+        # Obstacle-gated side commitment: bias rollouts to one
+        # side ONLY when near an obstacle. In open space, noise
+        # stays symmetric so the robot goes straight to goal.
+        if (self._near_obstacle or self._stuck_counter > 3) and self._adaptive_bias > 0:
+            n_major = int(0.8 * self.BATCH)
+            bias = self._adaptive_bias
+            if self._committed_side >= 0:
+                eps[:n_major, :, 1] += bias
+                eps[n_major:, :, 1] -= bias
+            else:
+                eps[:n_major, :, 1] -= bias
+                eps[n_major:, :, 1] += bias
 
         return eps
 
@@ -658,11 +666,12 @@ class Nav2StyleMPPI:
 
         return X
 
-    # --------------------------------------
-    # cost
-    # --------------------------------------
-    def cost(self, X, U_batch, goal, obstacle_xy):
+    # =============================================
+    #  Nav2-style MPPI critics
+    # =============================================
 
+    def cost(self, X, U_batch, goal, obstacle_xy):
+        """Nav2-style MPPI cost with separated critics."""
 
         x   = X[:, :, 0]
         y   = X[:, :, 1]
@@ -671,286 +680,168 @@ class Nav2StyleMPPI:
         vy  = X[:, :, 4]
         wz  = X[:, :, 5]
 
-        # vx = U_batch[:,:,0]
-        # vy = U_batch[:,:,1]
-        # wz = U_batch[:,:,2]
+        B, H = x.shape
+        dist_to_goal = np.sqrt((x[:, 0] - goal[0])**2 + (y[:, 0] - goal[1])**2)
 
+        total = np.zeros(B)
 
+        # ---------------------------------------------------
+        # 1. GoalCritic  (Nav2: weight=5.0, threshold=1.4m)
+        #    Terminal distance to goal, active when close
+        # ---------------------------------------------------
+        goal_thresh = 2.5
+        dT = np.sqrt((x[:, -1] - goal[0])**2 + (y[:, -1] - goal[1])**2)
+        total += 5.0 * dT
 
-        # goal distance
-        goal_cost = ((x - goal[0])**2 + (y - goal[1])**2).mean(axis=1)
+        # ---------------------------------------------------
+        # 2. GoalAngleCritic  (Nav2: weight=3.0, threshold=0.5m)
+        #    Terminal yaw alignment to goal, active very close
+        # ---------------------------------------------------
+        angle_thresh = 1.5
+        goal_ang_T = np.arctan2(goal[1] - y[:, -1], goal[0] - x[:, -1])
+        yaw_err_T = np.abs(np.arctan2(
+            np.sin(yaw[:, -1] - goal_ang_T),
+            np.cos(yaw[:, -1] - goal_ang_T)
+        ))
+        angle_active = (dist_to_goal < angle_thresh).astype(float)
+        total += 8.0 * angle_active * yaw_err_T
 
-        # terminal cost
-        term = (x[:, -1] - goal[0])**2 + (y[:, -1] - goal[1])**2
+        # ---------------------------------------------------
+        # 2b. Velocity damping near goal
+        #     Prevent overshoot and oscillation
+        # ---------------------------------------------------
+        near_goal = (dist_to_goal < 1.5).astype(float)
+        speed_T = np.sqrt(X[:, -1, 3]**2 + X[:, -1, 4]**2)
+        total += 30.0 * near_goal * speed_T
 
-        # heading to goal
+        # ---------------------------------------------------
+        # 3. CostCritic  (graduated per-step penalties)
+        #    Lethal=100/step, critical=50/step, repulsion=10×mean
+        #    Graduated so MPPI can distinguish 'clip' from 'through'
+        # ---------------------------------------------------
+        obs_critic = np.zeros(B)
+        if self.costmap is not None:
+            cost_vals = self.costmap.query_cost_batch(
+                x.reshape(-1), y.reshape(-1)
+            ).reshape(B, H)
+
+            # Per-step graduated penalty (must dominate heading+lateral)
+            step_penalty = np.where(
+                cost_vals >= 1.0, 300.0,                # lethal
+                np.where(cost_vals > 0.3, 150.0 * cost_vals,  # critical zone
+                         30.0 * cost_vals))              # repulsion
+
+            # Disable near goal to allow convergence
+            near_goal_obs = (dist_to_goal < 0.3).reshape(-1, 1)
+            step_penalty = np.where(near_goal_obs, 0.0, step_penalty)
+
+            obs_critic = step_penalty.sum(axis=1) / 20.0 + step_penalty.max(axis=1) * 3.0
+            total += obs_critic
+        else:
+            cost_vals = None
+
+        # ---------------------------------------------------
+        # 4. PathFollowCritic  (Nav2: weight=5.0, threshold=1.4m)
+        #    Adapted: heading + terminal distance when far from goal
+        #    Drives robot toward goal (replaces path tracking)
+        # ---------------------------------------------------
+        follow_thresh = 2.5
+        # Always drive toward goal — distance along trajectory
+        d_along = np.sqrt((x - goal[0])**2 + (y - goal[1])**2)
+        total += 5.0 * d_along.mean(axis=1)
+
+        # ---------------------------------------------------
+        # 5. PathAngleCritic  (Nav2: weight=2.0, threshold=0.5m)
+        #    Adapted: heading alignment toward goal along trajectory
+        # ---------------------------------------------------
+        path_angle_thresh = 0.5
         goal_ang = np.arctan2(goal[1] - y, goal[0] - x)
-        dtheta = np.arctan2(
+        dtheta = np.abs(np.arctan2(
             np.sin(yaw - goal_ang),
             np.cos(yaw - goal_ang)
-        )
-        heading_cost = (dtheta**2).mean(axis=1)
+        ))
+        pa_active = (dist_to_goal > path_angle_thresh).astype(float)
+        total += 3.0 * pa_active * dtheta.mean(axis=1)
 
-        # obstacle cost — properly scaled to match goal costs (~10-50)
-        if self.costmap is not None:
+        # ---------------------------------------------------
+        # 6. PreferForwardCritic  (Nav2: weight=5.0, threshold=0.5m)
+        #    Penalize reverse velocity
+        # ---------------------------------------------------
+        pf_thresh = 0.5
+        vx_cmd = U_batch[:, :, 0]
+        reverse_penalty = np.maximum(-vx_cmd, 0.0)  # only penalize vx < 0
+        pf_active = (dist_to_goal > pf_thresh).astype(float)
+        total += 5.0 * pf_active * reverse_penalty.mean(axis=1)
 
-            cost_vals = self.costmap.query_cost_batch(
-                x.reshape(-1),
-                y.reshape(-1)
-            ).reshape(x.shape)
+        # ---------------------------------------------------
+        # 6b. TwirlingCritic  (Nav2: weight=10.0)
+        #     Penalize unnecessary lateral velocity
+        # ---------------------------------------------------
+        vy_cmd = U_batch[:, :, 1]
+        lateral_penalty = np.abs(vy_cmd).mean(axis=1)
+        total += 3.0 * lateral_penalty
 
-            # Mean cost along trajectory (not sum! keeps scale bounded)
-            obs_mean = (cost_vals ** 2).mean(axis=1)
+        # ---------------------------------------------------
+        # 7. ConstraintCritic  (Nav2: weight=4.0)
+        #    Penalize velocities near/outside limits
+        # ---------------------------------------------------
+        vx_over = (np.maximum(vx_cmd - self.vx_max, 0.0)
+                 + np.maximum(self.vx_min - vx_cmd, 0.0))
+        vy_cmd = U_batch[:, :, 1]
+        vy_over = (np.maximum(vy_cmd - self.vy_max, 0.0)
+                 + np.maximum(self.vy_min - vy_cmd, 0.0))
+        wz_cmd = U_batch[:, :, 2]
+        wz_over = (np.maximum(wz_cmd - self.wz_max, 0.0)
+                 + np.maximum(self.wz_min - wz_cmd, 0.0))
+        constraint_cost = (vx_over + vy_over + wz_over).mean(axis=1)
+        total += 4.0 * constraint_cost
 
-            # Max single-step penetration
-            obs_max = cost_vals.max(axis=1)
-
-            # Scale so that obstacle cost is comparable to goal cost:
-            obs_cost = 50.0 * obs_mean + 150.0 * (obs_max ** 2)
-
-            # Per-rollout flag: does this rollout touch the obstacle?
-            # Used to reduce heading cost for arcing rollouts
-            self._rollout_near_obs = (obs_max > 0.05)
-
-        else:
-            obs_cost = np.zeros(x.shape[0])
-            self._rollout_near_obs = np.zeros(x.shape[0], dtype=bool)
-
-
-
-        # -----------------------------
-        # Terrain clearance term
-        # -----------------------------
+        # ---------------------------------------------------
+        # 8. SlopeCritic  (terrain-aware, kept from original)
+        #    Penalize steep terrain gradients
+        # ---------------------------------------------------
         if self.terrain is not None:
-            # -----------------------------
-            # Slope term (terrain gradient)
-            # -----------------------------
             delta = self.terrain.res
-            z_x1 = self.terrain.query_height_batch((x + delta).reshape(-1), y.reshape(-1)).reshape(x.shape)
-            z_x2 = self.terrain.query_height_batch((x - delta).reshape(-1), y.reshape(-1)).reshape(x.shape)
-            z_y1 = self.terrain.query_height_batch(x.reshape(-1), (y + delta).reshape(-1)).reshape(x.shape)
-            z_y2 = self.terrain.query_height_batch(x.reshape(-1), (y - delta).reshape(-1)).reshape(x.shape)
+            z_x1 = self.terrain.query_height_batch(
+                (x + delta).reshape(-1), y.reshape(-1)).reshape(B, H)
+            z_x2 = self.terrain.query_height_batch(
+                (x - delta).reshape(-1), y.reshape(-1)).reshape(B, H)
+            z_y1 = self.terrain.query_height_batch(
+                x.reshape(-1), (y + delta).reshape(-1)).reshape(B, H)
+            z_y2 = self.terrain.query_height_batch(
+                x.reshape(-1), (y - delta).reshape(-1)).reshape(B, H)
 
             dzdx = (z_x1 - z_x2) / (2 * delta)
             dzdy = (z_y1 - z_y2) / (2 * delta)
 
             slope_mag = np.sqrt(dzdx**2 + dzdy**2)
-            slope_cost = 5.0 * (slope_mag**2).mean(axis=1)
-        else:
-            terrain_cost = np.zeros(x.shape[0])
-            slope_cost = np.zeros(x.shape[0])
+            total += 2.5 * slope_mag.mean(axis=1)
 
+        # ---------------------------------------------------
+        # 9. SteppabilityCritic  (terrain-aware, kept from original)
+        #    Foothold quality at predicted hip positions
+        # ---------------------------------------------------
+        total += self._steppability_cost(x, y, yaw)
 
-        obs_total = obs_cost 
-
-
-        # -------------------------------------------------
-        # Soft clearance discouragement (very light)
-        # -------------------------------------------------
-
-        if self.terrain is not None:
-
-            clearance_vals = self.terrain.query_clearance_batch(
-                x.reshape(-1),
-                y.reshape(-1)
-            ).reshape(x.shape)
-
-            # Medium obstacle band
-            step_thresh = self.costmap.step_thresh
-            lethal_thresh = self.costmap.lethal_thresh
-
-            soft_mask = (clearance_vals > step_thresh) & (clearance_vals < lethal_thresh)
-
-            # VERY light penalty
-            soft_clear_cost = 8.0 * (clearance_vals * soft_mask)**2
-            soft_clear_cost = soft_clear_cost.mean(axis=1)
-
-        else:
-            soft_clear_cost = np.zeros(x.shape[0])
-        #Progress param
-        d0 = np.sqrt((x[:, 0] - goal[0])**2 + (y[:, 0] - goal[1])**2)      # distance at start of rollout
-        dT = np.sqrt((x[:, -1] - goal[0])**2 + (y[:, -1] - goal[1])**2)    # distance at end
-        progress = (d0 - dT)  # positive = moved toward goal
-
-        # Minimum speed penalty: prevent stalling in front of obstacles.
-        # Penalize rollouts where the robot barely moves (short rollouts).
-        # Disabled near goal where stopping is desired.
-        rollout_displacement = np.sqrt(
-            (x[:, -1] - x[:, 0])**2 + (y[:, -1] - y[:, 0])**2
-        )
-        min_displacement = 0.3  # expect at least 30cm of movement over horizon
-        stall_mask = d0 > 1.0   # only penalize when far from goal
-        stall_cost = stall_mask * 15.0 * np.maximum(0.0, min_displacement - rollout_displacement)**2
-
-
-        # smoothness
+        # ---------------------------------------------------
+        # 10. Smoothness  (Nav2: gamma=0.015)
+        #     Light penalty on control jerk
+        # ---------------------------------------------------
         dU = np.diff(U_batch, axis=1)
-        smooth = (dU**2).mean(axis=(1,2))
-
-        # control effort
-        effort = (U_batch**2).mean(axis=(1,2))
-
-        # Penalize lateral motion (prefer forward motion)
-        lateral_cost = (U_batch[:,:,1]**2).mean(axis=1)
-
-        # Prefer velocity aligned with heading
-        vx = U_batch[:,:,0]
-        vy = U_batch[:,:,1]
-
-        speed = np.sqrt(vx**2 + vy**2) + 1e-6
-        forward_ratio = vx / speed
-
-        # penalize sideways ratio
-        direction_cost = ((1.0 - forward_ratio)**2).mean(axis=1)
+        smooth_critic = 0.1 * np.abs(dU).mean(axis=(1, 2))
+        total += smooth_critic
 
 
-        # change behaviours near goal
-        dist_to_goal = np.sqrt((x[:,0] - goal[0])**2 + (y[:,0] - goal[1])**2)
-        near_goal = dist_to_goal < 2.0
-        vx_T = U_batch[:, -1, 0]
-        vy_T = U_batch[:, -1, 1]
-        wz_T = U_batch[:, -1, 2]
+        # Store per-critic costs for logging (on BEST trajectory, not index 0)
+        bi = int(np.argmin(total))
+        self._last_critics = {
+            'goal': float(5.0 * dT[bi]) if B > 0 else 0,
+            'obs': float(obs_critic[bi]) if B > 0 else 0,
+            'follow': float(5.0 * d_along[bi].mean()) if B > 0 else 0,
+            'angle': float(5.0 * pa_active[bi] * dtheta[bi].mean()) if B > 0 else 0,
+        }
 
-        terminal_speed = vx_T**2 + vy_T**2
-        terminal_yaw_rate = wz_T**2
-
-        w_goal = 2.5
-        w_term = 8.0
-        w_heading = 1.5
-        w_progress = -1.5
-
-        # Lateral cost gated on obstacle proximity:
-        # Rollouts touching obstacle -> no lateral penalty (allows arcing)
-        # Clean rollouts -> strong lateral penalty (must go straight to goal)
-        gated_lateral = np.where(self._rollout_near_obs, 0.0, 1.5) * lateral_cost
-        
-        # amplify terminal behavior near goal
-        # Kill progress reward near goal
-        w_progress = np.where(near_goal, 0.0, w_progress)
-
-        # Much stronger terminal pull
-        w_term = np.where(near_goal, 40.0, w_term)
-
-        #Increasing Heading cost close to goal
-        w_heading = np.where(near_goal, 10.0, w_heading)
-
-        # Strong velocity damping
-        Ktail = 20  # ~0.25s tail if dt~0.0125
-        vx_tail = U_batch[:, -Ktail:, 0]
-        vy_tail = U_batch[:, -Ktail:, 1]
-        wz_tail = U_batch[:, -Ktail:, 2]
-
-        tail_speed = (vx_tail**2 + vy_tail**2).mean(axis=1)
-        tail_yaw   = (wz_tail**2).mean(axis=1)
-
-        vel_penalty = np.where(near_goal, 80.0 * tail_speed + 20.0 * tail_yaw, 0.0)
-
-        # -----------------------------------
-        # Terminal radial tightening
-        # -----------------------------------
-
-        dxT = x[:, -1] - goal[0]
-        dyT = y[:, -1] - goal[1]
-
-        distT = np.sqrt(dxT**2 + dyT**2)
-
-        # Gaussian activation near goal
-        sigma = 1.5        # activation radius (meters)
-        activation = np.exp(-(distT**2) / (sigma**2))
-        radial_pull = activation * 15.0 * distT
-        # -------------------------------------------------
-        # Light terminal yaw alignment
-        # -------------------------------------------------
-
-        yawT = yaw[:, -1]
-
-        goal_ang_T = np.arctan2(
-            goal[1] - y[:, -1],
-            goal[0] - x[:, -1]
-        )
-
-        yaw_error = np.arctan2(
-            np.sin(yawT - goal_ang_T),
-            np.cos(yawT - goal_ang_T)
-        )
-
-        terminal_yaw = 8.0 * activation * (yaw_error**2)
-
-        # -------------------------------------------------
-        # Radial braking term (prevents overshoot)
-        # -------------------------------------------------
-
-        # Direction toward goal at terminal state
-        goal_dir_x = goal[0] - x[:, -1]
-        goal_dir_y = goal[1] - y[:, -1]
-
-        norm = np.sqrt(goal_dir_x**2 + goal_dir_y**2) + 1e-6
-        goal_dir_x /= norm
-        goal_dir_y /= norm
-
-        # Terminal velocity (from rollout state, not control!)
-        vxT_world = vx[:, -1]
-        vyT_world = vy[:, -1]
-
-        # Velocity component toward goal
-        v_radial = vxT_world * goal_dir_x + vyT_world * goal_dir_y
-
-        # Only penalize when moving toward goal
-        radial_brake = activation * 20.0 * np.maximum(v_radial, 0.0)**2
-
-        # -------------------------------------------------
-        # Terminal "approach-speed" shaping (prevents bounce / orbit)
-        # -------------------------------------------------
-
-        dxT = goal[0] - x[:, -1]
-        dyT = goal[1] - y[:, -1]
-        distT = np.sqrt(dxT**2 + dyT**2) + 1e-6
-
-        # unit vector pointing from terminal state to goal
-        ux = dxT / distT
-        uy = dyT / distT
-
-        # terminal velocity from rollout (world frame)
-        vxT = X[:, -1, 3]
-        vyT = X[:, -1, 4]
-
-        # radial speed toward goal (positive means moving toward goal)
-        v_rad = vxT * ux + vyT * uy
-
-        # desired radial speed profile: proportional far away, goes to 0 near goal
-        k_v = 1.2                       # tune 0.8–2.0
-        v_des = np.clip(k_v * distT, 0.0, 0.45)
-
-        # penalize deviation from desired (both too fast AND wrong direction)
-        w_v = 50.0                      # tune 20–60
-        terminal_speed_cost = activation * w_v * (v_rad - v_des)**2
-
-        # Encourage ending near goal for the last few steps (prevents "fly-by")
-        K = 30  # last ~0.25s if dt~0.0125; adjust to your dt
-        dx_tail = x[:, -K:] - goal[0]
-        dy_tail = y[:, -K:] - goal[1]
-        dwell_cost = 50.0 * activation * (dx_tail**2 + dy_tail**2).mean(axis=1)
-        return (
-            w_goal * goal_cost +
-            w_term * term +
-            w_heading * heading_cost +
-            5.0 * obs_total +
-            2.5 * slope_cost +
-            0.2 * smooth +
-            0.05 * effort +
-            gated_lateral +
-            # 1.5 * direction_cost +
-            w_progress * progress +
-            vel_penalty +
-            terminal_speed_cost +
-            dwell_cost +
-            # radial_pull +
-            # radial_brake +
-            terminal_yaw +
-            0.5 * soft_clear_cost +
-            stall_cost +
-            self._steppability_cost(x, y, yaw)
-        )
+        return total
 
 
 
@@ -1014,7 +905,7 @@ class Nav2StyleMPPI:
                 self.best_traj[:] = 0.0
                 return np.array([0.0, 0.0, 0.0])
             eps = self.correlated_noise()
-            U_batch = self.best_traj[None,:,:] + eps
+            U_batch = self.U[None,:,:] + eps
             # Inject symmetric lateral bias
             # lateral_bias = np.linspace(-0.5, 0.5, self.BATCH)
             # U_batch[:, :, 1] += lateral_bias[:, None]
@@ -1036,12 +927,13 @@ class Nav2StyleMPPI:
                 c_v = float(self.costmap.query_cost_batch(
                     np.array([state[0]]), np.array([state[1]]))[0])
             best_vy = U_batch[bi, 0, 1]
-            # Update committed side based on best trajectory
-            if abs(best_vy) > 0.05:  # only commit if there's a clear preference
-                self._committed_side = 1 if best_vy > 0 else -1
+            critics = getattr(self, '_last_critics', {})
             print(f"[MPPI] dist={dist:.2f} best={best_cost:.1f} med={median_cost:.1f} "
-                  f"cost@rob={c_v:.3f} vy={best_vy:.2f} cmd_vy={self.U[0,1]:.3f} side={self._committed_side} "
-                  f"std=({self.std[1]:.2f},{self.std[2]:.2f})")
+                  f"vy={best_vy:.2f} cmd_vy={self.U[0,1]:.3f} side={self._committed_side} "
+                  f"g={critics.get('goal',0):.1f} o={critics.get('obs',0):.1f} "
+                  f"f={critics.get('follow',0):.1f} a={critics.get('angle',0):.1f}"
+                  f" obs={'Y' if self._near_obstacle else 'N'}"
+                  f" stk={self._stuck_counter}")
             # --- Adaptive exploration ---
             # When best cost is high, planner is stuck → widen exploration
             # Near goal AND path is clear → tighten for precise convergence
@@ -1049,43 +941,89 @@ class Nav2StyleMPPI:
 
             # Check if robot is near any obstacle
             near_obstacle = (c_v > 0.01)
+            # Also check if best rollout encounters obstacles
+            best_obs_cost = critics.get('obs', 0)
+            # Also check if any obstacle points are within 3m
+            obs_nearby = False
+            if obstacle_xy is not None and len(obstacle_xy) > 0:
+                min_obs_dist = np.min(np.hypot(obstacle_xy[:, 0] - state[0],
+                                               obstacle_xy[:, 1] - state[1]))
+                obs_nearby = min_obs_dist < 3.0
+            self._near_obstacle = near_obstacle or best_obs_cost > 5.0 or obs_nearby
 
-            if dist < 1.5 and best_cost < 30.0:
+            # --- Stuck detection ---
+            # Track distance over a sliding window; if no meaningful progress, we're stuck
+            self._dist_history.append(dist)
+            if len(self._dist_history) > 10:
+                self._dist_history.pop(0)
+
+            if len(self._dist_history) >= 6:
+                progress = self._dist_history[0] - self._dist_history[-1]
+                if progress < 0.1:  # less than 10cm over ~6 planning steps
+                    self._stuck_counter = min(self._stuck_counter + 1, 30)
+                else:
+                    self._stuck_counter = max(0, self._stuck_counter - 2)
+
+            stuck = self._stuck_counter > 3
+
+            if dist < 1.5 and best_cost < 15.0:
                 # Near goal with clear path — precision mode
-                self.std = np.array([0.06, 0.10, 0.15])
+                self.std = np.array([0.08, 0.12, 0.20])
                 self._adaptive_bias = 0.0
-                self.best_traj[:, 1] *= 0.3   # kill lateral momentum
-                self.best_traj[:, 2] *= 0.3   # kill yaw momentum
-            elif not near_obstacle and best_cost < 40.0:
-                # Obstacle cleared — converge straight to goal
-                self.std = np.array([0.08, 0.12, 0.18])
+            elif not self._near_obstacle and best_cost < 20.0:
+                # Clear path — converge straight to goal
+                self.std = np.array([0.10, 0.20, 0.30])
                 self._adaptive_bias = 0.0
-                self.best_traj[:, 1] *= 0.5   # dampen lateral momentum
-                self.best_traj[:, 2] *= 0.5   # dampen yaw momentum
-            elif best_cost > 50.0:
-                # Stuck — reset trajectory to force fresh exploration.
-                self.std = np.array([0.12, 0.30, 0.40])
-                self._adaptive_bias = 0.08
-                self.best_traj[:] = 0.0
-            elif best_cost > 25.0:
-                # Moderate difficulty
-                self.std = np.array([0.10, 0.25, 0.35])
-                self._adaptive_bias = 0.05
-                self.best_traj *= 0.5
+            elif stuck:
+                # Stuck at obstacle edge — strong lateral push to break free
+                self.std = np.array([0.18, 0.35, 0.55])
+                self._adaptive_bias = 0.25
+            elif best_cost > 100.0:
+                # High cost near obstacles
+                self.std = np.array([0.18, 0.30, 0.50])
+                self._adaptive_bias = 0.15
+            elif best_cost > 30.0:
+                # Moderate difficulty (near obstacle)
+                self.std = np.array([0.15, 0.25, 0.45])
+                self._adaptive_bias = 0.12
             else:
                 # Easy — default noise
-                self.std = np.array([0.10, 0.20, 0.30])
-                self._adaptive_bias = 0.03
-            best_idx = np.argmin(costs)
-            best_traj = U_batch[best_idx].copy()
-            self.best_traj = best_traj
+                self.std = np.array([0.12, 0.25, 0.40])
+                self._adaptive_bias = 0.05
+            # --- Side commitment with persistence ---
+            # Only reconsider side when counter expires
+            self._side_commit_counter = max(0, self._side_commit_counter - 1)
 
-            # After updating best_traj, zero vy/wz when not near obstacle
-            # This prevents lateral momentum from persisting post-obstacle
-            if not near_obstacle:
-                self.best_traj[:, 1] *= 0.1  # aggressively kill lateral momentum
-                self.best_traj[:, 2] *= 0.3  # dampen yaw momentum
-            # --- Select elite subset ---
+            if self._near_obstacle and obstacle_xy is not None and len(obstacle_xy) > 0:
+                if self._side_commit_counter == 0:
+                    # Use centroid of nearby obstacle points (more stable than closest point)
+                    dx_obs = obstacle_xy[:, 0] - state[0]
+                    dy_obs = obstacle_xy[:, 1] - state[1]
+                    dists_obs = np.sqrt(dx_obs**2 + dy_obs**2)
+
+                    # Weight by proximity — closer points matter more
+                    close_mask = dists_obs < 2.0
+                    if np.any(close_mask):
+                        weights = 1.0 / (dists_obs[close_mask] + 0.1)
+                        weights /= weights.sum()
+                        obs_dx = np.sum(weights * dx_obs[close_mask])
+                        obs_dy = np.sum(weights * dy_obs[close_mask])
+
+                        # Vector to goal
+                        goal_dx = goal[0] - state[0]
+                        goal_dy = goal[1] - state[1]
+
+                        # Cross product: positive = obstacle centroid is to the right of goal line
+                        cross = goal_dx * obs_dy - goal_dy * obs_dx
+
+                        # Only commit if cross product is decisive enough
+                        if abs(cross) > 0.05:
+                            new_side = -1 if cross > 0 else 1
+                            self._committed_side = new_side
+                            self._side_commit_counter = self._side_commit_hold
+            else:
+                # No obstacle — allow free re-evaluation
+                self._side_commit_counter = 0
             elite_frac = 0.2      # top 20%
             K = int(elite_frac * self.BATCH)
             elite_idx = np.argsort(costs)[:K]
@@ -1093,8 +1031,8 @@ class Nav2StyleMPPI:
             costs_elite = costs[elite_idx]
             U_elite = U_batch[elite_idx]
 
-            # --- Temperature parameter ---
-            tau = 1.5   # tuning knob (try 1.0–5.0)
+            # --- Temperature parameter (Nav2 default: 0.3) ---
+            tau = 0.3   # lower = sharper selection, prevents arc cancellation
 
             beta = costs_elite.min()
             w = np.exp(-(costs_elite - beta) / tau)
@@ -1113,26 +1051,25 @@ class Nav2StyleMPPI:
             self.U[:, 1] = np.clip(self.U[:, 1], self.vy_min, self.vy_max)
             self.U[:, 2] = np.clip(self.U[:, 2], self.wz_min, self.wz_max)
 
-            # Post-clamp: when no obstacle nearby, force straight-line approach
-            if not near_obstacle:
-                self.U[:, 1] = np.clip(self.U[:, 1], -0.25, 0.25)
-
         # execute first control
         u0 = self.U[0].copy()
 
-        # If obstacle present, determine relative lateral offset
-        # if obstacle_xy is not None and obstacle_xy.shape[0] > 0:
-        #     mean_y = obstacle_xy[:,1].mean()
-        #     self.side_bias = -0.2 if mean_y > 0 else 0.2
+        # --- Acceleration clamping ---
+        # Prevent rapid command changes (especially ωz flip-flopping)
+        du_max = self._accel_max * self._mppi_dt
+        du = u0 - self._prev_u0
+        du = np.clip(du, -du_max, du_max)
+        u0 = self._prev_u0 + du
+        self._prev_u0 = u0.copy()
 
+        # Save the planned sequence BEFORE shifting (so visualizer sees full plan)
+        self.last_U_plan = self.U.copy()
 
         # receding horizon
         self.U[:-1] = self.U[1:]
         self.U[-1] = self.U[-2]
 
         self.last_U_batch = U_batch
-        self.best_traj[:-1] = self.best_traj[1:]
-        self.best_traj[-1] = self.best_traj[-2]
 
         return u0
 
@@ -1434,15 +1371,16 @@ with mj.viewer.launch_passive(mujoco_go2.model, mujoco_go2.data) as viewer:
 
                 # --- MPPI runs at 2× MPC rate (~24 Hz) ---
                 # Higher-level planner should run slower than the MPC it feeds
-                if (ctrl_i % (8 * STEPS_PER_MPC)) == 0:
+                if (ctrl_i % (2 * STEPS_PER_MPC)) == 0:
                     u0 = mppi.command(state0, goal_xy, obstacle_xy)
 
                 # Log debug frame every 4th MPPI call (same rate as before)
-                if (ctrl_i % (8 * STEPS_PER_MPC)) == 0:
+                if (ctrl_i % (2 * STEPS_PER_MPC)) == 0:
                     debug_frames.append({
                         "state": state0.copy(),
                         "u0": u0.copy(),
                         "U_batch": mppi.last_U_batch.copy(),
+                        "U_plan":  mppi.last_U_plan.copy(),   # actual planned sequence
                         "costmap": costmap.grid.copy(),
                         "obstacles": obstacle_xy.copy()
                     })
@@ -1618,13 +1556,22 @@ for fi, frame in enumerate(debug_frames):
     desired_wx = vx_cmd * cos_yaw - vy_cmd * sin_yaw
     desired_wy = vx_cmd * sin_yaw + vy_cmd * cos_yaw
 
-    # --- Rollouts ---
+    # --- Noisy rollout cloud ---
     X = mppi.rollout(state, U_batch)
-
     for i in range(min(300, X.shape[0])):
         ax.plot(X[i,:,0], X[i,:,1],
                 color="blue",
-                alpha=0.1)
+                alpha=0.08)
+
+    # --- Planned trajectory (self.U — actual MPPI decision) ---
+    U_plan = frame.get("U_plan")
+    if U_plan is not None:
+        X_plan = mppi.rollout(state, U_plan[None, :, :])  # (1, H, 6)
+        ax.plot(X_plan[0, :, 0], X_plan[0, :, 1],
+                color="orange", linewidth=2.5, zorder=6, label="MPPI plan (self.U)")
+        wz_plan = float(U_plan[0, 2])  # pre-clamp desired wz
+    else:
+        wz_plan = float('nan')
 
     # --- Robot dot ---
     ax.scatter(px, py, c='black', s=80, zorder=5)
@@ -1700,7 +1647,10 @@ for fi, frame in enumerate(debug_frames):
     ]
     ax.legend(handles=legend_items, loc='upper right', fontsize=8)
 
-    ax.set_title(f'MPPI Frame {fi}/{len(debug_frames)}', fontsize=10)
+    ax.set_title(
+        f'Frame {fi}/{len(debug_frames)}  |  '
+        f'plan ωz={wz_plan:.2f}  →  cmd ωz={wz_cmd:.2f}  (act ωz={wz_actual:.2f})',
+        fontsize=9)
     ax.set_aspect('equal')
     ax.set_xlim(-4, 4)
     ax.set_ylim(-4, 4)
