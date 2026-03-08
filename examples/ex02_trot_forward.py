@@ -345,7 +345,7 @@ class ObstacleCostMap2D:
         self.grid = np.zeros((self.N, self.N), dtype=np.float32)
 
         self.decay = 0.98
-        self.inflate_radius = 0.55
+        self.inflate_radius = 0.70
 
         # Clearance thresholds (tune)
         self.step_thresh   = 0.06   # rock/log (used later for swing clearance)
@@ -504,6 +504,14 @@ class TerrainAwarePlanner:
 
         trav = self._build_cost_grid()
 
+        # Create a mask of the previous path to add "stickiness" / hysteresis
+        # so the planner doesn't continuously flip-flop left/right around obstacles.
+        prev_path_mask = np.zeros((N, N), dtype=bool)
+        if self.path is not None:
+            px_idx = np.clip(((self.path[:, 0] - origin[0]) / res).astype(int), 0, N - 1)
+            py_idx = np.clip(((self.path[:, 1] - origin[1]) / res).astype(int), 0, N - 1)
+            prev_path_mask[py_idx, px_idx] = True
+
         start = (sx, sy)
         goal  = (gx, gy)
 
@@ -548,11 +556,20 @@ class TerrainAwarePlanner:
                     c = trav[ny, nx]
                     if c >= 1e6:
                         continue
-                    ng = g + step * res * (1.0 + c)
+                        
+                    # Base step cost
+                    step_cost = step * res * (1.0 + c)
+                    
+                    # Hysteresis: discount cells that were on the previous path
+                    if prev_path_mask[ny, nx]:
+                        step_cost *= 0.5  # 50% discount encourages sticking to the old plan
+
+                    ng = g + step_cost
                     if ng < g_score[ny, nx]:
                         g_score[ny, nx] = ng
                         h = np.sqrt((nx - gx)**2 + (ny - gy)**2) * res
-                        heapq.heappush(open_heap, (ng + h, ng, (nx, ny)))
+                        # Weighted A* (weight=1.5) for much faster planning
+                        heapq.heappush(open_heap, (ng + 1.5 * h, ng, (nx, ny)))
                         came_from[(nx, ny)] = (cx, cy)
 
         print("[Planner] No path found!")
@@ -625,33 +642,21 @@ class TerrainAwarePlanner:
         return bool(np.all(costs < self.lethal_thresh))
 
     def _smooth(self, path, n_lap=40, alpha=0.25):
-        """Smooth an A* path in two stages:
-
-        1. Shortcutting  — greedily skip waypoints whose direct connection
-           to a later point is obstacle-free.  Removes grid-staircase detours.
-        2. Laplacian smoothing — iteratively average interior points with
-           their neighbours, keeping start/end pinned.  Rounds sharp corners
-           into gentle arcs while staying away from obstacles.
+        """Smooth an A* path in one stage:
+        
+        Laplacian smoothing — iteratively average interior points with
+        their neighbours, keeping start/end pinned. Rounds strict A* grid 
+        movements into smooth gentle arcs without destroying complex curves 
+        like a greedy line-of-sight shortcutter does.
         """
         if len(path) < 3:
             return path
 
-        # --- Stage 1: greedy shortcutting ---
-        short = [path[0]]
-        i = 0
-        while i < len(path) - 1:
-            # Look ahead as far as possible while the direct segment is clear
-            j = len(path) - 1
-            while j > i + 1:
-                if self._check_segment_clear(path[i], path[j]):
-                    break
-                j -= 1
-            short.append(path[j])
-            i = j
-        path = np.array(short)
-
-        # Re-resample to uniform spacing after shortcutting
+        # Resample to uniform spacing first so Laplacian smoothing works evenly
         path = self._resample(path)
+
+        if len(path) < 3:
+            return path
 
         if len(path) < 3:
             return path
@@ -761,8 +766,8 @@ class Nav2StyleMPPI:
 
         # --- MPPI parameters ---
         self.dt = dt
-        self.H = 100
-        self.BATCH = 800
+        self.H = 80
+        self.BATCH = 400
         self.ITERS = 5
 
         self.LAMBDA = 8.0
@@ -834,11 +839,12 @@ class Nav2StyleMPPI:
             idx = int(np.searchsorted(cumlen, s, side='right')) - 1
             idx = np.clip(idx, 0, len(self.path_tangent) - 1)
             tang = self.path_tangent[idx]   # (2,) unit vector in world frame
-            # Seed as pure forward body velocity (wz=0); MPPI will refine.
-            # tang gives world-frame direction; we approximate body≈world here
-            # because we don't have the robot yaw at set_path time.
-            self.U[t, 0] = CRUISE_VX * tang[0]   # vx body ≈ world x component
-            self.U[t, 1] = CRUISE_VX * tang[1]   # vy body ≈ world y component
+            # Seed as pure forward body velocity. MPPI will randomly sample wz
+            # to discover that turning is required to follow the path.
+            # Previously, we mapped world-frame tangent to body-frame vy, 
+            # causing the robot to sidestep (crab-walk) instead of turn.
+            self.U[t, 0] = CRUISE_VX
+            self.U[t, 1] = 0.0
             self.U[t, 2] = 0.0
 
 
@@ -962,7 +968,7 @@ class Nav2StyleMPPI:
 
             # --- 1. PathFollowCritic — cross-track error ---
             path_cost = min_dist.mean(axis=1)
-            total += 5.0 * path_cost
+            total += 80.0 * path_cost
 
             # --- 2. PathAngleCritic — heading aligned with path tangent ---
             ci = closest_idx.reshape(-1)
@@ -971,7 +977,16 @@ class Nav2StyleMPPI:
             heading_err = np.abs(np.arctan2(
                 np.sin(tyaw - tang_heading),
                 np.cos(tyaw - tang_heading)))
-            total += 5.0 * heading_err.mean(axis=1)
+            total += 120.0 * heading_err.mean(axis=1)
+
+            # --- 2b. Turn-In-Place Critic — restrict forward speed if misaligned ---
+            # If the heading error is large, heavily penalize forward velocity (vx).
+            # This teaches MPPI to slow down or stop `vx` immediately so it can
+            # execute sharp turns (`wz`) to align with the path before proceeding.
+            tvx = vx[:, t_idx]
+            # Only penalize if heading error is above a small threshold (e.g. 0.2 rad)
+            turn_penalty = (np.clip(tvx, 0.0, None) ** 2) * (np.clip(heading_err - 0.2, 0.0, None) ** 2)
+            total += 500.0 * turn_penalty.mean(axis=1)
 
             # --- 3. PathProgressCritic — reward reaching further along path ---
             # Use MAX progress over all subsampled timesteps (not just terminal).
@@ -980,7 +995,7 @@ class Nav2StyleMPPI:
             progress_per_t = cumlen[np.clip(closest_idx, 0, len(cumlen) - 1)]  # (B, Hs)
             progress = progress_per_t.max(axis=1)  # (B,) — furthest reach along path
             total_len = cumlen[-1] if cumlen[-1] > 0.01 else 1.0
-            total += 5.0 * (total_len - progress) / total_len
+            total += 20.0 * (total_len - progress) / total_len
 
             # --- 4. Velocity damping near end of path ---
             end_xy = self.path_xy[-1]
@@ -1144,11 +1159,11 @@ class Nav2StyleMPPI:
         stuck = self._stuck_counter > 3
 
         if dist < 1.5 and critics.get('path', 1.0) < 0.3:
-            self.std = np.array([0.08, 0.08, 0.20])
+            self.std = np.array([0.08, 0.05, 0.20])
         elif stuck or self._near_obstacle:
-            self.std = np.array([0.30, 0.25, 0.80])
+            self.std = np.array([0.30, 0.10, 0.80])
         else:
-            self.std = np.array([0.35, 0.20, 0.60])
+            self.std = np.array([0.35, 0.05, 0.60])
 
         # --- Re-seed U from path tangent + current yaw if U is weak ---
         # Prevents U from staying near zero after replanning or after the
@@ -1159,19 +1174,25 @@ class Nav2StyleMPPI:
             robot_yaw = state[2]
             d_robot = np.sum((self.path_xy - robot_xy) ** 2, axis=1)
             start_idx = int(np.argmin(d_robot))
-            CRUISE_VX = 0.35
-            cos_yaw, sin_yaw = np.cos(robot_yaw), np.sin(robot_yaw)
             for t in range(self.H):
-                s = t * self.dt * CRUISE_VX
+                # Lookahead distance
+                s = t * self.dt * 0.35 
                 idx = int(np.searchsorted(self.path_cumlen, s + self.path_cumlen[start_idx], side='right')) - 1
                 idx = np.clip(idx, 0, len(self.path_tangent) - 1)
                 tang = self.path_tangent[idx]  # world-frame unit tangent
-                # Rotate world-frame tangent into body frame
-                vx_body =  cos_yaw * tang[0] + sin_yaw * tang[1]
-                vy_body = -sin_yaw * tang[0] + cos_yaw * tang[1]
-                self.U[t, 0] = CRUISE_VX * vx_body
-                self.U[t, 1] = CRUISE_VX * vy_body
-                self.U[t, 2] = 0.0
+                
+                # Desired heading from tangent
+                tang_heading = np.arctan2(tang[1], tang[0])
+                heading_err = np.arctan2(np.sin(tang_heading - robot_yaw), 
+                                         np.cos(tang_heading - robot_yaw))
+                                         
+                # Smart Initial Guess: limit vx if heading is wrong, and seed wz proportionally
+                seed_vx = 0.35 if abs(heading_err) < 0.3 else 0.0
+                seed_wz = 2.5 * heading_err
+                
+                self.U[t, 0] = seed_vx
+                self.U[t, 1] = 0.0    # Never crab
+                self.U[t, 2] = seed_wz
 
         # --- MPPI iterations ---
         for it in range(self.ITERS):
