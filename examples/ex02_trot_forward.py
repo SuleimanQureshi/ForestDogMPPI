@@ -1844,9 +1844,9 @@ t_vec = np.arange(ctrl_i) * CTRL_DT
 # plot_solve_time(mpc_solve_time_ms, mpc_update_time_ms, MPC_DT, MPC_HZ, block=True)
 
 # Replay simulation
-# time_log_render = np.asarray(time_log_render, dtype=float)
-# q_log_render = np.asarray(q_log_render, dtype=float)
-# tau_log_render = np.asarray(tau_log_render, dtype=float)
+time_log_render = np.asarray(time_log_render, dtype=float)
+q_log_render = np.asarray(q_log_render, dtype=float)
+tau_log_render = np.asarray(tau_log_render, dtype=float)
 
-# mujoco_go2.replay_simulation(time_log_render, q_log_render, tau_log_render, RENDER_DT, REALTIME_FACTOR)
-# hold_until_all_fig_closed()
+mujoco_go2.replay_simulation(time_log_render, q_log_render, tau_log_render, RENDER_DT, REALTIME_FACTOR)
+hold_until_all_fig_closed()
