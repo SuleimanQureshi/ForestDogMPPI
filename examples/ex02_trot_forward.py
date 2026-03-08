@@ -1159,11 +1159,11 @@ class Nav2StyleMPPI:
         stuck = self._stuck_counter > 3
 
         if dist < 1.5 and critics.get('path', 1.0) < 0.3:
-            self.std = np.array([0.08, 0.05, 0.20])
+            self.std = np.array([0.08, 0.05, 0.40])
         elif stuck or self._near_obstacle:
-            self.std = np.array([0.30, 0.10, 0.80])
+            self.std = np.array([0.30, 0.10, 1.20])
         else:
-            self.std = np.array([0.35, 0.05, 0.60])
+            self.std = np.array([0.35, 0.05, 1.00])
 
         # --- Re-seed U from path tangent + current yaw if U is weak ---
         # Prevents U from staying near zero after replanning or after the
