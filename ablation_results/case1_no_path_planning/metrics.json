@@ -1,0 +1,18 @@
+{
+  "case_name": "case1_no_path_planning",
+  "goal_reached": false,
+  "traversal_time_s": null,
+  "dist_to_goal_final_m": 2.6541017904930015,
+  "roll_rms_rad": 0.11656386765417799,
+  "pitch_rms_rad": 0.045077273127319094,
+  "mean_abs_roll_deg": 5.164106623655433,
+  "mean_abs_pitch_deg": 1.989958184315866,
+  "max_abs_roll_deg": 25.67482336746502,
+  "max_abs_pitch_deg": 9.848313358818535,
+  "total_path_length_m": 4.1567201389280575,
+  "num_body_contacts": 0,
+  "body_contact_steps": 0,
+  "mpc_solve_time_mean_ms": 7.4427489432653395,
+  "mpc_solve_time_max_ms": 29.875847001676448,
+  "sim_wall_time_s": 317.7793459829991
+}

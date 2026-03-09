@@ -68,9 +68,9 @@
       <geom class="trunk" name="trunk15" pos="0.932 -0.599  0" size="0.16 1.5"/>
       <!-- Rocks -->
   <!-- Rocks -->
-      <geom class="rock" name="rock1" pos="0.8  2.8 0.12" size="0.18"/>
-      <geom class="rock" name="rock2" pos="-2.2 -1.5 0.10" size="0.14"/>
-      <geom class="rock" name="rock3" pos="3.2  -0.5 0.16" size="0.20"/>
+      <geom class="rock" name="rock1" pos="0.8  2.8  0" size="0.18"/>
+      <geom class="rock" name="rock2" pos="-2.2 -1.5 0" size="0.14"/>
+      <geom class="rock" name="rock3" pos="3.2  -0.5 0" size="0.20"/>
     
       <!-- Fallen logs -->
       <geom class="log" name="log1"

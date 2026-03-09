@@ -11,3 +11,7 @@ __pycache__/
 __pycache__/
 *.pyc
 .env
+paper/
+ablation_results_first_run/
+ablation_results_second_run/
+ablation_results_third/

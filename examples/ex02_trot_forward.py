@@ -29,7 +29,7 @@ from matplotlib.patches import Arc
 INITIAL_X_POS = -2
 INITIAL_Y_POS = 0
 # How long does the simulation run for How much time 
-RUN_SIM_LENGTH_S = 18.0
+RUN_SIM_LENGTH_S = 20.0
 
 RENDER_HZ = 120.0
 RENDER_DT = 1.0 / RENDER_HZ
@@ -345,7 +345,7 @@ class ObstacleCostMap2D:
         self.grid = np.zeros((self.N, self.N), dtype=np.float32)
 
         self.decay = 0.98
-        self.inflate_radius = 0.70
+        self.inflate_radius = 0.50
 
         # Clearance thresholds (tune)
         self.step_thresh   = 0.06   # rock/log (used later for swing clearance)
@@ -1313,540 +1313,542 @@ def debug_plot_mppi(state, goal, obstacle_xy, U_batch, mppi):
     plt.legend(loc="upper right")
     plt.pause(0.001)
 
-# --------------------------------------------------------------------------------
-# Storage Variables (CONTROL-rate logs for plots)
-# --------------------------------------------------------------------------------
 
-# Centroidal state x = [px, py, pz, r, p, y, vx, vy, vz, wx, wy, wz]
-x_vec = np.zeros((12, CTRL_STEPS))
+if __name__ == "__main__":
+    # --------------------------------------------------------------------------------
+    # Storage Variables (CONTROL-rate logs for plots)
+    # --------------------------------------------------------------------------------
 
-# MPC contact force log (world): [FLx,FLy,FLz, FRx,FRy,FRz, RLx,RLy,RLz, RRx,RRy,RRz]
-mpc_force_world = np.zeros((12, CTRL_STEPS))
+    # Centroidal state x = [px, py, pz, r, p, y, vx, vy, vz, wx, wy, wz]
+    x_vec = np.zeros((12, CTRL_STEPS))
 
-# Torques
-tau_raw = np.zeros((12, CTRL_STEPS))
-tau_cmd = np.zeros((12, CTRL_STEPS))
+    # MPC contact force log (world): [FLx,FLy,FLz, FRx,FRy,FRz, RLx,RLy,RLz, RRx,RRy,RRz]
+    mpc_force_world = np.zeros((12, CTRL_STEPS))
 
-# Control-rate log (if you want it)
-time_log_ctrl_s = np.zeros(CTRL_STEPS)
-q_log_ctrl = np.zeros((CTRL_STEPS, 19))
-tau_log_ctrl_Nm = np.zeros((CTRL_STEPS, 12))
+    # Torques
+    tau_raw = np.zeros((12, CTRL_STEPS))
+    tau_cmd = np.zeros((12, CTRL_STEPS))
 
-# Foot trajectory logs (control-rate)
-@dataclass
-class FootTraj:
-    pos_des: np.ndarray = field(default_factory=lambda: np.zeros((12, CTRL_STEPS)))
-    pos_now: np.ndarray = field(default_factory=lambda: np.zeros((12, CTRL_STEPS)))
-    vel_des: np.ndarray = field(default_factory=lambda: np.zeros((12, CTRL_STEPS)))
-    vel_now: np.ndarray = field(default_factory=lambda: np.zeros((12, CTRL_STEPS)))
+    # Control-rate log (if you want it)
+    time_log_ctrl_s = np.zeros(CTRL_STEPS)
+    q_log_ctrl = np.zeros((CTRL_STEPS, 19))
+    tau_log_ctrl_Nm = np.zeros((CTRL_STEPS, 12))
 
-
-foot_traj = FootTraj()
-
-mpc_update_time_ms = []
-mpc_solve_time_ms = []
-X_opt = None
-U_opt = None
-def debug_plot_heightmap(hmap, res, origin):
-    plt.figure("Global Height Map", clear=True)
-    extent = [
-        origin[0],
-        origin[0] + hmap.shape[1]*res,
-        origin[1],
-        origin[1] + hmap.shape[0]*res
-    ]
-    plt.imshow(heightmap.hmap, origin="lower", extent=extent, vmin=0, vmax=0.5)
-    plt.colorbar(label="World Z (m)")
-    plt.pause(0.001)
-# --------------------------------------------------------------------------------
-# Simulation Initialization
-# --------------------------------------------------------------------------------
-
-go2 = PinGo2Model()
-mujoco_go2 = MuJoCo_GO2_Model()
-lidar = MuJoCoLidar3D(
-    mujoco_go2.model,
-    mujoco_go2.data,
-    n_az=90,
-    n_el=15,
-    el_min_deg=-30.0,
-    el_max_deg=15.0,
-    max_range=6.0
-)
-# ground_z_fallback matches the hfield geom z-offset in scene_test_forest.xml
-# (<geom ... pos="0 0 -0.09" hfield="forest" .../>), so that unobserved cells
-# return the correct baseline ground height instead of world-z 0.
-heightmap = GlobalHeightMap(size_xy=12.0, res=0.05, ground_z_fallback=-0.09)
-costmap = ObstacleCostMap2D(size_xy=12.0, res=0.05)
-leg_controller = LegController()
-traj = ComTraj(go2)
-gait = Gait(GAIT_HZ, GAIT_DUTY)
-
-traj.generate_traj(
-    go2,
-    gait,
-    0.0,
-    0.0,   # vx
-    0.0,   # vy
-    0.27,  # z
-    0.0,   # yaw rate
-    time_step=MPC_DT,
-)
-mpc = CentroidalMPC(go2, traj)
-
-# mppi_cfg = MPPIConfig(horizon_steps=traj.N, dt=MPC_DT)
-mppi = Nav2StyleMPPI(MPC_DT)
-mppi.set_terrain(heightmap)
-mppi.set_costmap(costmap)
-goal_xy = np.array([3.0, 0.0])
-box_radius = 0.75
-
-# --- Global path planner ---
-planner = TerrainAwarePlanner(costmap, heightmap)
-initial_path = planner.plan(np.array([INITIAL_X_POS, INITIAL_Y_POS]), goal_xy)
-if initial_path is not None:
-    mppi.set_path(initial_path)
-
-# Initialize robot configuration
-q_init = go2.current_config.get_q()
-q_init[0], q_init[1] = INITIAL_X_POS, INITIAL_Y_POS
-mujoco_go2.update_with_q_pin(q_init)
-
-# Set physics dt (keep it fast!)
-mujoco_go2.model.opt.timestep = SIM_DT
+    # Foot trajectory logs (control-rate)
+    @dataclass
+    class FootTraj:
+        pos_des: np.ndarray = field(default_factory=lambda: np.zeros((12, CTRL_STEPS)))
+        pos_now: np.ndarray = field(default_factory=lambda: np.zeros((12, CTRL_STEPS)))
+        vel_des: np.ndarray = field(default_factory=lambda: np.zeros((12, CTRL_STEPS)))
+        vel_now: np.ndarray = field(default_factory=lambda: np.zeros((12, CTRL_STEPS)))
 
 
-# Safe defaults until first solve
-obstacle_xy = np.zeros((0, 2), dtype=float)
-u0 = np.array([0.0, 0.0, 0.0], dtype=float)
-U_opt = np.zeros((12, traj.N), dtype=float)
+    foot_traj = FootTraj()
 
-# --------------------------------------------------------------------------------
-# Replay logs sampled at RENDER_HZ
-# --------------------------------------------------------------------------------
-time_log_render = []
-q_log_render = []
-tau_log_render = []
+    mpc_update_time_ms = []
+    mpc_solve_time_ms = []
+    X_opt = None
+    U_opt = None
+    def debug_plot_heightmap(hmap, res, origin):
+        plt.figure("Global Height Map", clear=True)
+        extent = [
+            origin[0],
+            origin[0] + hmap.shape[1]*res,
+            origin[1],
+            origin[1] + hmap.shape[0]*res
+        ]
+        plt.imshow(heightmap.hmap, origin="lower", extent=extent, vmin=0, vmax=0.5)
+        plt.colorbar(label="World Z (m)")
+        plt.pause(0.001)
+    # --------------------------------------------------------------------------------
+    # Simulation Initialization
+    # --------------------------------------------------------------------------------
 
-next_render_t = 0.0
+    go2 = PinGo2Model()
+    mujoco_go2 = MuJoCo_GO2_Model()
+    lidar = MuJoCoLidar3D(
+        mujoco_go2.model,
+        mujoco_go2.data,
+        n_az=90,
+        n_el=15,
+        el_min_deg=-30.0,
+        el_max_deg=15.0,
+        max_range=6.0
+    )
+    # ground_z_fallback matches the hfield geom z-offset in scene_test_forest.xml
+    # (<geom ... pos="0 0 -0.09" hfield="forest" .../>), so that unobserved cells
+    # return the correct baseline ground height instead of world-z 0.
+    heightmap = GlobalHeightMap(size_xy=12.0, res=0.05, ground_z_fallback=-0.09)
+    costmap = ObstacleCostMap2D(size_xy=12.0, res=0.05)
+    leg_controller = LegController()
+    traj = ComTraj(go2)
+    gait = Gait(GAIT_HZ, GAIT_DUTY)
 
-# --------------------------------------------------------------------------------
-# Simulation Loop
-# --------------------------------------------------------------------------------
-print(f"Running simulation for {RUN_SIM_LENGTH_S}s")
-sim_start_time = time.perf_counter()
+    traj.generate_traj(
+        go2,
+        gait,
+        0.0,
+        0.0,   # vx
+        0.0,   # vy
+        0.27,  # z
+        0.0,   # yaw rate
+        time_step=MPC_DT,
+    )
+    mpc = CentroidalMPC(go2, traj)
 
-ctrl_i = 0
-tau_hold = np.zeros(12, dtype=float)
-debug_frames = []
-with mj.viewer.launch_passive(mujoco_go2.model, mujoco_go2.data) as viewer:
+    # mppi_cfg = MPPIConfig(horizon_steps=traj.N, dt=MPC_DT)
+    mppi = Nav2StyleMPPI(MPC_DT)
+    mppi.set_terrain(heightmap)
+    mppi.set_costmap(costmap)
+    goal_xy = np.array([3.0, 0.0])
+    box_radius = 0.75
 
-    viewer.cam.distance = 3
-    viewer.cam.azimuth = 90
-    viewer.cam.elevation = -20
+    # --- Global path planner ---
+    planner = TerrainAwarePlanner(costmap, heightmap)
+    initial_path = planner.plan(np.array([INITIAL_X_POS, INITIAL_Y_POS]), goal_xy)
+    if initial_path is not None:
+        mppi.set_path(initial_path)
 
-    for k in range(SIM_STEPS):
-        time_now_s = float(mujoco_go2.data.time)
-        box_id = mj.mj_name2id(
-            mujoco_go2.model,
-            mj.mjtObj.mjOBJ_BODY,
-            "box"
-        )
+    # Initialize robot configuration
+    q_init = go2.current_config.get_q()
+    q_init[0], q_init[1] = INITIAL_X_POS, INITIAL_Y_POS
+    mujoco_go2.update_with_q_pin(q_init)
 
-        box_pos = mujoco_go2.data.xpos[box_id].copy()
+    # Set physics dt (keep it fast!)
+    mujoco_go2.model.opt.timestep = SIM_DT
+
+
+    # Safe defaults until first solve
+    obstacle_xy = np.zeros((0, 2), dtype=float)
+    u0 = np.array([0.0, 0.0, 0.0], dtype=float)
+    U_opt = np.zeros((12, traj.N), dtype=float)
+
+    # --------------------------------------------------------------------------------
+    # Replay logs sampled at RENDER_HZ
+    # --------------------------------------------------------------------------------
+    time_log_render = []
+    q_log_render = []
+    tau_log_render = []
+
+    next_render_t = 0.0
+
+    # --------------------------------------------------------------------------------
+    # Simulation Loop
+    # --------------------------------------------------------------------------------
+    print(f"Running simulation for {RUN_SIM_LENGTH_S}s")
+    sim_start_time = time.perf_counter()
+
+    ctrl_i = 0
+    tau_hold = np.zeros(12, dtype=float)
+    debug_frames = []
+    with mj.viewer.launch_passive(mujoco_go2.model, mujoco_go2.data) as viewer:
+
+        viewer.cam.distance = 3
+        viewer.cam.azimuth = 90
+        viewer.cam.elevation = -20
+
+        for k in range(SIM_STEPS):
+            time_now_s = float(mujoco_go2.data.time)
+            box_id = mj.mj_name2id(
+                mujoco_go2.model,
+                mj.mjtObj.mjOBJ_BODY,
+                "box"
+            )
+
+            box_pos = mujoco_go2.data.xpos[box_id].copy()
         
 
 
-        # Control update at CTRL_HZ
-        if (k % CTRL_DECIM) == 0 and ctrl_i < CTRL_STEPS:
-            # Commands (updated at control rate)
-            # x_vel_des_body, y_vel_des_body, z_pos_des_body, yaw_rate_des_body = get_body_cmd(time_now_s)
+            # Control update at CTRL_HZ
+            if (k % CTRL_DECIM) == 0 and ctrl_i < CTRL_STEPS:
+                # Commands (updated at control rate)
+                # x_vel_des_body, y_vel_des_body, z_pos_des_body, yaw_rate_des_body = get_body_cmd(time_now_s)
 
-            # Update Pinocchio from current MuJoCo state
-            mujoco_go2.update_pin_with_mujoco(go2)
+                # Update Pinocchio from current MuJoCo state
+                mujoco_go2.update_pin_with_mujoco(go2)
 
-            x_vec[:, ctrl_i] = go2.compute_com_x_vec().reshape(-1)
-            px = x_vec[0, ctrl_i]
-            py = x_vec[1, ctrl_i]
-            yaw = x_vec[5, ctrl_i]
-            robot_xy = x_vec[0:2, ctrl_i]
-            # box_xy = box_pos[0:2]
+                x_vec[:, ctrl_i] = go2.compute_com_x_vec().reshape(-1)
+                px = x_vec[0, ctrl_i]
+                py = x_vec[1, ctrl_i]
+                yaw = x_vec[5, ctrl_i]
+                robot_xy = x_vec[0:2, ctrl_i]
+                # box_xy = box_pos[0:2]
 
-            # dist = np.linalg.norm(robot_xy - box_xy)
-            # if ctrl_i % 20 == 0:
-            #     print("Distance to obstacle:", dist)
-            #     print("Distance to goal:", np.linalg.norm(robot_xy - goal_xy))
-
-            # Control-rate logs
-            time_log_ctrl_s[ctrl_i] = time_now_s
-            q_log_ctrl[ctrl_i, :] = mujoco_go2.data.qpos
-
-            # Update MPC if needed
-            if (ctrl_i %( 1 * STEPS_PER_MPC)) == 0:
-                print(f"\rSimulation Time: {time_now_s:.3f} s", end="", flush=True)
-                # --- Provide desired velocities to gait/leg controller (used for swing touchdown prediction) ---
-                # MPPI u is in BODY frame (vx, vy, wz) in our planner
-                vx_world = x_vec[6, ctrl_i]
-                vy_world = x_vec[7, ctrl_i]
-                wz_world = x_vec[11, ctrl_i]
-
-                Rwb = go2.R_world_to_body  # 3x3
-                v_body = Rwb @ np.array([vx_world, vy_world, 0.0])
-                vx_body, vy_body = v_body[0], v_body[1]
-                state0 = np.array([px, py, yaw, vx_body, vy_body, wz_world])
-
-
-                if (ctrl_i % (4 * STEPS_PER_MPC)) == 0:
-                    # LiDAR origin (a bit above COM so it doesn't hit the ground instantly)
-                    lidar_origin = go2.current_config.base_pos.copy()
-                    lidar_origin[2] -= 0.1
-
-                    base_body_id = mj.mj_name2id(
-                        mujoco_go2.model,
-                        mj.mjtObj.mjOBJ_BODY,
-                        "trunk"
-                    )
-
-                    Rwb = mujoco_go2.data.xmat[base_body_id].reshape(3,3).copy()
-
-                    # Perform scan using full base rotation
-                    trunk_id = mj.mj_name2id(mujoco_go2.model, mj.mjtObj.mjOBJ_BODY, "trunk")
-                    hits_world = lidar.scan(lidar_origin, Rwb, bodyexclude=trunk_id)
-
-                    # Keep BOTH ground + obstacle points. Only remove robot-near / extreme outliers.
-                    zmin = -0.50
-                    zmax =  2.00
-                    keep_z = (hits_world[:, 2] > zmin) & (hits_world[:, 2] < zmax)
-
-                    dx = hits_world[:, 0] - px
-                    dy = hits_world[:, 1] - py
-                    r = np.sqrt(dx*dx + dy*dy)
-                    keep_r = r > 0.45
-
-                    hits_filt = hits_world[keep_z & keep_r]
-
-                    # Update maps
-                    heightmap.update(hits_filt)
-                    go2.terrain = heightmap
-                    costmap.update_from_heightmap(heightmap, clearance_lethal=0.12, clearance_soft=0.05)
-
-                    # --- Replan global path periodically from current position ---
-                    new_path = planner.plan(np.array([px, py]), goal_xy)
-                    if new_path is not None:
-                        mppi.set_path(new_path)
-                        # print(f"[Planner] Replanned: {len(new_path)} pts")
-
-                    # Compute clearance per hit cell (object vs ground)
-                    ix, iy = heightmap.world_to_grid(hits_filt[:,0], hits_filt[:,1])
-                    valid = (ix>=0)&(ix<heightmap.N)&(iy>=0)&(iy<heightmap.N)
-
-                    clear = np.zeros(len(hits_filt))
-                    clear[valid] = (
-                        heightmap.h_top[iy[valid], ix[valid]] -
-                        heightmap.h_ground[iy[valid], ix[valid]]
-                    )
-
-                    obstacle_mask = clear > 0.08
-                    obstacle_xy = hits_filt[obstacle_mask, :2]
-
-                    if obstacle_xy.shape[0] > 250:
-                        idx = np.random.choice(obstacle_xy.shape[0], 250, replace=False)
-                        obstacle_xy = obstacle_xy[idx]
-
-                # --- MPPI runs at 2× MPC rate ---
-                if (ctrl_i % (2 * STEPS_PER_MPC)) == 0:
-                    u0 = mppi.command(state0, obstacle_xy)
-
-                # Log debug frame (includes path for visualization)
-                if (ctrl_i % (2 * STEPS_PER_MPC)) == 0:
-                    debug_frames.append({
-                        "state": state0.copy(),
-                        "u0": u0.copy(),
-                        "U_batch": mppi.last_U_batch.copy(),
-                        "U_plan":  mppi.last_U_plan.copy(),
-                        "costmap": costmap.grid.copy(),
-                        "obstacles": obstacle_xy.copy(),
-                        "path": mppi.path_xy.copy() if mppi.path_xy is not None else None,
-                    })
-
-
-                # if ctrl_i % 10 == 0:  # don’t draw every tick
-                #     # pass
-                #     debug_plot_mppi(
-                #         state0,
-                #         goal_xy,
-                #         obstacle_xy,
-                #         mppi.last_U_batch,
-                #         mppi
-                #     )
-
-
-                vx_des_body = float(u0[0])
-                vy_des_body = float(u0[1])
-                wz_des_body = float(u0[2])
-                z_pos_des_body = 0.27
-                vx_des_body = np.clip(vx_des_body, -0.8, 0.8)
-                vy_des_body = np.clip(vy_des_body, -0.5, 0.5)
-                wz_des_body = np.clip(wz_des_body, -1.5, 1.5)
-                # vx_des_body = 0.8
-                # vy_des_body = 0.0
-                # wz_des_body = 0.0
-                # z_pos_des_body = 0.27
-                traj.generate_traj(
-                    go2,
-                    gait,
-                    time_now_s,
-                    vx_des_body,
-                    vy_des_body,
-                    z_pos_des_body,
-                    wz_des_body,
-                    time_step=MPC_DT,
-                )
+                # dist = np.linalg.norm(robot_xy - box_xy)
                 # if ctrl_i % 20 == 0:
-                #     print("norm_z min/mean:", traj.contact_normals[:,:,2].min(), traj.contact_normals[:,:,2].mean())
+                #     print("Distance to obstacle:", dist)
+                #     print("Distance to goal:", np.linalg.norm(robot_xy - goal_xy))
 
-                sol = mpc.solve_QP(go2, traj, False)
+                # Control-rate logs
+                time_log_ctrl_s[ctrl_i] = time_now_s
+                q_log_ctrl[ctrl_i, :] = mujoco_go2.data.qpos
 
-                mpc_solve_time_ms.append(mpc.solve_time)
-                mpc_update_time_ms.append(mpc.update_time)
+                # Update MPC if needed
+                if (ctrl_i %( 1 * STEPS_PER_MPC)) == 0:
+                    print(f"\rSimulation Time: {time_now_s:.3f} s", end="", flush=True)
+                    # --- Provide desired velocities to gait/leg controller (used for swing touchdown prediction) ---
+                    # MPPI u is in BODY frame (vx, vy, wz) in our planner
+                    vx_world = x_vec[6, ctrl_i]
+                    vy_world = x_vec[7, ctrl_i]
+                    wz_world = x_vec[11, ctrl_i]
 
-                N = traj.N
-                w_opt = sol["x"].full().flatten()
-                X_opt = w_opt[: 12 * (N)].reshape((12, N), order="F")
-                U_opt = w_opt[12 * (N) :].reshape((12, N), order="F")
+                    Rwb = go2.R_world_to_body  # 3x3
+                    v_body = Rwb @ np.array([vx_world, vy_world, 0.0])
+                    vx_body, vy_body = v_body[0], v_body[1]
+                    state0 = np.array([px, py, yaw, vx_body, vy_body, wz_world])
 
-            # Extract first GRF from MPC
-            mpc_force_world[:, ctrl_i] = U_opt[:, 0]
 
-            # Compute joint torques
-            FL = leg_controller.compute_leg_torque(
-                "FL", go2, gait, mpc_force_world[LEG_SLICE["FL"], ctrl_i], time_now_s
-            )
-            tau_raw[LEG_SLICE["FL"], ctrl_i] = FL.tau
-            foot_traj.pos_des[LEG_SLICE["FL"], ctrl_i] = FL.pos_des
-            foot_traj.pos_now[LEG_SLICE["FL"], ctrl_i] = FL.pos_now
-            foot_traj.vel_des[LEG_SLICE["FL"], ctrl_i] = FL.vel_des
-            foot_traj.vel_now[LEG_SLICE["FL"], ctrl_i] = FL.vel_now
+                    if (ctrl_i % (4 * STEPS_PER_MPC)) == 0:
+                        # LiDAR origin (a bit above COM so it doesn't hit the ground instantly)
+                        lidar_origin = go2.current_config.base_pos.copy()
+                        lidar_origin[2] -= 0.1
 
-            FR = leg_controller.compute_leg_torque(
-                "FR", go2, gait, mpc_force_world[LEG_SLICE["FR"], ctrl_i], time_now_s
-            )
-            tau_raw[LEG_SLICE["FR"], ctrl_i] = FR.tau
-            foot_traj.pos_des[LEG_SLICE["FR"], ctrl_i] = FR.pos_des
-            foot_traj.pos_now[LEG_SLICE["FR"], ctrl_i] = FR.pos_now
-            foot_traj.vel_des[LEG_SLICE["FR"], ctrl_i] = FR.vel_des
-            foot_traj.vel_now[LEG_SLICE["FR"], ctrl_i] = FR.vel_now
+                        base_body_id = mj.mj_name2id(
+                            mujoco_go2.model,
+                            mj.mjtObj.mjOBJ_BODY,
+                            "trunk"
+                        )
 
-            RL = leg_controller.compute_leg_torque(
-                "RL", go2, gait, mpc_force_world[LEG_SLICE["RL"], ctrl_i], time_now_s
-            )
-            tau_raw[LEG_SLICE["RL"], ctrl_i] = RL.tau
-            foot_traj.pos_des[LEG_SLICE["RL"], ctrl_i] = RL.pos_des
-            foot_traj.pos_now[LEG_SLICE["RL"], ctrl_i] = RL.pos_now
-            foot_traj.vel_des[LEG_SLICE["RL"], ctrl_i] = RL.vel_des
-            foot_traj.vel_now[LEG_SLICE["RL"], ctrl_i] = RL.vel_now
+                        Rwb = mujoco_go2.data.xmat[base_body_id].reshape(3,3).copy()
 
-            RR = leg_controller.compute_leg_torque(
-                "RR", go2, gait, mpc_force_world[LEG_SLICE["RR"], ctrl_i], time_now_s
-            )
-            tau_raw[LEG_SLICE["RR"], ctrl_i] = RR.tau
-            foot_traj.pos_des[LEG_SLICE["RR"], ctrl_i] = RR.pos_des
-            foot_traj.pos_now[LEG_SLICE["RR"], ctrl_i] = RR.pos_now
-            foot_traj.vel_des[LEG_SLICE["RR"], ctrl_i] = RR.vel_des
-            foot_traj.vel_now[LEG_SLICE["RR"], ctrl_i] = RR.vel_now
+                        # Perform scan using full base rotation
+                        trunk_id = mj.mj_name2id(mujoco_go2.model, mj.mjtObj.mjOBJ_BODY, "trunk")
+                        hits_world = lidar.scan(lidar_origin, Rwb, bodyexclude=trunk_id)
 
-            # Saturate + hold
-            tau_cmd[:, ctrl_i] = np.clip(tau_raw[:, ctrl_i], -TAU_LIM, TAU_LIM)
-            tau_hold = tau_cmd[:, ctrl_i].copy()
+                        # Keep BOTH ground + obstacle points. Only remove robot-near / extreme outliers.
+                        zmin = -0.50
+                        zmax =  2.00
+                        keep_z = (hits_world[:, 2] > zmin) & (hits_world[:, 2] < zmax)
 
-            tau_log_ctrl_Nm[ctrl_i, :] = tau_hold
+                        dx = hits_world[:, 0] - px
+                        dy = hits_world[:, 1] - py
+                        r = np.sqrt(dx*dx + dy*dy)
+                        keep_r = r > 0.45
 
-            ctrl_i += 1
+                        hits_filt = hits_world[keep_z & keep_r]
 
-        #Apply held torques at every SIM step
-        mj.mj_step1(mujoco_go2.model, mujoco_go2.data)
-        mujoco_go2.set_joint_torque(tau_hold)
-        mj.mj_step2(mujoco_go2.model, mujoco_go2.data)
-        # viewer.sync()
-        #Render-rate logging for smooth replay
-        t_after = float(mujoco_go2.data.time)
-        if t_after + 1e-12 >= next_render_t:
-            time_log_render.append(t_after)
-            q_log_render.append(mujoco_go2.data.qpos.copy())
-            tau_log_render.append(tau_hold.copy())
-            next_render_t += RENDER_DT
+                        # Update maps
+                        heightmap.update(hits_filt)
+                        go2.terrain = heightmap
+                        costmap.update_from_heightmap(heightmap, clearance_lethal=0.12, clearance_soft=0.05)
 
-sim_end_time = time.perf_counter()
-print(
-    f"\nSimulation ended."
-    f"\nElapsed time: {sim_end_time - sim_start_time:.3f}s"
-    f"\nControl ticks: {ctrl_i}/{CTRL_STEPS}"
-)
+                        # --- Replan global path periodically from current position ---
+                        new_path = planner.plan(np.array([px, py]), goal_xy)
+                        if new_path is not None:
+                            mppi.set_path(new_path)
+                            # print(f"[Planner] Replanned: {len(new_path)} pts")
 
-# --------------------------------------------------------------------------------
-# Simulation Results
-# --------------------------------------------------------------------------------
-# blocker = input("Press Enter to continue...")
+                        # Compute clearance per hit cell (object vs ground)
+                        ix, iy = heightmap.world_to_grid(hits_filt[:,0], hits_filt[:,1])
+                        valid = (ix>=0)&(ix<heightmap.N)&(iy>=0)&(iy<heightmap.N)
 
-print("Rendering MPPI debug video...")
+                        clear = np.zeros(len(hits_filt))
+                        clear[valid] = (
+                            heightmap.h_top[iy[valid], ix[valid]] -
+                            heightmap.h_ground[iy[valid], ix[valid]]
+                        )
 
-from matplotlib.lines import Line2D
+                        obstacle_mask = clear > 0.08
+                        obstacle_xy = hits_filt[obstacle_mask, :2]
 
-# Explicitly point matplotlib at the conda-env ffmpeg so it works under sudo
-# (sudo strips PATH, so the system can't find the conda-installed ffmpeg).
-_FFMPEG_PATH = "/home/suleiman/miniconda3/envs/go2-convex-mpc/bin/ffmpeg"
-if not matplotlib.rcParams.get('animation.ffmpeg_path') or \
-        matplotlib.rcParams['animation.ffmpeg_path'] == 'ffmpeg':
-    matplotlib.rcParams['animation.ffmpeg_path'] = _FFMPEG_PATH
+                        if obstacle_xy.shape[0] > 250:
+                            idx = np.random.choice(obstacle_xy.shape[0], 250, replace=False)
+                            obstacle_xy = obstacle_xy[idx]
 
-base_name = "mppi_debug"
-ext = ".mp4"
-MPPI_VIDEO_PATH = os.path.abspath(f"{base_name}{ext}")
-counter = 1
-while os.path.exists(MPPI_VIDEO_PATH):
-    MPPI_VIDEO_PATH = os.path.abspath(f"{base_name}_{counter}{ext}")
-    counter += 1
-VIDEO_FPS = 25
+                    # --- MPPI runs at 2× MPC rate ---
+                    if (ctrl_i % (2 * STEPS_PER_MPC)) == 0:
+                        u0 = mppi.command(state0, obstacle_xy)
 
-fig, ax = plt.subplots(figsize=(8, 8))
-writer = FFMpegWriter(fps=VIDEO_FPS, metadata={"title": "MPPI Debug"}, bitrate=3000)
+                    # Log debug frame (includes path for visualization)
+                    if (ctrl_i % (2 * STEPS_PER_MPC)) == 0:
+                        debug_frames.append({
+                            "state": state0.copy(),
+                            "u0": u0.copy(),
+                            "U_batch": mppi.last_U_batch.copy(),
+                            "U_plan":  mppi.last_U_plan.copy(),
+                            "costmap": costmap.grid.copy(),
+                            "obstacles": obstacle_xy.copy(),
+                            "path": mppi.path_xy.copy() if mppi.path_xy is not None else None,
+                        })
 
-ARROW_SCALE = 0.8
-YAW_ARC_RADIUS = 0.25
 
-with writer.saving(fig, MPPI_VIDEO_PATH, dpi=120):
-    for fi, frame in enumerate(debug_frames):
+                    # if ctrl_i % 10 == 0:  # don’t draw every tick
+                    #     # pass
+                    #     debug_plot_mppi(
+                    #         state0,
+                    #         goal_xy,
+                    #         obstacle_xy,
+                    #         mppi.last_U_batch,
+                    #         mppi
+                    #     )
 
-        ax.cla()
 
-        grid = frame["costmap"]
-        res = costmap.res
-        origin = costmap.origin_xy
-        extent = [
-            origin[0],
-            origin[0] + grid.shape[1] * res,
-            origin[1],
-            origin[1] + grid.shape[0] * res,
-        ]
-        ax.imshow(grid, origin="lower", extent=extent, cmap="hot", alpha=0.6,
-                  vmin=0, vmax=max(1e-3, float(grid.max())))
+                    vx_des_body = float(u0[0])
+                    vy_des_body = float(u0[1])
+                    wz_des_body = float(u0[2])
+                    z_pos_des_body = 0.27
+                    vx_des_body = np.clip(vx_des_body, -0.8, 0.8)
+                    vy_des_body = np.clip(vy_des_body, -0.5, 0.5)
+                    wz_des_body = np.clip(wz_des_body, -1.5, 1.5)
+                    # vx_des_body = 0.8
+                    # vy_des_body = 0.0
+                    # wz_des_body = 0.0
+                    # z_pos_des_body = 0.27
+                    traj.generate_traj(
+                        go2,
+                        gait,
+                        time_now_s,
+                        vx_des_body,
+                        vy_des_body,
+                        z_pos_des_body,
+                        wz_des_body,
+                        time_step=MPC_DT,
+                    )
+                    # if ctrl_i % 20 == 0:
+                    #     print("norm_z min/mean:", traj.contact_normals[:,:,2].min(), traj.contact_normals[:,:,2].mean())
 
-        state   = frame["state"]
-        u0      = frame["u0"]
-        U_batch = frame["U_batch"]
+                    sol = mpc.solve_QP(go2, traj, False)
 
-        px, py, yaw = state[0], state[1], state[2]
-        vx_body, vy_body, wz_actual = state[3], state[4], state[5]
-        vx_cmd, vy_cmd, wz_cmd = u0[0], u0[1], u0[2]
+                    mpc_solve_time_ms.append(mpc.solve_time)
+                    mpc_update_time_ms.append(mpc.update_time)
 
-        cos_yaw, sin_yaw = np.cos(yaw), np.sin(yaw)
+                    N = traj.N
+                    w_opt = sol["x"].full().flatten()
+                    X_opt = w_opt[: 12 * (N)].reshape((12, N), order="F")
+                    U_opt = w_opt[12 * (N) :].reshape((12, N), order="F")
 
-        actual_wx  = vx_body * cos_yaw - vy_body * sin_yaw
-        actual_wy  = vx_body * sin_yaw + vy_body * cos_yaw
-        desired_wx = vx_cmd * cos_yaw - vy_cmd * sin_yaw
-        desired_wy = vx_cmd * sin_yaw + vy_cmd * cos_yaw
+                # Extract first GRF from MPC
+                mpc_force_world[:, ctrl_i] = U_opt[:, 0]
 
-        # Global path
-        path = frame.get("path")
-        if path is not None:
-            ax.plot(path[:, 0], path[:, 1], color='white', linewidth=3.0, zorder=3, alpha=0.9)
-            ax.plot(path[:, 0], path[:, 1], color='cyan',  linewidth=1.5, zorder=4,
-                    linestyle='--', label='Global path')
+                # Compute joint torques
+                FL = leg_controller.compute_leg_torque(
+                    "FL", go2, gait, mpc_force_world[LEG_SLICE["FL"], ctrl_i], time_now_s
+                )
+                tau_raw[LEG_SLICE["FL"], ctrl_i] = FL.tau
+                foot_traj.pos_des[LEG_SLICE["FL"], ctrl_i] = FL.pos_des
+                foot_traj.pos_now[LEG_SLICE["FL"], ctrl_i] = FL.pos_now
+                foot_traj.vel_des[LEG_SLICE["FL"], ctrl_i] = FL.vel_des
+                foot_traj.vel_now[LEG_SLICE["FL"], ctrl_i] = FL.vel_now
 
-        # Rollout cloud
-        X = mppi.rollout(state, U_batch)
-        for i in range(min(120, X.shape[0])):
-            ax.plot(X[i, :, 0], X[i, :, 1], color="blue", alpha=0.08)
+                FR = leg_controller.compute_leg_torque(
+                    "FR", go2, gait, mpc_force_world[LEG_SLICE["FR"], ctrl_i], time_now_s
+                )
+                tau_raw[LEG_SLICE["FR"], ctrl_i] = FR.tau
+                foot_traj.pos_des[LEG_SLICE["FR"], ctrl_i] = FR.pos_des
+                foot_traj.pos_now[LEG_SLICE["FR"], ctrl_i] = FR.pos_now
+                foot_traj.vel_des[LEG_SLICE["FR"], ctrl_i] = FR.vel_des
+                foot_traj.vel_now[LEG_SLICE["FR"], ctrl_i] = FR.vel_now
 
-        # Best plan trajectory
-        U_plan = frame.get("U_plan")
-        if U_plan is not None:
-            X_plan = mppi.rollout(state, U_plan[None, :, :])
-            ax.plot(X_plan[0, :, 0], X_plan[0, :, 1],
-                    color="yellow", linewidth=2.5, zorder=6, label="MPPI plan")
-            wz_plan = float(U_plan[0, 2])
-        else:
-            wz_plan = float('nan')
+                RL = leg_controller.compute_leg_torque(
+                    "RL", go2, gait, mpc_force_world[LEG_SLICE["RL"], ctrl_i], time_now_s
+                )
+                tau_raw[LEG_SLICE["RL"], ctrl_i] = RL.tau
+                foot_traj.pos_des[LEG_SLICE["RL"], ctrl_i] = RL.pos_des
+                foot_traj.pos_now[LEG_SLICE["RL"], ctrl_i] = RL.pos_now
+                foot_traj.vel_des[LEG_SLICE["RL"], ctrl_i] = RL.vel_des
+                foot_traj.vel_now[LEG_SLICE["RL"], ctrl_i] = RL.vel_now
 
-        # Robot + goal
-        ax.scatter(px, py, c='black', s=80, zorder=5)
-        ax.scatter(goal_xy[0], goal_xy[1], c='limegreen', s=120, zorder=5,
-                   edgecolors='darkgreen', linewidths=1.5)
+                RR = leg_controller.compute_leg_torque(
+                    "RR", go2, gait, mpc_force_world[LEG_SLICE["RR"], ctrl_i], time_now_s
+                )
+                tau_raw[LEG_SLICE["RR"], ctrl_i] = RR.tau
+                foot_traj.pos_des[LEG_SLICE["RR"], ctrl_i] = RR.pos_des
+                foot_traj.pos_now[LEG_SLICE["RR"], ctrl_i] = RR.pos_now
+                foot_traj.vel_des[LEG_SLICE["RR"], ctrl_i] = RR.vel_des
+                foot_traj.vel_now[LEG_SLICE["RR"], ctrl_i] = RR.vel_now
 
-        # Heading line
-        head_len = 0.20
-        ax.plot([px, px + head_len * cos_yaw], [py, py + head_len * sin_yaw],
-                color='black', linewidth=2.5, solid_capstyle='round', zorder=6)
+                # Saturate + hold
+                tau_cmd[:, ctrl_i] = np.clip(tau_raw[:, ctrl_i], -TAU_LIM, TAU_LIM)
+                tau_hold = tau_cmd[:, ctrl_i].copy()
 
-        # Velocity arrows
-        des_speed = np.sqrt(desired_wx**2 + desired_wy**2)
-        if des_speed > 0.01:
-            ax.annotate('', xy=(px + desired_wx * ARROW_SCALE, py + desired_wy * ARROW_SCALE),
-                        xytext=(px, py),
-                        arrowprops=dict(arrowstyle='->', color='limegreen', lw=2.5, mutation_scale=15),
-                        zorder=7)
-        act_speed = np.sqrt(actual_wx**2 + actual_wy**2)
-        if act_speed > 0.01:
-            ax.annotate('', xy=(px + actual_wx * ARROW_SCALE, py + actual_wy * ARROW_SCALE),
-                        xytext=(px, py),
-                        arrowprops=dict(arrowstyle='->', color='red', lw=2.5, mutation_scale=15),
-                        zorder=7)
+                tau_log_ctrl_Nm[ctrl_i, :] = tau_hold
 
-        # Yaw-rate arcs
-        yaw_deg = np.degrees(yaw)
-        for wz_val, color, ls in [(wz_cmd, 'limegreen', '--'), (wz_actual, 'red', '-')]:
-            if abs(wz_val) > 0.02:
-                sweep = np.clip(np.degrees(wz_val) * 0.5, -90, 90)
-                arc = Arc((px, py), 2*YAW_ARC_RADIUS, 2*YAW_ARC_RADIUS,
-                          angle=yaw_deg,
-                          theta1=0 if sweep > 0 else sweep,
-                          theta2=sweep if sweep > 0 else 0,
-                          color=color, lw=2.5, linestyle=ls, zorder=7)
-                ax.add_patch(arc)
+                ctrl_i += 1
 
-        # LiDAR points
-        if frame["obstacles"].shape[0] > 0:
-            ax.scatter(frame["obstacles"][:, 0], frame["obstacles"][:, 1], c='cyan', s=5)
+            #Apply held torques at every SIM step
+            mj.mj_step1(mujoco_go2.model, mujoco_go2.data)
+            mujoco_go2.set_joint_torque(tau_hold)
+            mj.mj_step2(mujoco_go2.model, mujoco_go2.data)
+            # viewer.sync()
+            #Render-rate logging for smooth replay
+            t_after = float(mujoco_go2.data.time)
+            if t_after + 1e-12 >= next_render_t:
+                time_log_render.append(t_after)
+                q_log_render.append(mujoco_go2.data.qpos.copy())
+                tau_log_render.append(tau_hold.copy())
+                next_render_t += RENDER_DT
 
-        # Legend
-        from matplotlib.lines import Line2D
-        ax.legend(handles=[
-            Line2D([0],[0], color='limegreen', lw=2.5, label=f'MPPI desired (v={des_speed:.2f} m/s)'),
-            Line2D([0],[0], color='red',       lw=2.5, label=f'Actual (v={act_speed:.2f} m/s)'),
-            Line2D([0],[0], color='black',     lw=2.5, label=f'Heading (yaw={np.degrees(yaw):.1f}°)'),
-            Line2D([0],[0], color='limegreen', lw=2, linestyle='--', label=f'Des ωz={wz_cmd:.2f} rad/s'),
-            Line2D([0],[0], color='red',       lw=2,                label=f'Act ωz={wz_actual:.2f} rad/s'),
-        ], loc='upper right', fontsize=8)
+    sim_end_time = time.perf_counter()
+    print(
+        f"\nSimulation ended."
+        f"\nElapsed time: {sim_end_time - sim_start_time:.3f}s"
+        f"\nControl ticks: {ctrl_i}/{CTRL_STEPS}"
+    )
 
-        ax.set_title(
-            f'Frame {fi+1}/{len(debug_frames)}  |  '
-            f'plan ωz={wz_plan:.2f}  →  cmd ωz={wz_cmd:.2f}  (act ωz={wz_actual:.2f})',
-            fontsize=9)
-        ax.set_aspect('equal')
-        ax.set_xlim(-4, 4)
-        ax.set_ylim(-4, 4)
+    # --------------------------------------------------------------------------------
+    # Simulation Results
+    # --------------------------------------------------------------------------------
+    # blocker = input("Press Enter to continue...")
 
-        writer.grab_frame()
-        if (fi + 1) % 10 == 0:
-            print(f"  Rendered {fi+1}/{len(debug_frames)} frames...", flush=True)
+    print("Rendering MPPI debug video...")
 
-plt.close(fig)
-print(f"\\n{'='*60}")
-print(f"✅ MPPI Debug Video saved successfully!")
-print(f"Location: {MPPI_VIDEO_PATH}")
-print(f"You can open it manually with: vlc {MPPI_VIDEO_PATH}")
-print(f"{'='*60}\\n")
+    from matplotlib.lines import Line2D
 
-# Plot results
-t_vec = np.arange(ctrl_i) * CTRL_DT
-# plot_swing_foot_traj(t_vec, foot_traj, False)
-# plot_mpc_result(t_vec, mpc_force_world, tau_cmd, x_vec, block=False)
-# plot_solve_time(mpc_solve_time_ms, mpc_update_time_ms, MPC_DT, MPC_HZ, block=True)
+    # Explicitly point matplotlib at the conda-env ffmpeg so it works under sudo
+    # (sudo strips PATH, so the system can't find the conda-installed ffmpeg).
+    _FFMPEG_PATH = "/home/suleiman/miniconda3/envs/go2-convex-mpc/bin/ffmpeg"
+    if not matplotlib.rcParams.get('animation.ffmpeg_path') or \
+            matplotlib.rcParams['animation.ffmpeg_path'] == 'ffmpeg':
+        matplotlib.rcParams['animation.ffmpeg_path'] = _FFMPEG_PATH
 
-# Replay simulation
-time_log_render = np.asarray(time_log_render, dtype=float)
-q_log_render = np.asarray(q_log_render, dtype=float)
-tau_log_render = np.asarray(tau_log_render, dtype=float)
+    base_name = "mppi_debug"
+    ext = ".mp4"
+    MPPI_VIDEO_PATH = os.path.abspath(f"{base_name}{ext}")
+    counter = 1
+    while os.path.exists(MPPI_VIDEO_PATH):
+        MPPI_VIDEO_PATH = os.path.abspath(f"{base_name}_{counter}{ext}")
+        counter += 1
+    VIDEO_FPS = 25
 
-mujoco_go2.replay_simulation(time_log_render, q_log_render, tau_log_render, RENDER_DT, REALTIME_FACTOR)
-hold_until_all_fig_closed()
+    fig, ax = plt.subplots(figsize=(8, 8))
+    writer = FFMpegWriter(fps=VIDEO_FPS, metadata={"title": "MPPI Debug"}, bitrate=3000)
+
+    ARROW_SCALE = 0.8
+    YAW_ARC_RADIUS = 0.25
+
+    with writer.saving(fig, MPPI_VIDEO_PATH, dpi=120):
+        for fi, frame in enumerate(debug_frames):
+
+            ax.cla()
+
+            grid = frame["costmap"]
+            res = costmap.res
+            origin = costmap.origin_xy
+            extent = [
+                origin[0],
+                origin[0] + grid.shape[1] * res,
+                origin[1],
+                origin[1] + grid.shape[0] * res,
+            ]
+            ax.imshow(grid, origin="lower", extent=extent, cmap="hot", alpha=0.6,
+                      vmin=0, vmax=max(1e-3, float(grid.max())))
+
+            state   = frame["state"]
+            u0      = frame["u0"]
+            U_batch = frame["U_batch"]
+
+            px, py, yaw = state[0], state[1], state[2]
+            vx_body, vy_body, wz_actual = state[3], state[4], state[5]
+            vx_cmd, vy_cmd, wz_cmd = u0[0], u0[1], u0[2]
+
+            cos_yaw, sin_yaw = np.cos(yaw), np.sin(yaw)
+
+            actual_wx  = vx_body * cos_yaw - vy_body * sin_yaw
+            actual_wy  = vx_body * sin_yaw + vy_body * cos_yaw
+            desired_wx = vx_cmd * cos_yaw - vy_cmd * sin_yaw
+            desired_wy = vx_cmd * sin_yaw + vy_cmd * cos_yaw
+
+            # Global path
+            path = frame.get("path")
+            if path is not None:
+                ax.plot(path[:, 0], path[:, 1], color='white', linewidth=3.0, zorder=3, alpha=0.9)
+                ax.plot(path[:, 0], path[:, 1], color='cyan',  linewidth=1.5, zorder=4,
+                        linestyle='--', label='Global path')
+
+            # Rollout cloud
+            X = mppi.rollout(state, U_batch)
+            for i in range(min(120, X.shape[0])):
+                ax.plot(X[i, :, 0], X[i, :, 1], color="blue", alpha=0.08)
+
+            # Best plan trajectory
+            U_plan = frame.get("U_plan")
+            if U_plan is not None:
+                X_plan = mppi.rollout(state, U_plan[None, :, :])
+                ax.plot(X_plan[0, :, 0], X_plan[0, :, 1],
+                        color="yellow", linewidth=2.5, zorder=6, label="MPPI plan")
+                wz_plan = float(U_plan[0, 2])
+            else:
+                wz_plan = float('nan')
+
+            # Robot + goal
+            ax.scatter(px, py, c='black', s=80, zorder=5)
+            ax.scatter(goal_xy[0], goal_xy[1], c='limegreen', s=120, zorder=5,
+                       edgecolors='darkgreen', linewidths=1.5)
+
+            # Heading line
+            head_len = 0.20
+            ax.plot([px, px + head_len * cos_yaw], [py, py + head_len * sin_yaw],
+                    color='black', linewidth=2.5, solid_capstyle='round', zorder=6)
+
+            # Velocity arrows
+            des_speed = np.sqrt(desired_wx**2 + desired_wy**2)
+            if des_speed > 0.01:
+                ax.annotate('', xy=(px + desired_wx * ARROW_SCALE, py + desired_wy * ARROW_SCALE),
+                            xytext=(px, py),
+                            arrowprops=dict(arrowstyle='->', color='limegreen', lw=2.5, mutation_scale=15),
+                            zorder=7)
+            act_speed = np.sqrt(actual_wx**2 + actual_wy**2)
+            if act_speed > 0.01:
+                ax.annotate('', xy=(px + actual_wx * ARROW_SCALE, py + actual_wy * ARROW_SCALE),
+                            xytext=(px, py),
+                            arrowprops=dict(arrowstyle='->', color='red', lw=2.5, mutation_scale=15),
+                            zorder=7)
+
+            # Yaw-rate arcs
+            yaw_deg = np.degrees(yaw)
+            for wz_val, color, ls in [(wz_cmd, 'limegreen', '--'), (wz_actual, 'red', '-')]:
+                if abs(wz_val) > 0.02:
+                    sweep = np.clip(np.degrees(wz_val) * 0.5, -90, 90)
+                    arc = Arc((px, py), 2*YAW_ARC_RADIUS, 2*YAW_ARC_RADIUS,
+                              angle=yaw_deg,
+                              theta1=0 if sweep > 0 else sweep,
+                              theta2=sweep if sweep > 0 else 0,
+                              color=color, lw=2.5, linestyle=ls, zorder=7)
+                    ax.add_patch(arc)
+
+            # LiDAR points
+            if frame["obstacles"].shape[0] > 0:
+                ax.scatter(frame["obstacles"][:, 0], frame["obstacles"][:, 1], c='cyan', s=5)
+
+            # Legend
+            from matplotlib.lines import Line2D
+            ax.legend(handles=[
+                Line2D([0],[0], color='limegreen', lw=2.5, label=f'MPPI desired (v={des_speed:.2f} m/s)'),
+                Line2D([0],[0], color='red',       lw=2.5, label=f'Actual (v={act_speed:.2f} m/s)'),
+                Line2D([0],[0], color='black',     lw=2.5, label=f'Heading (yaw={np.degrees(yaw):.1f}°)'),
+                Line2D([0],[0], color='limegreen', lw=2, linestyle='--', label=f'Des ωz={wz_cmd:.2f} rad/s'),
+                Line2D([0],[0], color='red',       lw=2,                label=f'Act ωz={wz_actual:.2f} rad/s'),
+            ], loc='upper right', fontsize=8)
+
+            ax.set_title(
+                f'Frame {fi+1}/{len(debug_frames)}  |  '
+                f'plan ωz={wz_plan:.2f}  →  cmd ωz={wz_cmd:.2f}  (act ωz={wz_actual:.2f})',
+                fontsize=9)
+            ax.set_aspect('equal')
+            ax.set_xlim(-4, 4)
+            ax.set_ylim(-4, 4)
+
+            writer.grab_frame()
+            if (fi + 1) % 10 == 0:
+                print(f"  Rendered {fi+1}/{len(debug_frames)} frames...", flush=True)
+
+    plt.close(fig)
+    print(f"\\n{'='*60}")
+    print(f"✅ MPPI Debug Video saved successfully!")
+    print(f"Location: {MPPI_VIDEO_PATH}")
+    print(f"You can open it manually with: vlc {MPPI_VIDEO_PATH}")
+    print(f"{'='*60}\\n")
+
+    # Plot results
+    t_vec = np.arange(ctrl_i) * CTRL_DT
+    # plot_swing_foot_traj(t_vec, foot_traj, False)
+    # plot_mpc_result(t_vec, mpc_force_world, tau_cmd, x_vec, block=False)
+    # plot_solve_time(mpc_solve_time_ms, mpc_update_time_ms, MPC_DT, MPC_HZ, block=True)
+
+    # Replay simulation
+    time_log_render = np.asarray(time_log_render, dtype=float)
+    q_log_render = np.asarray(q_log_render, dtype=float)
+    tau_log_render = np.asarray(tau_log_render, dtype=float)
+
+    mujoco_go2.replay_simulation(time_log_render, q_log_render, tau_log_render, RENDER_DT, REALTIME_FACTOR)
+    hold_until_all_fig_closed()
