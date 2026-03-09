@@ -70,6 +70,7 @@ class AblationConfig:
     enable_adaptive_stab_weight: bool = True
     enable_perception: bool = True
     # Sim parameters (same for all by default)
+    scene_xml: str = None  # Custom scene XML path (None = default)
     sim_length_s: float = 18.0
     initial_x: float = -2.0
     initial_y: float = 0.0
@@ -424,7 +425,7 @@ def run_simulation(config: AblationConfig) -> dict:
 
     # ── Initialize objects ──
     go2 = PinGo2Model()
-    mujoco_go2 = MuJoCo_GO2_Model()
+    mujoco_go2 = MuJoCo_GO2_Model(xml_path=config.scene_xml)
 
     # Collect geom IDs belonging to the trunk body for body-contact detection
     base_body_id = mj.mj_name2id(

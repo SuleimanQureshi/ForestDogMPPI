@@ -1,0 +1,18 @@
+{
+  "case_name": "bc_093g045_xli1m_utm10_2019",
+  "goal_reached": true,
+  "traversal_time_s": 16.159999999996767,
+  "dist_to_goal_final_m": 0.07274103390176925,
+  "roll_rms_rad": 0.1668168587196586,
+  "pitch_rms_rad": 0.0401745873287941,
+  "mean_abs_roll_deg": 7.629526576999402,
+  "mean_abs_pitch_deg": 1.7778393966288186,
+  "max_abs_roll_deg": 29.97153151840969,
+  "max_abs_pitch_deg": 7.678634210770294,
+  "total_path_length_m": 8.334056661530695,
+  "num_body_contacts": 0,
+  "body_contact_steps": 0,
+  "mpc_solve_time_mean_ms": 8.514254940972023,
+  "mpc_solve_time_max_ms": 46.31215499830432,
+  "sim_wall_time_s": 505.2001314480003
+}

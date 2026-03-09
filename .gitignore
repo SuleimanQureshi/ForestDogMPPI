@@ -15,3 +15,9 @@ paper/
 ablation_results_first_run/
 ablation_results_second_run/
 ablation_results_third/
+environment_results_r_1/
+environment_results_r_2/
+models/MJCF/go2/environments/bc_083e021_xli1m_utm11_2019.png
+models/MJCF/go2/environments/bc_093f077_xli1m_utm10_2019.png
+models/MJCF/go2/environments/bc_093f097_xli1m_utm10_2019.png
+models/MJCF/go2/environments/bc_093g045_xli1m_utm10_2019.png

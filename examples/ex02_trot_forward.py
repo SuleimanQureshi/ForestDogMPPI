@@ -29,7 +29,7 @@ from matplotlib.patches import Arc
 INITIAL_X_POS = -2
 INITIAL_Y_POS = 0
 # How long does the simulation run for How much time 
-RUN_SIM_LENGTH_S = 20.0
+RUN_SIM_LENGTH_S = 2.0
 
 RENDER_HZ = 120.0
 RENDER_DT = 1.0 / RENDER_HZ
@@ -1818,17 +1818,24 @@ if __name__ == "__main__":
                 Line2D([0],[0], color='black',     lw=2.5, label=f'Heading (yaw={np.degrees(yaw):.1f}°)'),
                 Line2D([0],[0], color='limegreen', lw=2, linestyle='--', label=f'Des ωz={wz_cmd:.2f} rad/s'),
                 Line2D([0],[0], color='red',       lw=2,                label=f'Act ωz={wz_actual:.2f} rad/s'),
-            ], loc='upper right', fontsize=8)
+            ], loc='upper right', fontsize=13)
 
             ax.set_title(
                 f'Frame {fi+1}/{len(debug_frames)}  |  '
                 f'plan ωz={wz_plan:.2f}  →  cmd ωz={wz_cmd:.2f}  (act ωz={wz_actual:.2f})',
-                fontsize=9)
+                fontsize=13)
             ax.set_aspect('equal')
             ax.set_xlim(-4, 4)
             ax.set_ylim(-4, 4)
 
             writer.grab_frame()
+
+            # Save last frame as high-res image
+            if fi == len(debug_frames) - 1:
+                img_path = MPPI_VIDEO_PATH.replace('.mp4', '_last_frame.png')
+                fig.savefig(img_path, dpi=300, bbox_inches='tight')
+                print(f"  Last frame saved: {img_path}", flush=True)
+
             if (fi + 1) % 10 == 0:
                 print(f"  Rendered {fi+1}/{len(debug_frames)} frames...", flush=True)
 
