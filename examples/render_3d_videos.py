@@ -28,17 +28,15 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 import mujoco as mj
 
 REPO = Path(__file__).resolve().parent.parent
-XML_PATH = str(REPO / "models" / "MJCF" / "go2" / "scene_test_forest_updated.xml")
 FFMPEG = "/home/suleiman/miniconda3/envs/go2-convex-mpc/bin/ffmpeg"
-
-
-def render_case(case_dir: str, output_path: str,
+def render_case(case_dir: str, xml_path: str, output_path: str,
                 width=1280, height=720, fps=60):
     """
     Render simulation_3d.mp4 for one ablation case from saved .npy logs.
 
     Args:
         case_dir:    path to the case folder (contains *.npy files)
+        xml_path:    path to the Mujoco scene XML used
         output_path: full path for the output .mp4
         width/height: video resolution
         fps:         output frame rate
@@ -48,10 +46,10 @@ def render_case(case_dir: str, output_path: str,
     q_log    = np.load(case_dir / "q_log_render.npy")
 
     T = len(time_log)
-    print(f"  Frames to render: {T}  (sim time: {time_log[-1]:.1f}s)")
+    print(f"  Sim time: {time_log[-1]:.1f}s")
 
     # ── Load MuJoCo model ──
-    model = mj.MjModel.from_xml_path(XML_PATH)
+    model = mj.MjModel.from_xml_path(xml_path)
     data  = mj.MjData(model)
 
     base_id = model.body("base_link").id
@@ -91,8 +89,16 @@ def render_case(case_dir: str, output_path: str,
                             stderr=subprocess.DEVNULL)
 
     t0 = time.perf_counter()
+    next_render_time = time_log[0]
+    dt_video = 1.0 / fps
+    frames_written = 0
     try:
         for k in range(T):
+            if time_log[k] < next_render_time and k < T - 1:
+                continue
+            next_render_time += dt_video
+            frames_written += 1
+
             data.qpos[:] = q_log[k]
             mj.mj_forward(model, data)
 
@@ -100,12 +106,11 @@ def render_case(case_dir: str, output_path: str,
             pixels = renderer.render()           # (H, W, 3) uint8 RGB
             proc.stdin.write(pixels.tobytes())
 
-            if (k + 1) % 200 == 0:
+            if frames_written % 100 == 0:
                 elapsed = time.perf_counter() - t0
-                fps_so_far = (k + 1) / elapsed
-                eta = (T - k - 1) / max(fps_so_far, 0.1)
-                print(f"    {k + 1}/{T} frames  "
-                      f"({fps_so_far:.0f} fps render,  ETA {eta:.0f}s)",
+                fps_so_far = frames_written / elapsed
+                print(f"    {frames_written} frames  "
+                      f"({fps_so_far:.0f} fps render)",
                       flush=True)
 
         proc.stdin.close()
@@ -155,9 +160,17 @@ def main():
 
     print(f"Rendering {len(case_dirs)} case(s) at {args.width}x{args.height} @ {args.fps}fps\n")
 
+    XML_PATH = str(REPO / "models" / "MJCF" / "go2" / "scene_test_forest_updated.xml")
+
     for i, case_dir in enumerate(case_dirs):
         output_path = str(case_dir / "simulation_3d.mp4")
         print(f"[{i + 1}/{len(case_dirs)}] {case_dir.name}")
+        
+        env_xml = REPO / "models" / "MJCF" / "go2" / "environments" / f"{case_dir.name}.xml"
+        if env_xml.exists():
+            xml_path = str(env_xml)
+        else:
+            xml_path = XML_PATH
 
         if not args.force and os.path.exists(output_path):
             print(f"  SKIP (simulation_3d.mp4 already exists). Use --force to re-render.")
@@ -168,7 +181,7 @@ def main():
             continue
 
         try:
-            render_case(str(case_dir), output_path,
+            render_case(str(case_dir), xml_path, output_path,
                         width=args.width, height=args.height, fps=args.fps)
         except Exception as e:
             print(f"  ERROR: {e}")
