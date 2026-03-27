@@ -9,10 +9,13 @@ from dataclasses import dataclass
 
 KP_SWING = np.diag([400, 400, 400])
 KD_SWING = np.diag([75, 75, 75])
+<<<<<<< HEAD
 
 # Stance foot-hold gains (resist foot sliding)
 KP_STANCE = np.diag([300, 300, 0])    # xy position hold, no z (ground handles z)
 KD_STANCE = np.diag([40, 40, 20])     # velocity damping in all axes
+=======
+>>>>>>> e2197bf9102e3e4dfcb7becfba6b222318fac1a9
 
 # Mapping from leg name to index in the mask
 LEG_INDEX = {

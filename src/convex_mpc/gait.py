@@ -5,8 +5,13 @@ from .go2_robot_data import PinGo2Model
 # Gait Setting
 # --------------------------------------------------------------------------------
 
+<<<<<<< HEAD
 PHASE_OFFSET = np.array([0, 0.25, 0.5, 0.75]).reshape(4)    # trotting gait
 HEIGHT_SWING = 0.15 # Height of the swing leg trajectory apex
+=======
+PHASE_OFFSET = np.array([0.5, 0.0, 0.0, 0.5]).reshape(4)    # trotting gait
+HEIGHT_SWING = 0.1 # Height of the swing leg trajectory apex
+>>>>>>> e2197bf9102e3e4dfcb7becfba6b222318fac1a9
 
 
 class Gait():
@@ -20,7 +25,12 @@ class Gait():
 
     def compute_current_mask(self, time):
 
+<<<<<<< HEAD
         return self.compute_contact_table(time, 0.0, 1).reshape(-1)
+=======
+        mask = self.compute_contact_table(time, 0, 1)
+        return mask
+>>>>>>> e2197bf9102e3e4dfcb7becfba6b222318fac1a9
     
     def compute_contact_table(self, t0: float, dt: float, N: int) -> np.ndarray:
 
@@ -36,7 +46,11 @@ class Gait():
         return contact_table        
     
 
+<<<<<<< HEAD
     def compute_touchdown_world_for_traj_purpose_only(self, go2:PinGo2Model, leg:str, time_now):
+=======
+    def compute_touchdown_world_for_traj_purpose_only(self, go2:PinGo2Model, leg:str):
+>>>>>>> e2197bf9102e3e4dfcb7becfba6b222318fac1a9
         base_pos = go2.current_config.base_pos
         base_vel = go2.current_config.base_vel
         R_z = go2.R_z
@@ -69,6 +83,7 @@ class Gait():
                                 + np.array(pos_drift_term)
                                 + np.array(rotation_correction_term)
                                 )
+<<<<<<< HEAD
         terrain = getattr(go2, "terrain", None)
         if terrain is not None:
             pos_touchdown_world = self.select_foothold(go2, leg, pos_touchdown_world, terrain, time_now)
@@ -76,6 +91,13 @@ class Gait():
     
 
     def compute_swing_traj_and_touchdown(self, go2:PinGo2Model, leg:str, time_now):
+=======
+
+        return pos_touchdown_world
+    
+
+    def compute_swing_traj_and_touchdown(self, go2:PinGo2Model, leg:str):
+>>>>>>> e2197bf9102e3e4dfcb7becfba6b222318fac1a9
 
         # This function should only be called the moment the foot takes off
         base_pos = go2.current_config.base_pos
@@ -107,8 +129,13 @@ class Gait():
         k_v_x = 0.4 * T          # ~0.2–0.3
         k_p_x = 0.1              # small
 
+<<<<<<< HEAD
         # Lateral (y) direction – strong because Go2 stance is narrow (~10cm)
         k_v_y = 0.5 * T          # lateral balance is critical
+=======
+        # Lateral (y) direction – usually weaker
+        k_v_y = 0.2 * T          # ~0.1
+>>>>>>> e2197bf9102e3e4dfcb7becfba6b222318fac1a9
         k_p_y = 0.05
 
         pos_norminal_term = [hip_pos_world[0], hip_pos_world[1], 0.02]
@@ -125,6 +152,7 @@ class Gait():
                                 dtheta * r_xy[0],
                                 0.0
                                 ])
+<<<<<<< HEAD
 
         # ---- Change 4: Capture-point lateral offset (roll-reactive) ----
         # When the robot tilts right, right-side feet step further right to
@@ -150,11 +178,15 @@ class Gait():
         else:
             capture_world = np.zeros(3)
 
+=======
+    
+>>>>>>> e2197bf9102e3e4dfcb7becfba6b222318fac1a9
         pos_touchdown_world = (np.array(pos_norminal_term)
                                 + np.array(pos_drift_term)
                                 + np.array(pos_correction_term)
                                 + np.array(vel_correction_term)
                                 + np.array(rotation_correction_term)
+<<<<<<< HEAD
                                 + capture_world
                                 )
         
@@ -165,6 +197,11 @@ class Gait():
 
         pos_foot_traj_eval_at_world = self.make_swing_trajectory(foot_pos, pos_touchdown_world, t_swing, h_sw=HEIGHT_SWING)
 
+=======
+                                )
+        
+        pos_foot_traj_eval_at_world = self.make_swing_trajectory(foot_pos, pos_touchdown_world, t_swing, h_sw=HEIGHT_SWING)
+>>>>>>> e2197bf9102e3e4dfcb7becfba6b222318fac1a9
         return pos_foot_traj_eval_at_world, pos_touchdown_world
 
 
@@ -204,6 +241,7 @@ class Gait():
             return p, v, a
 
         return eval_at
+<<<<<<< HEAD
     # -----------------------------
     # Foothold selection constants
     # -----------------------------
@@ -587,5 +625,8 @@ class Gait():
         best = int(np.argmin(score))
         x, y, z, n = cand[best]
         return np.array([x, y, z], dtype=float)
+=======
+    
+>>>>>>> e2197bf9102e3e4dfcb7becfba6b222318fac1a9
 
 

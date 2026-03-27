@@ -46,11 +46,15 @@ class ComTraj:
                         z_pos_des_body: float,
                         yaw_rate_des_body: float,
                         time_step: float):
+<<<<<<< HEAD
 
         # Use live terrain if provided by robot
         self.terrain = getattr(go2, "terrain", self.terrain)
         self.dummy_go2.terrain = self.terrain   # propagate terrain to dummy
 
+=======
+        
+>>>>>>> e2197bf9102e3e4dfcb7becfba6b222318fac1a9
         self.initial_x_vec= go2.compute_com_x_vec()
         initial_pos = self.initial_x_vec[0:3]
         self.m = go2.data.Ig.mass
@@ -74,6 +78,7 @@ class ComTraj:
         if y0 - self.pos_des_world[1] > max_pos_error:
             self.pos_des_world[1] = y0 - max_pos_error
 
+<<<<<<< HEAD
         z_ground_now, _ = self.terrain.height_and_normal(x0, y0)
 
         # Also check terrain height at foot positions — on uneven terrain
@@ -90,6 +95,9 @@ class ComTraj:
         z_ground_effective = max(z_ground_now, foot_z_avg)
 
         self.pos_des_world[2] = z_ground_effective + z_pos_des_body
+=======
+        self.pos_des_world[2] = z_pos_des_body
+>>>>>>> e2197bf9102e3e4dfcb7becfba6b222318fac1a9
 
         go2.x_pos_des_world = self.pos_des_world[0]
         go2.y_pos_des_world = self.pos_des_world[1]
@@ -118,6 +126,7 @@ class ComTraj:
         self.pos_traj_world[:, :] = (
             self.pos_des_world.reshape(3, 1) + (vel_desired_world.reshape(3, 1) * t_vec.reshape(1, N))
         )
+<<<<<<< HEAD
         # ----------------------------------------------------
         # Terrain-consistent COM height and orientation
         # ----------------------------------------------------
@@ -169,6 +178,17 @@ class ComTraj:
         # RPY in world:
         # Roll/pitch: keep terrain-aligned values from loop above
         # Yaw: integrate with desired yaw rate
+=======
+
+
+        # Linear velocity in world: constant over horizon
+        self.vel_traj_world[:, :] = vel_desired_world.reshape(3, 1)
+
+        # RPY in world:
+        # Keep roll, pitch constant; integrate yaw with desired yaw rate
+        self.rpy_traj_world[0, :] = 0.0
+        self.rpy_traj_world[1, :] = 0.0
+>>>>>>> e2197bf9102e3e4dfcb7becfba6b222318fac1a9
         self.rpy_traj_world[2, :] = yaw + yaw_rate_des_body * t_vec
 
         # RPY rates in BODY frame: only yaw rate non-zero
@@ -182,6 +202,7 @@ class ComTraj:
         # Per-foot surface normals across horizon (world frame)
         self.contact_normals = np.zeros((4, N, 3), dtype=float)
         self.contact_normals[:, :, 2] = 1.0  # default flat ground normals
+<<<<<<< HEAD
         # Persistent touchdown state across the horizon (world-frame)
         td_pos_world = np.full((4, 3), np.nan, dtype=float)    # per-leg touchdown point (WORLD)
         td_n_world   = np.zeros((4, 3), dtype=float)           # per-leg normal (WORLD)
@@ -193,6 +214,8 @@ class ComTraj:
         r0s = [r_fl_next_td_world, r_fr_next_td_world, r_rl_next_td_world, r_rr_next_td_world]
         self.td_world = np.full((4, N, 3), np.nan, dtype=float)
 
+=======
+>>>>>>> e2197bf9102e3e4dfcb7becfba6b222318fac1a9
 
 
         r_fl_traj_world = np.zeros((3,N))
@@ -200,6 +223,11 @@ class ComTraj:
         r_rl_traj_world = np.zeros((3,N))
         r_rr_traj_world = np.zeros((3,N))
 
+<<<<<<< HEAD
+=======
+        [r_fl_next_td_world, r_fr_next_td_world, r_rl_next_td_world, r_rr_next_td_world] = go2.get_foot_lever_world()
+        self.td_world = np.full((4, N, 3), np.nan, dtype=float)
+>>>>>>> e2197bf9102e3e4dfcb7becfba6b222318fac1a9
 
 
         mask_previous = np.array([2,2,2,2])
@@ -207,12 +235,17 @@ class ComTraj:
         dq = np.zeros(6)
 
         for i in range(N):
+<<<<<<< HEAD
             # Use contact_table directly for phase consistency (Bug 8)
             current_mask = self.contact_table[:, i]
+=======
+            current_mask = gait.compute_current_mask(time_now + i * time_step)
+>>>>>>> e2197bf9102e3e4dfcb7becfba6b222318fac1a9
 
             q[0:3] = self.pos_traj_world[:,i]
             q[3:6] = self.rpy_traj_world[:,i]
             # pinocchio needs body frame velocity
+<<<<<<< HEAD
             # Use per-step yaw rotation instead of stale go2.R_world_to_body (Bug 4)
             yaw_i = self.rpy_traj_world[2, i]
             c_y, s_y = np.cos(yaw_i), np.sin(yaw_i)
@@ -221,6 +254,13 @@ class ComTraj:
             w_world = self.omega_traj_world[:,i]
             w_body = R_z_i @ w_world
             v_body = R_z_i @ v_world
+=======
+            R = go2.R_world_to_body
+            v_world = self.vel_traj_world[:,i]
+            w_world = self.omega_traj_world[:,i]
+            w_body = R @ w_world
+            v_body = R @ v_world
+>>>>>>> e2197bf9102e3e4dfcb7becfba6b222318fac1a9
             dq[0:3] = v_body
             dq[3:6] = w_body # assume rpy rate = omega here
             self.dummy_go2.update_model_simplified(q, dq)
@@ -235,6 +275,7 @@ class ComTraj:
 
             #     r_fl_traj_world[:,i] = np.array([0,0,0])
 
+<<<<<<< HEAD
             # =======================
             # FRONT LEFT  (leg = 0)
             # =======================
@@ -277,6 +318,36 @@ class ComTraj:
                 r_fl_traj_world[:, i] = 0.0
 
 
+=======
+            #with normal front left
+            if current_mask[0] != mask_previous[0] and current_mask[0] == 0:
+                # Takes off -> compute next touchdown in world
+                pos_fl_next_td_world = gait.compute_touchdown_world_for_traj_purpose_only(self.dummy_go2, "FL")
+                self.td_world[0, i, :] = pos_fl_next_td_world
+
+                # Snap touchdown to terrain (z + normal)
+                z_td, n_td = self.terrain.height_and_normal(pos_fl_next_td_world[0], pos_fl_next_td_world[1])
+                pos_fl_next_td_world[2] = z_td
+
+                # Save the normal for this horizon step (and later reuse it through stance)
+                self.contact_normals[0, i, :] = n_td / (np.linalg.norm(n_td) + 1e-9)
+
+                # Convert absolute touchdown pos -> lever arm (COM/base to foot) in WORLD
+                r_fl_next_td_world = pos_fl_next_td_world - p_base_traj_world
+
+                # During swing, set lever arm = 0 so MPC doesn't use force there
+                r_fl_traj_world[:, i] = np.array([0.0, 0.0, 0.0])
+
+
+            if current_mask[0] != mask_previous[0] and current_mask[0] == 1:
+                # Touch down
+                r_fl_traj_world[:,i] = r_fl_next_td_world # Update the touchdown position 
+
+            if current_mask[0] == mask_previous[0]:
+                # No change from last time step
+                r_fl_traj_world[:,i] = r_fl_traj_world[:,i-1] # No change, reuse last value 
+                self.contact_normals[0, i, :] = self.contact_normals[0, i-1, :]
+>>>>>>> e2197bf9102e3e4dfcb7becfba6b222318fac1a9
 
 
             ## Front-right foot
@@ -287,6 +358,7 @@ class ComTraj:
 
             #     r_fr_traj_world[:,i] = np.array([0,0,0])
 
+<<<<<<< HEAD
             # =======================
             # FRONT RIGHT  (leg = 1)
             # =======================
@@ -329,6 +401,35 @@ class ComTraj:
                 r_fr_traj_world[:, i] = 0.0
             
 
+=======
+            #with normal front right
+            if current_mask[1] != mask_previous[1] and current_mask[1] == 0:
+                # Takes off -> compute next touchdown in world
+                pos_fr_next_td_world = gait.compute_touchdown_world_for_traj_purpose_only(self.dummy_go2, "FR")
+                self.td_world[1, i, :] = pos_fr_next_td_world
+
+                # Snap touchdown to terrain (z + normal)
+                z_td, n_td = self.terrain.height_and_normal(pos_fr_next_td_world[0], pos_fr_next_td_world[1])
+                pos_fr_next_td_world[2] = z_td
+
+                # Save the normal for this horizon step (and later reuse it through stance)
+                self.contact_normals[1, i, :] = n_td / (np.linalg.norm(n_td) + 1e-9)
+
+                # Convert absolute touchdown pos -> lever arm (COM/base to foot) in WORLD
+                r_fr_next_td_world = pos_fr_next_td_world - p_base_traj_world
+
+                # During swing, set lever arm = 0 so MPC doesn't use force there
+                r_fr_traj_world[:, i] = np.array([0.0, 0.0, 0.0])
+
+            if current_mask[1] != mask_previous[1] and current_mask[1] == 1:
+                # Touch down
+                r_fr_traj_world[:,i] = r_fr_next_td_world # Update the touchdown position 
+
+            if current_mask[1] == mask_previous[1]:
+                # No change from last time step
+                r_fr_traj_world[:,i] = r_fr_traj_world[:,i-1] # No change, reuse last value 
+                self.contact_normals[1, i, :] = self.contact_normals[1, i-1, :]
+>>>>>>> e2197bf9102e3e4dfcb7becfba6b222318fac1a9
 
             ## Rear-left foot
             # if current_mask[2] != mask_previous[2] and current_mask[2] == 0:
@@ -337,6 +438,7 @@ class ComTraj:
             #     r_rl_next_td_world = pos_rl_next_td_world - p_base_traj_world
 
             #     r_rl_traj_world[:,i] = np.array([0,0,0])
+<<<<<<< HEAD
             # =======================
             # REAR LEFT  (leg = 2)
             # =======================
@@ -378,6 +480,36 @@ class ComTraj:
                 self.contact_normals[leg, i, :] = td_n_world[leg, :] if i > 0 else np.array([0.0,0.0,1.0])
                 r_rl_traj_world[:, i] = 0.0
 
+=======
+
+            #with normal rear left
+            if current_mask[2] != mask_previous[2] and current_mask[2] == 0:
+                # Takes off -> compute next touchdown in world
+                pos_rl_next_td_world = gait.compute_touchdown_world_for_traj_purpose_only(self.dummy_go2, "RL")
+                self.td_world[2, i, :] = pos_rl_next_td_world
+
+                # Snap touchdown to terrain (z + normal)
+                z_td, n_td = self.terrain.height_and_normal(pos_rl_next_td_world[0], pos_rl_next_td_world[1])
+                pos_rl_next_td_world[2] = z_td
+
+                # Save the normal for this horizon step (and later reuse it through stance)
+                self.contact_normals[2, i, :] = n_td / (np.linalg.norm(n_td) + 1e-9)
+
+                # Convert absolute touchdown pos -> lever arm (COM/base to foot) in WORLD
+                r_rl_next_td_world = pos_rl_next_td_world - p_base_traj_world
+
+                # During swing, set lever arm = 0 so MPC doesn't use force there
+                r_rl_traj_world[:, i] = np.array([0.0, 0.0, 0.0])
+
+            elif current_mask[2] != mask_previous[2] and current_mask[2] == 1:
+                # Touch down
+                r_rl_traj_world[:,i] = r_rl_next_td_world # Update the touchdown position 
+
+            if current_mask[2] == mask_previous[2]:
+                # No change from last time step
+                r_rl_traj_world[:,i] = r_rl_traj_world[:,i-1] # No change, reuse last value 
+                self.contact_normals[2, i, :] = self.contact_normals[2, i-1, :]
+>>>>>>> e2197bf9102e3e4dfcb7becfba6b222318fac1a9
 
 
             ## Rear-right foot
@@ -388,6 +520,7 @@ class ComTraj:
 
             #     r_rr_traj_world[:,i] = np.array([0,0,0])
 
+<<<<<<< HEAD
             # =======================
             # REAR RIGHT  (leg = 3)
             # =======================
@@ -431,6 +564,38 @@ class ComTraj:
 
 
             mask_previous = np.array(current_mask, copy=True)
+=======
+            #with normal rear right
+            if current_mask[3] != mask_previous[3] and current_mask[3] == 0:
+                # Takes off -> compute next touchdown in world
+                pos_rr_next_td_world = gait.compute_touchdown_world_for_traj_purpose_only(self.dummy_go2, "RR")
+                self.td_world[3, i, :] = pos_rr_next_td_world
+
+                # Snap touchdown to terrain (z + normal)
+                z_td, n_td = self.terrain.height_and_normal(pos_rr_next_td_world[0], pos_rr_next_td_world[1])
+                pos_rr_next_td_world[2] = z_td
+
+                # Save the normal for this horizon step (and later reuse it through stance)
+                self.contact_normals[3, i, :] = n_td / (np.linalg.norm(n_td) + 1e-9)
+
+                # Convert absolute touchdown pos -> lever arm (COM/base to foot) in WORLD
+                r_rr_next_td_world = pos_rr_next_td_world - p_base_traj_world
+
+                # During swing, set lever arm = 0 so MPC doesn't use force there
+                r_rr_traj_world[:, i] = np.array([0.0, 0.0, 0.0])
+
+            elif current_mask[3] != mask_previous[3] and current_mask[3] == 1:
+                # Touch down
+                r_rr_traj_world[:,i] = r_rr_next_td_world # Update the touchdown position 
+
+            if current_mask[3] == mask_previous[3]:
+                # No change from last time step
+                r_rr_traj_world[:,i] = r_rr_traj_world[:,i-1] # No change, reuse last value 
+                self.contact_normals[3, i, :] = self.contact_normals[3, i-1, :]
+
+
+            mask_previous = current_mask
+>>>>>>> e2197bf9102e3e4dfcb7becfba6b222318fac1a9
 
         # Save
         self.r_fl_foot_world = r_fl_traj_world
