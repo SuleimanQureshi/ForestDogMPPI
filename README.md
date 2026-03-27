@@ -65,20 +65,6 @@ Implemented in `examples/ex02_trot_forward.py`:
 | Obstacle Cost Map | `ObstacleCostMap2D` | Clearance-based obstacle detection with inflation for safe planning margins |
 | Global Planner | `TerrainAwarePlanner` | Weighted A\* on the combined cost grid with Laplacian path smoothing |
 
-## Locomotion Capabilities
-
-### Linear Motion
-- **Forward speed:** up to **0.8 m/s**
-- **Backward speed:** up to **0.8 m/s**
-- **Lateral (sideways) speed:** up to **0.4 m/s**
-
-### Rotational Motion
-- **Yaw rotational speed:** up to **4.0 rad/s**
-
-
-
-### Supported Gaits
-- Trot gait (tested at 3.0 Hz with 0.6 duty cycle)
 
 ## Repository Structure
 
