@@ -9,6 +9,7 @@ import numpy as np
 import heapq
 from dataclasses import dataclass, field
 
+from pathlib import Path
 from convex_mpc.go2_robot_data import PinGo2Model
 from convex_mpc.mujoco_model import MuJoCo_GO2_Model
 from convex_mpc.com_trajectory import ComTraj
@@ -1362,8 +1363,11 @@ def debug_plot_heightmap(hmap, res, origin):
 # Simulation Initialization
 # --------------------------------------------------------------------------------
 
+_REPO = Path(__file__).resolve().parents[1]
+_FOREST_SCENE = _REPO / "models" / "MJCF" / "go2" / "scene_test_forest.xml"
+
 go2 = PinGo2Model()
-mujoco_go2 = MuJoCo_GO2_Model()
+mujoco_go2 = MuJoCo_GO2_Model(xml_path=_FOREST_SCENE)
 lidar = MuJoCoLidar3D(
     mujoco_go2.model,
     mujoco_go2.data,
@@ -1441,19 +1445,14 @@ tau_hold = np.zeros(12, dtype=float)
 debug_frames = []
 with mj.viewer.launch_passive(mujoco_go2.model, mujoco_go2.data) as viewer:
 
-    viewer.cam.distance = 3
+    viewer.cam.type = mj.mjtCamera.mjCAMERA_TRACKING
+    viewer.cam.trackbodyid = mujoco_go2.base_bid
+    viewer.cam.distance = 5
     viewer.cam.azimuth = 90
-    viewer.cam.elevation = -20
+    viewer.cam.elevation = -30
 
     for k in range(SIM_STEPS):
         time_now_s = float(mujoco_go2.data.time)
-        box_id = mj.mj_name2id(
-            mujoco_go2.model,
-            mj.mjtObj.mjOBJ_BODY,
-            "box"
-        )
-
-        box_pos = mujoco_go2.data.xpos[box_id].copy()
         
 
 

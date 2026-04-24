@@ -1,0 +1,847 @@
+Preprints of the 19th World Congress
+The International Federation of Automatic Control
+Cape Town, South Africa. August 24-29, 2014
+
+Robust Position Tracking Control and
+Ground Contact Detection of a
+Cheetaroid-I Leg by a Disturbance
+Observer
+Jungsu Choi, Byeonghun Na, Sehoon Oh, and Kyoungchul Kong ∗
+∗
+
+Department of Mechanical Engineering, Sogang University, Seoul,
+Korea (Tel: +82-2-705-4766; e-mail: kckong@sogang.ac.kr).
+
+Abstract: Quadruped robot systems are being intensively investigated as a new means of
+transportation systems with multi-purposes. As the operation conditions of such systems, such
+as a payload and gait speed, are demanding, the control of the robotic legs is challenging.
+In addition, the dynamics of such systems is subjected to large disturbances and parameter
+variations due to the ground contact and the complicated mechanical structure. In this paper,
+a robust control algorithm based on a disturbance observer (DOB) is proposed for the control
+of legs of a quadruped robot, Cheetaroid-I. The DOB enables rejecting disturbances caused by
+the ground contact, payload, etc, and detecting the ground contact without force sensors. The
+proposed method is veriﬁed by experimental results.
+1. INTRODUCTION
+Importance of robotic systems has risen in the modern
+society. Their applications have been extended to not only
+industrial automation, but also the daily life of humans (K.
+Kong et al. [2012]). Various robots have been developed
+for helping humans in recent years. With a great amount
+of government support, many researchers are making their
+best eﬀorts to develop robot systems that can replace the
+role of humans in hazardous and dangerous environments,
+in particular the disastrous areas by a nuclear accident
+(J. Savall et al. [1999], K. Nagatani et al. [2011], and
+K. Kaneko. [2012]). Considering the required dexterousness and agility of robot systems, legged locomotion
+systems are being intensively investigated. In particular,
+quadruped robots are receiving great attention as a new
+means of transportation for various purposes, such as
+military, welfare, and rehabilitation systems. The use of
+four legs enables a robustly stable gait; compared to the
+humanoid robots, the quadruped robots are particularly
+advantageous in improving the locomotion speed, the maximum payload, and the robustness toward disturbances,
+e.g., refer to M. Raibert et al. [2008], M. A. Lewis et al.
+[2011], and B. Na et al. [2013].
+The more demanding conditions robots are exposed to,
+however, the more challenging the control of robotic legs
+becomes. As the gait speed increases, the frequency bandwidth of reference signals (i.e., desired motions) is also
+signiﬁcantly enlarged. Thus the signiﬁcant enlargement of
+closed-loop bandwidth of a control system is necessary.
+Consequently, high gain control with a high-speed data
+acquisition system is unavoidable, which also necessitates
+the accurate measurement of physical states without noise.
+⋆ This work was supported by the National Research Foundation of
+Korea (NRF) grant funded by the Korea government (MSIP) (NRF2012R1A1A1008271).
+
+Copyright © 2014 IFAC
+
+Moreover, the dynamics of a robotic leg is highly uncertain and time-varying due to the ground contact and
+the ground condition, as well as the unknown payload.
+Therefore, a control algorithm that can achieve both great
+control performance and stability robustness is essential
+for the eﬀective control of a quadruped robot.
+In this paper, a robust control algorithm is proposed
+for a high-speed quadruped robot, Cheetaroid-I. The
+Cheetaroid-I is a bio-inspired robot system, the skeletal
+structure of which is inspired from animals that run fast.
+The leg system of Cheetaroid-I, which consists of three
+active joints, is particularly designed for improved gaitstability during a high-speed locomotion. The control of
+the Cheetaroid-I leg, however, is challenging because of the
+large weight of the robot body, the model change due to the
+ground contact, the high-frequency reference trajectory,
+and so on. In order to achieve great control performance
+rejecting the disturbances from the ground and the model
+change, a disturbance observer (DOB) is utilized in the
+control of a Cheetaroid-I leg system in this paper.
+The DOB estimates external disturbances by comparing
+an actual measurement with a simulated output. By ﬁltering the output discrepancy with an inverse of the system model, the estimation of the exogenous disturbance
+is achieved (K. Ohnishi. [1987] and K. Fujiyama et al.
+[1998]). The DOB can also be applied as a feedback controller, in which case the disturbance is rejected and the
+overall system is controlled to follow the nominal model,
+as reported in the papers of (K. Kong et al. [2009], T.
+Umeno et al. [1991], and S. Oh et al. [2013]). Since it
+attenuates the model change and makes the closed-loop
+system robust toward the external disturbances, the DOB
+is appropriate for the Cheetaroid-I leg control. For the
+appropriate design of the DOB (i.e., appropriate selection
+of a nominal plant structure and its parameters), reliable
+knowledge on the nominal plant dynamics and the range
+
+7246
+
+19th IFAC World Congress
+Cape Town, South Africa. August 24-29, 2014
+
+Shoulder
+(active for
+forward/backward
+elevation)
+
+Waist
+(active for forward/backward
+and lateral bending)
+
+A BLDC motor
+A control unit
+
+A gear-box (gear ratio = 50:1)
+A high-torque timing belt
+(Speed reduction ratio = 2:1)
+Potentiometer
+
+Linear actuator
+
+Linear
+actuator
+Elbow (active for
+flextion/extension)
+
+Compliant foot system
+
+Hip
+(active for
+flexion/
+extension)
+(a)
+
+Stifle (active for
+flextion/extension)
+Carbon-fiber foot
+
+Fig. 1. Conﬁguration of Cheetaroid-I.
+of dynamics variation is required, which is challenging in
+practice.
+In this paper, the dynamic model of a Cheetaroid-I leg
+system is analyzed, and the nominal plant model and the
+range of model variations are obtained through extensive
+experiments. The implementation of the DOB, however,
+requires extra care due to the unstable zero of the plant
+dynamics. Therefore, the parameters of the nominal plant
+model are further optimized considering the closed-loop
+stability of the DOB, as well as the closed-loop performance. The proposed model optimization process enables
+the eﬀective control of the robotic leg without performance
+degradation even in the presence of an unstable zero in the
+nominal plant model, which is the case of Cheetaroid-I.
+In addition to robust stabilization and disturbance rejection, the DOB is also utilized to detect the ground contact,
+which is necessary information for a higher level motion
+control algorithm. While the majority of the disturbances
+estimated by the DOB is due to the ground contact, observation of the ground contact is available by monitoring
+the magnitude of the estimated disturbance. Consequently,
+the proposed control system enables both eﬀective control
+of a Cheetaroid-I leg system and removal of force sensors
+for detecting the ground contact.
+
+2. CHEETAROID-I ROBOT SYSTEM
+2.1 System Configuration
+Cheetaroid-I is a quadruped robot that has fourteen degrees of freedom (DoFs), which include three DoFs in
+each leg system and two DoFs at the waist, as shown
+in Fig. 1. It is capable of generating various locomotion
+types, such as diﬀerent gait phases, gyrations, and so on.
+The hip and shoulder joints are equipped with customized
+linear actuators that exhibit high power output with low
+mechanical impedance. For the details on the design of
+Cheetaroid-I (B. Na et al. [2013]).
+
+(b)
+
+Fig. 2. The schematic of a leg system; (a): design of a hind
+leg, and (b): a simpliﬁed model for dynamics analysis.
+2.2 Modeling of a Leg System
+Each of the Cheetaroid-I legs has three actuators; one
+for the ﬂexion/extension of the hip/shoulder joint, one at
+the stiﬂe/elbow joint, and one for the abduction/abuction
+movements. The upper leg is composed of thin aluminum
+frames with carbon-ﬁber-reinforced-plastic (CFRP) housings, so that it is rigid. On the other hand, the lower leg
+is made of compliant CFRP material for the absorption of
+impacts due to the ground contact. Figure 2(a) shows the
+design of a leg system. As shown in the ﬁgure, the proximal
+joint (i.e., the hip or the shoulder joint) is actuated by a
+powerful linear actuator. On the other hand, the distal
+joint (i.e., the stiﬂe or the elbow joint) is actuated by
+a compact and light-weight brushless DC motor (50W,
+Maxon Motor Co.) for the sake of the minimal moment of
+inertia of the leg system. In addition, the motor is installed
+near the proximal joint, while the actuation torque is
+transferred via a timing belt. This design provides the
+great controllability of a distal joint (i.e., the angular
+position of the foot system) while reducing the moment
+of inertia of the upper leg part.
+The compliance of the timing belt, however, creates a
+challenge in the control, since it is placed between the
+
+7247
+
+19th IFAC World Congress
+Cape Town, South Africa. August 24-29, 2014
+
+motor, where a control input takes place, and the joint,
+where the output is measured. The compliance increases
+the order of the plant model (i.e., the number of poles
+in the plant transfer functions) and also imposes zeros
+occasionally. Notice that the equations of motion of the
+motor and the foot system are respectively
+
+−70
+
+Magnitude [dB]
+
+−80
+
+(1)
+
+and
+Is (θ̈dis +θ̈prox )+cp θ̇dis +ms gls sin(θdis +θprox ) = τ +d (2)
+where τ = k(θm − θdis ) is the torque transmitted by
+the timing belt, and d = dGN D ls sin(θdis + θprox ) +
+f (θ̈prox , θ̇prox ) is the disturbances due to the ground contact and the motion of the upper leg part. Although the
+equations of motion in (1) and (2) are subjected to large
+disturbances and model discrepancies due to the inherent
+complexity of a robot system, transfer functions can be
+obtained rearranging and linearizing the equations above,
+i.e.
+θdis (s) = Gu→θdis u(s)+Gθprox →θdis θprox (s)+GdG →θdis d(s)
+(3)
+where θdis (s), u(s), θprox (s), d(s) are the Laplace transforms of θdis (t), u(t), θprox (t), d(t), respectively. Notice
+that the angular position of the distal joint, i.e., θdis ,
+is inﬂuenced by the motion of the upper part and the
+disturbances, as well as the control input, u. Assuming
+that the second and third terms on the right-hand-side
+of (3) are disturbances to be rejected, the structure of a
+nominal plant dynamics (i.e., Gu→θdis ) can be obtained.
+Rearranging (1) and (2), one can easily ﬁnd that Gu→θdis
+is a fourth-order transfer function with no zero.
+Among the three active DoFs in each leg of the CheetaroidI, the control method for distal joint (i.e., the elbow/stiﬂe
+joint) is introduced in this paper.
+
+−90
+−100
+−110
+−120
+−130
+−140
+
+1
+
+2
+
+10
+
+10
+Frequency [rad/sec]
+
+(a)
+
+0
+−100
+Phase [deg]
+
+Im θ̈m + k(θm − θdis ) = u
+
+−60
+
+−200
+−300
+−400
+−500
+1
+
+2
+
+10
+
+10
+Frequency [rad/sec]
+
+(b)
+
+Fig. 3. System identiﬁcation experiments and a nominal
+plant model; (a): magnitudes, and (b): phases.
+
+Gu→θdis =
+
+78
+s4 + 101s3 + 3275s2 + 35360s + 16880
+
+(4)
+
+The frequency response of the obtained nominal plant
+model in (4) is also shown in Fig. 3 [see the continuous
+lines in the ﬁgure].
+
+2.3 System Identification of a Nominal Plant Dynamics
+In order to identify the parameters of Gu→θdis , system
+identiﬁcation experiments were carried out. In the experiments, the control input, u(t), was the pulse width
+in the range of [−20000, 20000], and the output was the
+stiﬂe/elbow joint angle in the unit of radians. Eight sets
+of experiments were conducted with diﬀerent input magnitudes. Each set of experiments consisted of sinusoidal
+waves with diﬀerent frequencies. Once a set of experimental data was obtained, both the input and output signals
+were Fourier-transformed, and frequency responses were
+obtained by comparing the input and output signals in
+the frequency domain.
+Figure 3 shows the experimental results. It should be
+noted that the magnitudes and phases did not exactly
+match as the input magnitude changed. This implies that
+the system has nonlinearities or time-varying components.
+In particular, the model variation was signiﬁcant at low
+and high frequencies, where the low frequency uncertainty
+was mainly due to the friction of the joint, and that of
+the high frequency was due to the inaccuracy of sensor
+measurement, noise, and so on. Consequently, a band is
+formed [see the circles in the ﬁgure] and the parameters
+of Gu→θdis was obtained considering the magnitude and
+phase bands as
+
+2.4 Identification of Dynamics Uncertainties
+Since both the nominal plant model and experimental data
+are available, multiplicative uncertainties can be obtained
+by
+∆(jw) =
+
+Gexp (jw) − Gu→θdis (jw)
+Gu→θdis (jw)
+
+(5)
+
+The calculated ∆(jw) for every experiment in Fig. 3 is
+shown in Fig. 4. It should be noted that the magnitudes
+of the model mismatch are large at high frequencies. For
+the simplicity of the uncertainty modeling, it is assumed
+that ∆ ∈ {W ∆; W ∈ S, ∥∆∥∞ < 1}, where W (s) is
+a minimum-phase transfer function that represents the
+upper bound of multiplicative uncertainties at each frequency. Then, the upper bound of the multiplicative uncertainties can be modeled based on the experimental fata
+shown in Fig. 4, i.e.,
+W (s) =
+
+0.011s2 + 1.011s + 22.933
+s + 30.000
+
+(6)
+
+The magnitude of W (jw) is also shown in Fig. 4 [see the
+continuous line].
+
+7248
+
+19th IFAC World Congress
+Cape Town, South Africa. August 24-29, 2014
+
+5
+
+Magnitude [dB]
+
+Uncertainty [dB]
+
+The magnitude of the inverse W(jw)
+The magnitude of the Q−filter
+
+5
+
+0
+−5
+−10
+−15
+
+0
+
+−5
+
+−10
+−20
+1
+
+−15
+
+2
+
+10
+
+10
+
+Inverse
+Kinematics
+
+2
+
+10
+Frequency [rad/sec]
+
+Fig. 4. The upper bound of the multiplicative uncertainties.
+
+stance
+swing
+
+1
+
+10
+
+Frequency [rad/sec]
+
+Fig. 6. The magnitudes of the inverse W (jw) and the Qﬁlter.
+Note that Q(s) in (7) has the cutoﬀ frequency of 10 Hz
+and the magnitude of 1 at low frequencies. Also, it has the
+robust stability margin of at least 3 dB for all frequencies,
+as shown in Fig. 6. For the implementation of Q(s), an
+equivalent ﬁlter in the discrete time domain, i.e., Q(z),
+can be obtained by the pole-zero matching method.
+
+Feed
+Forward
+
+DOB
+Moving
+Average
+
+3.3 Disturbance Observer Stabilization
+
+Fig. 5. The block diagram of the disturbance observer.
+3. DISTURBANCE OBSERVER DESIGN FOR LEG
+CONTROL
+3.1 Overall Controller Structure
+The overall control algorithm includes a feedforward ﬁlter,
+the feedback controller, and the DOB, as shown in Fig 5.
+Since the DOB is not a tracking controller, the feedback
+(PD) controller is applied as an outer loop of the DOB. If
+the plant has unstable poles, careful consideration should
+take place in the design of the controller. In the leg of
+the Cheetaroid-I, the plant dynamics does not possess any
+poles outside of the unit circle on the z-plane. On the
+other hand, the reference trajectory of the Cheetaroid-I is
+generated by inverse kinematics. Since the reference trajectory is generated by considering only the possibility of
+locomotion, the drastically changing moments exist in the
+reference trajectory. Therefore, the derivative controller
+calculates the control input by using only the output of the
+plant. Assuming that the DOB loop behaves as its nominal
+model, the feedforward controller is designed based on the
+closed-loop characteristics formed by the PD controller
+and the nominal model. A moving average ﬁlter is used
+to reduced the sensor noise.
+3.2 Design of a Q-filter
+
+The nominal plant model, Gu→θdis (s), is discretized for
+implementation. The discretized nominal plant model is
+10−7 (0.267z 3 + 2.408z 2 + 1.969z + 0.146)
+Gu→θdis (z) = 4
+z − 3.152z 3 + 3.692z 2 − 1.906z + 0.366
+(8)
+Note that zeros of Gu→θdis (z) placed at −0.082, −0.818,
+and −8.134, and an unstable zero is introduced during
+discretization. In the DOB loop, since the inversed nominal
+plant, G−1
+u→θdis (z), is used for estimation of the disturbance, the unstable zero of Gu→θdis (z) may introduce
+in stability into the DOB loop. Therefore, the unstable
+zero derived from discretization should be removed for the
+stability of the DOB. In this aspect, a modiﬁed nominal
+plant model, Gmod (z), is
+10−7 (2.434z 2 + 2.191z + 0.164)
+Gmod (z) = 4
+(9)
+z − 3.152z 3 + 3.692z 2 − 1.906z + 0.366
+It is important that, the dynamic characteristics of the
+nominal model is not signiﬁcantly changed for the eﬀectiveness of the DOB, even if the nominal plant model is
+changed as from (8) to (9). Figure 7 shows the Bode plots
+of the nominal plant model and the modiﬁed nominal plant
+model. While unstable zero is removed in the modiﬁed
+plant model, the frequency characteristics of the system
+are not changed, as shown in the ﬁgure. Therefore, the
+modiﬁed nominal plant model is suitable for the implementation of the DOB.
+
+In the design of Q-ﬁlter, the following conditions should
+be fulﬁlled to guarantee robust stability:
+(1) Q-ﬁlter must be stable, and
+(2) the magnitude of Q(jw) should be less than that of
+W −1 (jw) for all w ∈ R+ .
+Based on the experimentally obtained W (s) in (6), a Qﬁlter can be designed such that its magnitude is smaller
+than that of W −1 (jw) at the entire frequency range. A
+possible Q(s) is
+0.218
+(7)
+Q(z) = 2
+z − 1.067s + 0.285
+
+4. EXPERIMENTAL RESULTS
+4.1 Reference Tracking Performance Evaluation
+Figure 8 shows the experimental results of the PD controller without the DOB; the reference trajectory and the
+controlled joint angle are shown in the ﬁgure. The locomotion speed was increased gradually in the experiment.
+Recall that, since the reference trajectory has drastically
+changing moments, the derivative controller was designed
+such that it calculates the control input by using only
+
+7249
+
+19th IFAC World Congress
+Cape Town, South Africa. August 24-29, 2014
+
+Bode Diagram
+
+(a)
+
+(b)
+
+(c)
+
+(d)
+
+(e)
+
+(f)
+
+Magnitude (dB)
+
+0
+nominal plant model
+−50
+
+modified model
+
+−100
+−150
+
+Phase (deg)
+
+−200
+0
+−180
+−360
+−540
+−2
+10
+
+−1
+
+0
+
+10
+
+1
+
+2
+
+10
+10
+Frequency (rad/s)
+
+3
+
+10
+
+10
+
+Reference
+
+1.1
+
+Fig. 10. Snapshots of a video of a gait control experiment.
+
+Estimated disturbance by the DOB
+
+Fig. 7. Bode plot of the nominal plant model and modiﬁed
+model.
+Tracking angle
+
+Output [rad]
+
+1
+0.9
+0.8
+0.7
+0.6
+
+10000
+8000
+6000
+4000
+2000
+0
+−2000
+
+0.5
+0
+0.4
+
+0
+
+2
+
+4
+
+6
+
+8
+Tims [sec]
+
+10
+
+12
+
+14
+
+2
+
+4
+
+6
+
+8
+Tims [sec]
+
+10
+
+12
+
+14
+
+16
+
+16
+
+Fig. 11. Estimated disturbance by the DOB.
+Fig. 8. Tracking performance with the PD control only.
+Reference
+
+1.1
+
+DOB, the response time was shortened and the closed-loop
+bandwidth was enlarged signiﬁcantly. The eﬀectiveness of
+the DOB was more noteworthy as the locomotion speed
+increased, which validates that the PD controller with the
+DOB achieves the desired tracking performance at the
+entire speed range.
+
+Tracking angle
+
+Output [rad]
+
+1
+0.9
+0.8
+0.7
+
+4.2 Ground Contact Detection
+
+0.6
+0.5
+0.4
+
+0
+
+2
+
+4
+
+6
+
+8
+Tims [sec]
+
+10
+
+12
+
+14
+
+16
+
+Fig. 9. Tracking performance with the proposed control
+method.
+the output of the plant not including the reference signal.
+Nevertheless, the tracking performance of the PD controller was insuﬃcient to realize successful locomotion. It
+was diﬃcult to obtain the desired performance only with
+the PD control, because the gear-box and the timing belt
+increased the response time during force transmission. The
+backlash of the gear-box and the timing belt signiﬁcantly
+aﬀected the tracking performance. Moreover, the tracking performance was more deteriorated as the locomotion
+speed of the Cheetaroid-I increased. This is because the
+reduced stance period made the change of the reference
+trajectory more drastic.
+The tracking performance with the proposed control
+method is shown in Fig. 9, where the performance was
+remarkably improved than the PD controller by the proposed control method. In both experiments in Figs. 8
+and 9, the same gains were used in the PD controller.
+Since disturbances and model uncertainties by the gearbox and the timing belt were signiﬁcantly rejected by the
+
+Snapshots of a video of a gait experiment are shown in Fig.
+10; the right hand side of the Cheetaroid-I was the front
+direction. The whole motion is divided into two periods
+based on the motion of right hind leg: (a)-(c) represent
+the swing period, and (d)-(f) are the stance period. In
+the stance period, since the feet contact the ground,
+the ground reaction forces occur and can be measured
+by appropriate sensing mechanism. Measurement of the
+ground reaction force is important in the locomotion
+control because the gait stability is closely related to the
+ground reaction force.
+In this paper, the ground contact detection is conducted
+through the estimated disturbance by the DOB. The artiﬁcial experimental environment was set for the veriﬁcation
+of ground contact detection by the DOB. The sinusoidal
+reference trajectory was used, and the feet contacted the
+ground slightly for checking the accuracy of the proposed
+method. Figure 11 shows the estimated disturbance by the
+DOB, where the estimated disturbance is periodic, and the
+peaks occur in the estimated disturbance at the ground
+contact moments. Therefore, the estimated disturbance
+can be used as the estimate of the ground reaction force
+with a proposed ﬁltering law, i.e.,
+[
+]
+ˆ − d0 , 0)
+dˆGN D (t) = f L(s) max(d(t)
+(10)
+
+7250
+
+19th IFAC World Congress
+Cape Town, South Africa. August 24-29, 2014
+
+5
+Ground contact force [N]
+
+the disturbance estimated by the DOB. Consequently, the
+proposed control system enabled both eﬀective control of
+a Cheetaroid-I leg system and removal of force sensors for
+detecting the ground contact. The DOB design was only
+limited to the distal joint in this paper. The extension of
+the DOB to the proximal joints is the future work.
+
+Measured by force sensor
+Estimated ground reaction force
+
+4
+3
+2
+
+REFERENCES
+1
+0
+
+0
+
+2
+
+4
+
+6
+
+8
+Tims [sec]
+
+10
+
+12
+
+14
+
+16
+
+Fig. 12. Ground contact detection.
+In (10) dˆGN D is the estimated ground reaction force, f is
+a scaling factor, L(s) is a lowpass ﬁlter, dˆ is the estimated
+disturbance by the DOB, and d0 is a threshold value. The
+estimated disturbance is regarded as the ground contact
+when it is larger than the threshold value.
+Figure 12 shows the ground contact detection results during the sinusoidal tracking experiment, where the estimated ground reaction force and the measured ground
+reaction force are shown together. The tendency of the
+estimated ground reaction force was similar to the ground
+reaction force measured by a force sensor. The error between estimated ground reaction force and force sensor
+measurement was 0.592N in the root-mean-square (RMS).
+The error was mainly caused by the lowpass ﬁltering, since
+the high frequency component of ground reaction force
+was ﬁltered twice by Q-ﬁlter and L(s). The estimated
+ground reaction force preceded the measurement of the
+force sensor occasionally, and the estimated ground reaction force held longer than the ground reaction force
+measured by the force sensor as shown in Fig. 12. This
+is because a force sensing resistor (FSR) sensor was used
+to measure ground reaction force in the experiment, and
+the FSR can measure the ground reaction force applied to
+the sensing area of FSR only (in this case, the diameter
+of the used FSR was 25mm). Therefore, the FSR sensor
+could not measure the ground reaction force even when the
+feet contacted the ground. On the other hand, the sensing
+area where the DOB can estimate was not constrained,
+since the DOB could estimate the total external force that
+acts on the entire area of the foot. Therefore, wider and
+faster ground contact detection could be achieved when
+the ground reaction force is estimated by the proposed
+DOB-based algorithm.
+5. CONCLUSIONS
+In this paper, the dynamic model of a Cheetaroid-I leg
+system was analyzed, and the nominal plant model and
+the range of model variations were obtained through extensive experiments. The parameters of the nominal plant
+model were further optimized considering the closed-loop
+stability of the DOB, as well as the closed-loop performance. Also, the ground contact detection was conducted
+through the magnitude of the estimated disturbance by
+the DOB. The proposed control system was veriﬁed by
+the experimental results. The tracking performance was
+remarkably improved by the DOB, and the ground contact
+detection was available by monitoring the magnitude of
+
+K. Kong and M. Tomizuka, Design of a Rehabilitation
+Device Based on a Mechanical Link System. ASME
+Journal of Mechanisms and Robotics, Vol. 4, 035001-1,
+2012.
+J. Savall, A. Avello, and L. Briones, Two compact robots
+for remote inspection of hazardous areas in nuclear
+power plants. Proc. the IEEE International Conference
+on Robotics and Automation, pages 1993-1998, 1999.
+K. Nagatani, S. Kiribayashi, Y. Okada, S. Tadokoro, T.
+Nishimura, T. Yoshida, E. Koyanagi, and Y. Hada,
+Redesign of rescue mobile robot Quince. In IEEE
+International Symposium, Safety, Security, and Rescue
+Robotics (SSRR),, pages 13-18, 2011.
+K. Kaneko,
+Towards emergency response humanoid
+robots, Mechatronics (MECATRONICS) , 2012 9th
+France-Japan & 7th Europe-Asia Congress on and Research and Education in Mechatronics (REM), 2012
+13th Int’l Workshop, pages 504-511, 2012.
+B. Na, H. Choi, and K. Kong, Design of a DirectDriven Linear Actuator for Development of a Cheetaroid
+Robot. Proc. the IEEE International Conference on
+Robotics and Automation, Germany, pages 4008-4013,
+2013.
+M. Raibert, K. Blankespoor, G. Nelson, R. Playter,
+and the BigDog Team, BigDog, the Rough-Terrain
+Quadruped Robot. Proc. 17th Int Conf. Federation of
+Automatic Control, pages 10822-10825, July 2008.
+M. A. Lewis, M. R. Bunting, B. Salemi, and H, Hoﬀmann,
+Toward Ultra High Speed Locomotors: Design and Test
+of a Cheetah Robot Hind Limb. Proc. the IEEE
+International Conference on Robotics and Automation,
+Shanghai, China, pages 1990-1996, 2011.
+K. Ohnishi, A new servo method in mechatronics. Trans.
+of Japanese Society of Electrical Engineering, vol. 107D, pages 83-86, 1987.
+K. Fujiyama, M. Tomizuka, and R. Katayama, Digital
+tracking controller design for CD player using disturbance observer. Proc. of the Int. Workshop on Advanced
+Motion Control, pages 598-603, 1998.
+K. Kong, J. Bae, and M. Tomizuka, Control of rotary
+series elastic actuator for ideal force-mode actuation
+in human-robot interaction applications. IEEE/ASME
+Trans. on Mechatronics, vol. 14, no. 1, pages 1-14, 2009.
+T. Umeno and Y. Hori, Robust speed control of DC servomotors using modern two degrees-oﬀreedom controller
+design, IEEE Trans. on Industrial Electronics, vol. 38,
+no. 5, pages 363-368, 1991.
+S. Oh, and Y. Hori, Disturbance Attenuation Control for
+Power-Assist Wheelchair Operation on Slopes, Control
+Systems Technology, IEEE Transactions on, vol.PP,
+no.99, pp.1-1, 2013
+
+7251
+
+

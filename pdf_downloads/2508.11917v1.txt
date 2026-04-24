@@ -1,0 +1,857 @@
+Control of Legged Robots using Model Predictive Optimized Path
+Integral
+
+arXiv:2508.11917v1 [cs.RO] 16 Aug 2025
+
+Hossein Keshavarz1 , Alejandro Ramirez-Serrano1 , Majid Khadiv2
+Abstract— Legged robots possess a unique ability to traverse
+rough terrains and navigate cluttered environments, making
+them well-suited for complex, real-world unstructured scenarios. However, such robots have not yet achieved the same level
+as seen in natural systems. Recently, sampling-based predictive
+controllers have demonstrated particularly promising results.
+This paper investigates a sampling-based model predictive
+strategy combining model predictive path integral (MPPI) with
+cross-entropy (CE) and covariance matrix adaptation (CMA)
+methods to generate real-time whole-body motions for legged
+robots across multiple scenarios. The results show that combining the benefits of MPPI, CE and CMA, namely using model
+predictive optimized path integral (MPOPI), demonstrates
+greater sample efficiency, enabling robots to attain superior
+locomotion results using fewer samples when compared to
+typical MPPI algorithms. Extensive simulation experiments in
+multiple scenarios on a quadruped robot show that MPOPI can
+be used as an anytime control strategy, increasing locomotion
+capabilities at each iteration.
+
+I. INTRODUCTION
+Current algorithms for legged locomotion and manipulation are generally divided into two main groups: gradientbased model-predictive control (MPC) [1] and gradientfree reinforcement learning (RL) [2]. MPC policies do not
+require offline training as they leverage models for real-time
+trajectory optimization. However, MPC is computationally
+intensive at run-time, making it difficult to include wholebody dynamics and handle collision constraints in real-time.
+To reduce online computation, simplified models are often
+employed [3]–[5], which prevents them from leveraging fullbody dynamics to solve complicated locomotion or manipulation tasks. More recent works have enabled whole-body
+MPC and have shown promise in realizing complex realworld behaviors [6]–[10]. Furthermore, several works have
+reduced the online computation of whole-body MPC by
+learning the solutions [11]–[14].
+Alternatively, sim-to-real RL has shown impressive
+progress in recent years [15]–[17], thanks to efficient parallel
+simulation on modern hardware [18, 19] and improved simto-real transfer via domain randomization techniques [15, 17,
+20]. However, exploration in RL for legged robots remains
+a serious challenge, mainly due to the sparse rewards in
+complex environments [21, 22]. Compared to MPC, one
+downside of RL policy optimization is the significant effort
+1 University of Calgary, Department of Mechanical Engineering,
+2500 University Drive NW, Calgary, AB, Canada Emails:
+
+hossein.keshavarz, aramirez@ucalgary.ca
+2 Munich
+Institute of Robotics and Machine Intelligence
+(MIRMI), Technical University of Munich (TUM), Germany Email:
+
+majid.khadiv@tum.de
+
+required to find suitable reward functions and a suitable
+set of locomotion parameters for each task. Furthermore, to
+successfully transfer learned control policies to real robots,
+an extensive sim-to-real randomization is required, and this
+procedure is entirely ad hoc and task dependent.
+Sampling-based MPC has recently emerged as an attractive middle-ground that does not require offline training and at the same time can leverage parallel simulation
+and mitigate issues of gradient-based methods in handling
+discontinuous and non-convex dynamics. Among different
+approaches, model predictive path integral (MPPI) [23],
+covariance matrix adaptation (CMA) [24], and cross-entropy
+method (CEM) [25] have attracted a lot of attention, and
+several variants of them have been proposed. Contrary to
+the common belief that sampling-based approaches are computationally intractable for high-dimensional systems, recent
+research has shown otherwise [26]–[29]. However, there is
+still no consensus among researchers on which technique
+is most suitable for complex legged locomotion control.
+This paper aims to investigate this. In summary, this paper
+provides the following contributions:
+1) We present a comparative analysis of different
+sampling-based MPCs, underscoring the practical advantages and effectiveness of a combined strategy,
+namely model predictive optimized path integral
+(MPOPI), for locomotion and loco-manipulation problems.
+2) We apply MPOPI to the problem of quadrupedal
+locomotion and loco-manipulation. To the best of our
+knowledge, this is the first work that demonstrates
+the application of such strategies in the context of
+locomotion.
+3) We carry out a wide range of simulation experiments
+demonstrating the capabilities of MPOPI for solving
+high-dimensional and complex tasks for generating
+whole-body motions in real time.
+This paper is structured as follows: Section II presents MPPI,
+CMA and CE methods. Section III describes the locomotion
+framework based on MPOPI, which is a combination of
+MPPI, CE and CMA, and its key components. In Sections IV,
+the effectiveness of the locomotion framework based on
+MPOPI is demonstrated, highlighting its superiority over
+MPPI through an extensive comparison across various scenarios. In Section V, the hyperparameters of MPOPI and
+their effects on the performance are further analyzed. Finally,
+Section VI summarizes and concludes the paper.
+
+II. P RELIMINARIES
+This section describes three widely adopted samplingbased MPC formulations from the literature: MPPI, CMA,
+and CE.
+A. Model predictive path integral (MPPI)
+MPPI samples N possible control trajectories from a
+multivariate Gaussian distribution ut ∼ N (µt , Σt ), where µt
+is the mean and Σt is the covariance matrix at time t. The
+cost of each sampled control trajectory is then evaluated
+by simulating these trajectories in parallel. The optimal
+control input to the system is then calculated through an
+exponentially weighted average of the samples based on their
+corresponding cost as follows [23]:
+
+
+min
+exp − Ln −L
+λ
+
+,
+(1a)
+ωn =
+Ln −Lmin
+N
+∑n=1 exp − λ
+N
+
+µt = ∑ ωn ut ,
+
+(1b)
+
+n=1
+
+where Ln represents the cost of the nth trajectory, ωn denotes
+the corresponding trajectory weight, and λ is the temperature
+parameter that determines the controller’s sensitivity to differences in trajectory cost. A lower value of λ increases the
+influence of the best-performing trajectory, while a higher
+value distributes the weight more uniformly across all tested
+samples [23]. Such a process is repeated in a receding
+horizon fashion, and the mean is updated at each time step
+using a constant covariance matrix (i.e., Σt−1 = Σt ). The
+MPPI algorithm is summarized in Algorithm 1.
+Algorithm 1: MPPI Control Algorithm
+Require: Initial state x0 , control parameters (µ0 , Σ0 ), number
+of samples N, time horizon T , temperature parameter λ
+Ensure: Optimal control input u
+1: Initialize control trajectory mean µt and covariance Σt
+2: Initialize sample trajectory cost Ln = 0
+3: for each sample n = 1, . . . , N do
+4:
+for each timestep t = 0, . . . , T do
+5:
+Sample action sequence: ut ∼ N (µt , Σt )
+6:
+Simulate forward for T time steps using un
+7:
+Compute the resulting cost and add it to Ln
+8:
+end for
+9: end for
+10: Compute weights ωn for all samples using Equation (1a)
+11: Update control trajectory mean µt using Equation (1b)
+12: Select the control input for the system: u = µt [0]
+13: Apply control input u
+14: Shift control mean: µt ← shifted(µt )
+
+B. Covariance matrix adaptation (CMA)
+In MPPI, the covariance matrix (Σt ) is treated as a fixed
+parameter throughout the iterations. CMA [24] employs a
+multivariate Gaussian distribution as the search distribution
+
+and updates its parameters (mean and covariance) to generate
+superior solutions. Algorithm 2 shows CMA control algorithm that computes the optimal control input by iteratively
+updating the control trajectory’s mean and covariance using
+sampling and weighted feedback. Note that it is important to
+update the covariance matrix first as the covariance update
+must rely on the old µt (i.e. the one used to sample).
+Variants of the algorithm can be formulated depending on
+the weight computation strategy. The parameter α ∈ (0, 1]
+acts as a learning rate that controls how much the new
+samples influence the updated parameters. A smaller α
+results in slower adaptation, relying more on the previous
+mean and covariance, which can help maintain stability but
+may slow convergence. Conversely, a larger α allows faster
+adaptation to recent sample information, which can speed up
+convergence but may introduce higher variance in the search
+process. In this paper, inspiring from [24], the weights are
+Algorithm 2: CMA Control Algorithm
+Require: Initial state x0 , control parameters (µ0 , Σ0 ), number
+of samples N, time horizon T , learning rate α
+Ensure: Optimal control input u
+1: Initialize control trajectory mean µt and covariance Σt
+2: Initialize sample trajectory cost Ln = 0
+3: for each sample n = 1, . . . , N do
+4:
+for each timestep t = 0, . . . , T do
+5:
+Sample action sequence: ut ∼ N (µt , Σt )
+6:
+Simulate forward for T time steps using un
+7:
+Compute the resulting cost and add it to Ln
+8:
+end for
+9: end for
+10: Compute weights w1, . . . , wN using Equation (2a)
+N
+⊤
+11: Σt ← 1 − α ∑N
+k=1 wk  Σ + α ∑k=1 wk (uk − µt )(uk − µt )
+N
+N
+12: µt ← 1 − α ∑k=1 wk µt + α ∑k=1 wk uk
+13: Select the control input for the system: u = µt [0]
+14: Apply control input u
+15: Shift control mean: µt ← shifted(µt )
+computed using a logarithmic ranking scheme that assigns
+higher importance to top-ranked samples while gradually
+decreasing the weight for lower-ranked ones. Specifically,
+for each trajectory i ∈ {1, . . . , N}, the normalized weights
+are given by:
+
+
+N +1
+wi = log
+, i ∈ {1, . . . , N},
+(2a)
+i
+wi
+= N
+wnorm
+,
+(2b)
+i
+∑ j=1 w j + ε
+where ε is a small constant (1e-10) for numerical stability.
+This ranking-based weighting emphasizes better-performing
+samples while maintaining a smooth decay in importance
+across the ranked set.
+C. Cross entropy (CE)
+CE is a random sampling Monte Carlo method for importance sampling and optimization [30]. Unlike MPPI and
+
+CMA, which consider all cost values when calculating sample weights, CE sorts the cost values and selects a fixed
+number of elite sample candidates (Ke ). This elite set is
+then used to determine the parameters of interest (i.e., mean
+and covariance) of the population for the next iteration.
+Consequently, unlike MPPI, where the covariance remains
+constant, the CE updates both the mean and the covariance
+at each time step as detailed in Algorithm 3. In contrast to
+CMA, this method assigns a weight of K1e to the best Ke
+samples and zero to the others. Additionally, the learning
+rate is set to α = 1.
+Algorithm 3: CE Control Algorithm
+Require: Initial state x0 , control parameters (µ0 , Σ0 ), number
+of samples N, time horizon T
+Ensure: Optimal control input u
+1: Initialize control trajectory mean µt and covariance Σt
+2: Initialize sample trajectory cost Ln = 0
+3: for each sample n = 1, . . . , N do
+4:
+for each timestep t = 0, . . . , T do
+5:
+Sample action sequence: ut ∼ N (µt , Σt )
+6:
+Simulate forward for T time steps using un
+7:
+Compute the resulting cost and add it to Ln
+8:
+end for
+9: end for
+10: Sort L1:N
+Ke 1
+11: µt ← ∑k=1
+Ke uk
+Ke 1
+⊤
+12: Σt ← ∑k=1
+Ke (uk − µt )(uk − µt )
+13: Select the control input for the system: u = µt [0]
+14: Apply control input u
+15: Shift control mean: µt ← shifted(µt )
+
+III. P ROPOSED LOCOMOTION FRAMEWORK
+In this section, the locomotion framework developed based
+on MPOPI is presented. Firstly, the MPOPI controller is
+described, followed by an explanation of how it is integrated
+into the developed locomotion framework.
+
+algorithm because the mean and covariance are not updated.
+
+Algorithm 4: MPOPI Control Algorithm
+Require: Initial state x0 , control parameters (µ0 , Σ0 ), number of samples N, time horizon T , temperature parameter
+λ , updating cycle L, learning rate α
+Ensure: Optimal control input u
+1: Initialize control trajectory mean µt and covariance Σt
+2: µt′ ← µt
+3: Σt′ ← Σt
+4: Initialize sample trajectory cost Ln = 0
+5: for each l = 1, . . . , L do
+6:
+for each sample n = 1, . . . , N/L do
+7:
+Sample action sequence: ut ∼ N (0, Σt′ )
+8:
+for each timestep t = 0, 1, . . . do
+9:
+Simulate forward for T time steps using un
+10:
+Compute the resulting cost and add it to Ln
+11:
+Ln + = λ (1 − α)µt′ Σt−1 (ut + µt′ − µt )
+12:
+end for
+13:
+end for
+14:
+if l < L then
+15:
+// CMA + CE Methods
+16:
+Sort L1:N/L and select Ke samples
+17:
+Compute weights w1!, . . . , wKe using Equation (2a)
+Σt′ ←
+18:
+
+Ke
+
+1 − α ∑ wk Σt′
+k=1
+Ke
+
++ α ∑ wk (uk − µt )(uk − µt )⊤
+ k=1
+
+′
+e
+e
+wk uk
+wk µt′ + α ∑Kk=1
+19:
+µt ← 1 − α ∑Kk=1
+20:
+end if
+21: end for
+22: // MPPI Method
+23: Compute weights ωn for all samples using Equation (1a)
+24: Update control trajectory mean µt = ωn (ut + µt′ − µt )
+25: Select the control input for the system: u = µt [0]
+26: Apply control input u
+27: Shift control mean: µt ← shifted(µt )
+
+A. Model predictive optimized path integral (MPOPI)
+MPOPI combines the MPPI with CE and CMA methods
+to take advantage of each method with the goal of creating
+a unified approach that reduces the time needed to find a
+control action [31]. In contrast to MPPI, CMA and CE, in
+MPOPI an initial set of randomized samples is generated
+using a random or predefined mean and covariance values.
+Subsequently, such two parameters are updated via CE and
+CMA from where a new set of improved randomized samples
+is generated using the updated mean and covariance as
+detailed in Algorithm 4. The updating process is repeated for
+L cycles, from which a new subset of improved robot motion
+trajectories (joint positions) is generated. Such a strategy
+enables an efficient search over actions to quickly find the
+optimal sequence, with reduced computation. When L = 1,
+the MPOPI algorithm provides similar results to the MPPI
+
+B. Locomotion control using MPOPI
+In this work, we use the locomotion framework developed
+in [28] as a base framework. Our framework incorporates
+additional elements for updating the mean and covariance of
+the samples. A block diagram of the proposed system is illustrated in Fig. 1. The process starts with a user-specified goal,
+which defines the target for the robot. Within the MPOPI
+module, the framework samples a set of trajectory rollouts
+in parallel using MuJoCo physics engine [32] on a multi-core
+CPU, each parameterized by control sequences θ1 , θ2 , ..., θn .
+These trajectories are evaluated using a cost function, and
+the best-performing (elite) trajectories (θ1 , θ2 , ..., θke ) are
+selected. The mean and the covariance of the distribution
+are updated based on the elite set using the CE method.
+
+MPOPI
+CE + CMA
+
+User specified Goal
+
+𝜇𝑛𝑒𝑤 , Σ𝑛𝑒𝑤
+𝜽𝟏
+𝜽𝟐
+
+𝐽1 = 𝑐𝑜𝑠𝑡(𝜃1 )
+𝐽2 = 𝑐𝑜𝑠𝑡(𝜃2 )
+
+..
+.
+𝜽𝒏
+Sample
+trajectory
+rollouts
+
+MPPI
+𝜽𝟏
+𝜽𝟐
+
+..
+
+𝜽𝟏,𝒏𝒆𝒘
+
+Updating
+Mean ()
+
+𝜽𝟐,𝒏𝒆𝒘
+
+.
+.
+
+Updating
+Cov ()
+
+Joint
+targets
+
+Updating
+Mean ()
+
+PD
+
+𝜏
+
+encoders
+
+𝜽𝒌,𝒏𝒆𝒘
+
+𝜽𝒌
+
+𝐽𝑛 = 𝑐𝑜𝑠𝑡(𝜃𝑛 )
+Cost
+calculation
+
+Elite
+selection
+
+500 Hz
+
+Updating
+mean/cov
+100 Hz
+
+Robot State
+
+This process repeats L cycles and the joint targets input
+to the system are then calculated through an exponentially
+weighted average of the samples using MPPI. The resulting
+joint targets are passed to a Proportional-Derivative (PD)
+controller, which operates at 500 Hz to compute torque
+commands and send them to the robot. Following [26], this
+approach offers two key advantages: i) it reduces the size of
+the search space, and ii) promotes the generation of smoother
+control inputs.
+
+1.5 m, 10 @ 0.15 m
+m
+
+Fig. 1: Block diagram of the MPOPI locomotion control method.
+
+Robot’s COM
+trajectories
+
+IV. S IMULATION R ESULTS
+In this section, we use the simulation of a Go1 quadruped
+robot, controlled by MPOPI and compare its performance
+against MPPI. For a fair comparison, while MPPI uses 30
+samples, MPOPI uses 10 samples repeated over 3 cycles (L =
+3), resulting in the same total number of samples. The other
+optimization variables, such as the time horizon (T = 40)
+and the temperature parameter (λ = 0.1), are kept the same
+for both methods. To compare, the robot was commanded to
+perform the following tasks:
+• Climbing stairs,
+• Climbing over boxes of different heights, and
+• Pushing a box to a user-defined position.
+
+1.8 m, 9 @ 0.2 m m
+m
+
+Fig. 2: Stair climbing (side view).
+
+Fig. 3: Stair climbing (top view).
+A. Stair Climbing
+Stair climbing requires great joint exploration. To test the
+abilities of MPOPI to deal with such climbing scenarios,
+diverse tests were performed asking the robot to climb stairs
+of different heights (e.g., 15 cm) and tread length (e.g., 20
+cm) as illustrated in Fig. 2.
+In this scenario, the robot was commanded to achieve
+a set of m waypoints located along the stairs while asked
+to achieve a given (user-defined) locomotion speed. The
+obtained results (Fig. 3) show that MPOPI achieves the most
+stable and accurate performance as defined by the metrics of
+center of mass (CoM) trajectory smoothness and position
+error. The robot achieves a smooth trajectory with minimal
+lateral deviation, while MPPI shows some greater trajectory
+
+fluctuations (Fig. 3). MPOPI maintains a smooth and consistent ascent while tracking elevation changes effectively.
+Compared to MPPI, the MPOPI approach is able to
+generate effective robot motion strategies in less time. As an
+example, Fig. 4 compares the time required for a quadruped
+robot to find a suitable whole-body locomotion using MPOPI
+(in red) and MPPI (in green). MPOPI demonstrates a significantly faster ascent, where the robot takes about half the
+time (30 s) to complete the same task when compared to the
+time taken when using MPPI (i.e., 53 s).
+The obtained cost density for this specific example (Fig.
+5) indicates a superior performance of MPOPI. Its sharp and
+
+GOAL
+
+START
+
+MPOPI
+MPPI
+
+t=0s
+t=0s
+
+t=8s
+t = 10 s
+
+t = 15 s
+t = 21 s
+
+t = 18 s
+t = 32 s
+
+t = 22 s
+t = 40 s
+
+t = 30 s
+t = 53 s
+
+Fig. 4: Stair climbing using MPOPI and MPPI sampling-based MPCs.
+
+Fig. 5: The cost distribution of MPOPI and MPPI in the stair
+climbing scenario. In this setting, we can observe that MPPI
+has flattened distributions, while MPOPI’s cost distribution
+has a sharp peak.
+
+(a) Climbing a box when its height is 40 cm.
+
+narrow peak near the lower end of the cost axis indicates
+both low average cost and low variability across trials. MPPI
+shows higher and more inconsistent costs, with a widely
+spread and relatively flat distribution.
+B. Climbing large boxes
+Similar to stair climbing, MPOPI was analyzed on enabling robots to climb over large boxes (i.e., obstacles having
+larger risers and treads when compared to those found in
+stairs). Two different box heights were tested in simulations:
+40 cm and 45 cm. As the box height increases, the climbing
+task becomes more difficult, requiring the robot to perform
+greater exploration in the joint space.
+Figure 6a shows that when the robot (having a nominal
+body height of 27 cm when walking) climbs obstacles with
+a height of 40 cm, the task is done successfully using both
+methods. Both MPPI and MPOPI have a low cost, while
+MPOPI shows a high density near the lower cost range
+with more spread, reflecting greater variability in cost. When
+increasing the obstacle’s height (e.g., 45 cm), MPOPI shows
+a prominent, sharp peak near the lower cost range, indicating
+its ability to perform efficiently and consistently, even with
+increased task difficulty as shown in Fig. 6b. Meanwhile,
+MPPI exhibits a broader and flatter distribution, with more
+mass spread across higher cost values, suggesting reduced efficiency and increased variability in performance. Ultimately,
+MPPI was unable to complete the task successfully.
+
+(b) Climbing a box when its height is 45 cm.
+
+Fig. 6: The cost distribution of MPOPI and MPPI in the third
+scenario: climbing a box. MPPI’s distribution flattens with
+the taller box. In contrast, MPOPI maintains a sharp peak in
+both situations.
+
+C. Pushing a box
+In this scenario, the controllers are evaluated based on
+their whole-body contact planning capabilities for pushing
+a box from a predefined initial position to a final position
+(i.e., locomanipulation tasks). Note that the tests focus on
+the position of the box along the trajectory (and not on its
+orientation). During the tests, the box size was constrained
+to a size of 0.36m × 0.36m × 0.36m with a mass of 3.5
+kg. The box is initially positioned at 1m in front of the
+quadruped, and the task is to bring the position of the box
+within 0.2 m of the goal waypoints at any time. The robot
+
+MPPI
+
+Box’s goal
+position
+
+Box’s goal
+position
+Robot
+
+Box
+
+b) Final box position when
+pushing using MPPI.
+
+Robot’s initial
+position
+
+MPOPI
+
+a) Initial box position before
+pushing.
+
+Box’s goal
+position
+
+c) Final box position when
+pushing using MPOPI.
+
+Robot’s initial
+position
+
+Fig. 7: Comparison of MPPI and MPOPI methods for
+pushing a box.
+Fig. 9: Trajectories of the robot and the box toward a far
+target position in the XY-plane.
+Robot’s initial
+position
+Box’s goal
+position
+
+Robot’s initial
+position
+Box’s goal
+position
+
+Fig. 8: Trajectories of the robot and the box in the XY-plane.
+
+is requested to push the targeted box with its frontal face
+following a sequence of two 2D waypoint positions, i.e., the
+robot is allowed to push the box at any point on the box’s
+faces. When the initial position of the robot and the two
+desired waypoints of the box define a linear trajectory (i.e.,
+pushing the box forward), both MPPI and MPOPI controllers
+achieve a smooth linear trajectory and achieve the goal. Both
+controllers show small trajectory errors.
+However, pushing the box along a 3-point trajectory that
+does not define a rectilinear path presents more challenges,
+resulting in different performance between the MPPI and
+the MPOPI controllers as shown in Fig. 7. Also, Fig. 8
+demonstrates that MPOPI enables smoother and more direct
+trajectories for both the robot and the box, resulting in the
+box reaching its goal with greater accuracy. In contrast,
+MPPI exhibits a slightly irregular trajectory, particularly in
+
+the final stage, where the box deviates from reaching the
+final goal destination. Additionally, the robot’s path under
+MPPI shows greater lateral oscillation, suggesting less efficient coordination between the robot’s motion and the box’s
+trajectory. These results indicate that updating the mean and
+the covariance of samples enables better adaptation of the
+sampling distribution, leading to improved motion control
+performance in complex, directionally coupled tasks.
+In another test, the goal for the box was set at (2, 2),
+which is farther away compared to the previous test. Figure
+9 illustrates the X–Y trajectories of the robot and the box
+for both controllers. In the MPOPI case (top), the robot
+successfully pushed the box to the target location, closely
+following a direct path with minimal deviation. In contrast,
+MPPI (bottom) was unable to reach the target, with both the
+robot and the box deviating significantly from the desired
+trajectory. This demonstrates MPOPI’s superior ability to
+maintain task accuracy over longer distances compared to
+MPPI.
+V. MPOPI KEY PARAMETERS
+Based on the simulation results, the MPOPI controller
+delivers superior performance in locomotion and locomanipulation tasks. Overall, the method performs the best in
+complex environments where robots require greater exploration in the joint space to identify a viable path. However,
+two key parameters in the MPOPI controller (Algorithm
+4) have been observed to significantly influence its performance: i) the number of cycles performed to update the mean
+and the covariance (denoted as L), and ii) the covariance
+matrix updating process during optimization.
+A. Number of loops (L)
+To determine the best set of parameters, diverse methodologies can be used, including running diverse tests from
+
+Fig. 10: Policy rollout costs for walking while changing L.
+Fig. 12: Policy rollout costs for stair climbing while changing
+L.
+
+0.45 m
+
+Fig. 11: Policy rollout costs for stair climbing while changing
+L.
+
+which the mean and standard deviations of each test can be
+computed. Figs 10 and 11 show examples for two illustrative
+scenarios for a total of 30 samples (N = 30): walking and
+stair climbing. Fig. 10 shows that increasing L does not affect
+the cost distribution, indicating that adjusting L for walking
+offers no benefit. However, for more complex tasks (typically
+requiring more exploration) such as stair climbing, having an
+L larger than one (L > 1) is preferred (Fig. 11).
+Figure 12 illustrates the effect of the number of loops
+L across different sample sizes (N = 30, 40, 50). These
+observations indicate that in different number of samples,
+larger than one cycle is preferred.
+B. Covariance matrix
+While MPPI uses a fixed initial covariance matrix Σ =
+λini I12 , where λini represents the standard deviation for each
+joint, MPOPI updates the covariance matrix Σ at each time
+step. This involves computing the eigenvalues and eigenvectors of Σ, applying a lower bound to the eigenvalues
+to ensure numerical stability, and reconstructing the updated
+covariance matrix using the bounded eigenvalues and their
+corresponding eigenvectors. To analyze the effect of updating Σ, an exploration magnitude is defined as the largest
+eigenvalue λ of the covariance matrix.
+Figure 13 shows how the exploration magnitude and the
+cost value change when the robot climbs a tall box. This
+
+Fig. 13: Exploration magnitude and cost distribution for
+climbing a big box.
+C
+
+task is very hard to achieve when MPPI is used, and the
+robot fails. However, MPOPI enables the robot to complete
+the task. As shown in Fig. 13, the task can be divided
+into three steps. In the first step, the robot walks from the
+A where the exploration magnitude is
+initial position to ⃝
+A - ⃝),
+B
+at a minimum. For the second step (⃝
+the robot
+starts climbing the box, stimulating an increased value of
+the exploration magnitude. Here, as the cost value decreases,
+the exploration magnitude remains large, enabling the robot
+C the exploration
+to adapt to the challenging task. At ⃝,
+magnitude stabilizes and decreases, suggesting the robot has
+found an effective policy and no longer requires significant
+variability in action sampling. This coordinated behavior
+across plots demonstrates the effectiveness of adaptive exploration in the MPOPI framework for complex motion planning
+tasks.
+VI. C ONCLUSIONS
+In this paper, we developed a locomotion controller based
+on MPOPI and applied it to several quadrupedal locomotion
+and loco-manipulation tasks. We conducted an extensive set
+of simulation experiments to compare the performance of
+MPOPI to other widely used sampling-based MPC techniques, i.e., MPPI. Our results show that MPOPI provides
+
+better performance across a number of performance indices,
+including tracking error, and provides lower costs when
+compared to the traditional MPPI for generating real-time
+whole-body motion plans. We showed that while MPOPI
+shows similar performance to MPPI when the number of
+loop iterations L of MPOPI is one, it outperforms MPPI
+when L > 1, resulting in a more versatile formulation for
+whole-body MPC for legged robots that can be applied to
+robots operating in complex unstructured environments or
+performing complex tasks where MPPI tends to fail. In the
+future, we plan to apply our developed locomotion control
+framework based on MPOPI on real hardware.
+R EFERENCES
+[1] P. M. Wensing, M. Posa, Y. Hu, A. Escande, N. Mansard, and
+A. Del Prete, “Optimization-based control for dynamic legged robots,”
+IEEE Transactions on Robotics, vol. 40, pp. 43–63, 2023.
+[2] S. Ha, J. Lee, M. van de Panne, Z. Xie, W. Yu, and M. Khadiv,
+“Learning-based legged locomotion: State of the art and future
+perspectives,” The International Journal of Robotics Research, p.
+02783649241312698, 2024.
+[3] M. Khadiv, A. Herzog, S. A. Moosavian, and L. Righetti, “Walking
+control based on step timing adaptation,” IEEE Transactions on
+Robotics, vol. 36, no. 3, pp. 629–643, 2020.
+[4] E. Daneshmand, M. Khadiv, F. Grimminger, and L. Righetti, “Variable
+horizon mpc with swing foot dynamics for bipedal walking control,”
+IEEE Robotics and Automation Letters, vol. 6, no. 2, pp. 2349–2356,
+2021.
+[5] I. Taouil, L. Amatucci, M. Khadiv, A. Dai, V. Barasuol, G. Turrisi,
+and C. Semini, “Non-gaited legged locomotion with monte-carlo
+tree search and supervised learning,” IEEE Robotics and Automation
+Letters, 2024.
+[6] R. Grandia, F. Jenelten, S. Yang, F. Farshidian, and M. Hutter,
+“Perceptive locomotion through nonlinear model predictive control,”
+IEEE Transactions on Robotics, 2023.
+[7] C. Mastalli, W. Merkt, G. Xin, J. Shim, M. Mistry, I. Havoutis,
+and S. Vijayakumar, “Agile maneuvers in legged robots: a predictive
+control approach,” IEEE Transactions on Robotics, 2023.
+[8] A. Meduri, P. Shah, J. Viereck, M. Khadiv, I. Havoutis, and L. Righetti,
+“Biconmp: A nonlinear model predictive control framework for whole
+body motion planning,” IEEE Transactions on Robotics, 2023.
+[9] H. Li and P. M. Wensing, “Cafe-mpc: A cascaded-fidelity model
+predictive control framework with tuning-free whole-body control,”
+IEEE Transactions on Robotics, 2024.
+[10] G. Kim, D. Kang, J.-H. Kim, S. Hong, and H.-W. Park, “Contactimplicit model predictive control: Controlling diverse quadruped motions without pre-planned contact modes or trajectories,” The International Journal of Robotics Research, vol. 44, no. 3, pp. 486–510,
+2025.
+[11] J. Carius, F. Farshidian, and M. Hutter, “Mpc-net: A first principles
+guided policy search,” IEEE Robotics and Automation Letters, vol. 5,
+no. 2, pp. 2897–2904, 2020.
+[12] J. Viereck, A. Meduri, and L. Righetti, “Valuenetqp: Learned one-step
+optimal control for legged locomotion,” in Learning for Dynamics and
+Control Conference. PMLR, 2022, pp. 931–942.
+[13] M. Khadiv, A. Meduri, H. Zhu, L. Righetti, and B. Schölkopf,
+“Learning locomotion skills from mpc in sensor space,” in Learning
+for Dynamics and Control Conference. PMLR, 2023.
+[14] X. Pua and M. Khadiv, “Safe learning of locomotion skills from
+mpc,” in 2024 IEEE-RAS 23rd International Conference on Humanoid
+Robots (Humanoids). IEEE, 2024, pp. 459–466.
+[15] M. Bogdanovic, M. Khadiv, and L. Righetti, “Model-free reinforcement learning for robust locomotion using demonstrations from trajectory optimization,” Frontiers in Robotics and AI, vol. 9, 2022.
+[16] T. Miki, J. Lee, J. Hwangbo, L. Wellhausen, V. Koltun, and M. Hutter,
+“Learning robust perceptive locomotion for quadrupedal robots in the
+wild,” Science Robotics, vol. 7, no. 62, p. eabk2822, 2022.
+[17] X. Cheng, K. Shi, A. Agarwal, and D. Pathak, “Extreme parkour with
+legged robots,” in 2024 IEEE International Conference on Robotics
+and Automation (ICRA). IEEE, 2024, pp. 11 443–11 450.
+
+[18] N. Rudin, D. Hoeller, P. Reist, and M. Hutter, “Learning to walk
+in minutes using massively parallel deep reinforcement learning,” in
+Conference on Robot Learning. PMLR, 2022, pp. 91–100.
+[19] V. Makoviychuk, L. Wawrzyniak, Y. Guo, M. Lu, K. Storey, M. Macklin, D. Hoeller, N. Rudin, A. Allshire, A. Handa, et al., “Isaac gym:
+High performance gpu-based physics simulation for robot learning,”
+arXiv preprint arXiv:2108.10470, 2021.
+[20] J. Hwangbo, J. Lee, A. Dosovitskiy, D. Bellicoso, V. Tsounis,
+V. Koltun, and M. Hutter, “Learning agile and dynamic motor skills
+for legged robots,” Science Robotics, vol. 4, no. 26, p. eaau5872, 2019.
+[21] C. Zhang, N. Rudin, D. Hoeller, and M. Hutter, “Learning agile locomotion on risky terrains,” in 2024 IEEE/RSJ International Conference
+on Intelligent Robots and Systems (IROS). IEEE, 2024, pp. 11 864–
+11 871.
+[22] V. Dhédin, A. K. C. Ravi, A. Jordana, H. Zhu, A. Meduri, L. Righetti,
+B. Schölkopf, and M. Khadiv, “Diffusion-based learning of contact
+plans for agile locomotion,” in 2024 IEEE-RAS 23rd International
+Conference on Humanoid Robots (Humanoids). IEEE, 2024, pp.
+637–644.
+[23] G. Williams, A. Aldrich, and E. A. Theodorou, “Model predictive
+path integral control: From theory to parallel computation,” Journal
+of Guidance, Control, and Dynamics, vol. 40, no. 2, pp. 344–357,
+2017.
+[24] N. Hansen, “The cma evolution strategy: A tutorial,” arXiv preprint
+arXiv:1604.00772, 2016.
+[25] P.-T. De Boer, D. P. Kroese, S. Mannor, and R. Y. Rubinstein, “A
+tutorial on the cross-entropy method,” Annals of operations research,
+vol. 134, no. 1, pp. 19–67, 2005.
+[26] T. Howell, N. Gileadi, S. Tunyasuvunakool, K. Zakka, T. Erez, and
+Y. Tassa, “Predictive sampling: Real-time behaviour synthesis with
+mujoco,” arXiv preprint arXiv:2212.00541, 2022.
+[27] H. Xue, C. Pan, Z. Yi, G. Qu, and G. Shi, “Full-order sampling-based
+mpc for torque-level locomotion control via diffusion-style annealing,”
+arXiv preprint arXiv:2409.15610, 2024.
+[28] J. Alvarez-Padilla, J. Z. Zhang, S. Kwok, J. M. Dolan, and Z. Manchester, “Real-time whole-body control of legged robots with modelpredictive path integral control,” arXiv preprint arXiv:2409.10469,
+2024, available at: https://arxiv.org/abs/2409.10469.
+[29] V. Kurtz and J. W. Burdick, “Generative predictive control: Flow
+matching policies for dynamic and difficult-to-demonstrate tasks,”
+arXiv preprint arXiv:2502.13406, 2025.
+[30] C. Pinneri, S. Sawant, S. Blaes, J. Achterhold, J. Stueckler, M. Rolinek,
+and G. Martius, “Sample-efficient cross-entropy method for real-time
+planning,” in Conference on Robot Learning. PMLR, 2021, pp. 1049–
+1065.
+[31] D. M. Asmar, R. Senanayake, S. Manuel, and M. J. Kochenderfer,
+“Model predictive optimized path integral strategies,” in 2023 IEEE
+International Conference on Robotics and Automation (ICRA). IEEE,
+2023, pp. 3182–3188.
+[32] E. Todorov, T. Erez, and Y. Tassa, “Mujoco: A physics engine for
+model-based control,” in 2012 IEEE/RSJ international conference on
+intelligent robots and systems. IEEE, 2012, pp. 5026–5033.
+
+

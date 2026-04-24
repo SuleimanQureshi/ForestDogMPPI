@@ -1,0 +1,1219 @@
+ETH Library
+
+Quadrupedal locomotion on
+uneven terrain with sensorized feet
+Journal Article
+Author(s):
+Valsecchi, Giorgio; Grandia, Ruben; Hutter, Marco
+Publication date:
+2020-04
+Permanent link:
+https://doi.org/https://doi.org/10.3929/ethz-b-000392778
+Rights / license:
+In Copyright - Non-Commercial Use Permitted
+Originally published in:
+IEEE Robotics and Automation Letters 5(2), https://doi.org/10.1109/LRA.2020.2969160
+Funding acknowledgement:
+- subTerranean Haptic INvestiGator ()
+
+This page was generated automatically upon download from the ETH Zurich Research Collection.
+For more information, please consult the Terms of use.
+
+IEEE ROBOTICS AND AUTOMATION LETTERS. PREPRINT VERSION. ACCEPTED JANUARY, 2020
+
+1
+
+Quadrupedal locomotion on uneven terrain with sensorized feet
+Giorgio Valsecchi1 , Ruben Grandia1 , Marco Hutter1
+
+Abstract—Sensing of the terrain shape is crucial for legged
+robots deployed in the real world since the knowledge of the local
+terrain inclination at the contact points allows for an optimized
+force distribution that minimizes the risk of slipping. In this
+paper, we present a reactive locomotion strategy for torque
+controllable quadruped robots based on sensorized feet. Since
+the present approach works without exteroceptive sensing, it is
+robust against degraded vision. Inertial and force/torque sensors
+implemented in specially designed feet with articulated passive
+ankle joints measure the local terrain inclination and interaction
+forces. The proposed controller exploits the contact null-space in
+order to minimize the tangential forces to prevent slippage even
+in case of extreme contact conditions. We experimentally tested
+the proposed method in laboratory experiments and validated
+the approach with the quadrupedal robot ANYmal.
+Index Terms—Mechanism Design; Legged Robots; Motion
+Control
+
+I. I NTRODUCTION
+
+L
+
+EGGED robots have superior potential to overcome
+rough terrain compared to wheeled or tracked systems
+as they can discretely select individual footholds. However,
+maintaining stable footholds and avoiding slippage are still
+major challenges, as they imply a good knowledge of the local
+interaction between the foot and the environment. In particular,
+in order to avoid slippage, the ground reaction forces at all
+contact points must remain within the friction cone. It is,
+therefore, necessary to estimate the local orientation of the
+ground in order to shape the ground reaction force distribution
+appropriately.
+Additionally, depending on the number of feet in contact,
+the amount of contact forces exceeds the number of floating
+base degrees of freedom to be controlled. This means that there
+is a null-space available that makes it possible to optimize for
+secondary objectives for the contact forces, such as minimizing
+torques, minimizing forces, or as done in this work, minimize
+the risk of slipping.
+Minimizing the risk of slipping is achieved by aligning
+ground reaction forces with local surface normal directions.
+This can be achieved by reactive strategies which rely on
+proprioception and approximations of the terrain or by proactive strategies which require knowledge of the environment
+[1], available a priori or acquired with adequate sensors.
+Manuscript received September, 10, 2019; Revised December, 12, 2019;
+Accepted January, 12, 2020.
+This paper was recommended for publication by Editor Paolo Rocco upon
+evaluation of the Associate Editor and Reviewers’ comments. This work
+has been supported by the European Union’s Horizon 2020 research and
+innovation program under grant agreement No 780883. This work has been
+conducted as part of ANYmal Research, a community to advance legged
+robotics.
+1 All the authors are with the Robotic Systems Laboratory,
+ETH Zurich, Zurich 8092, Switzerland vgiorgio@ethz.ch
+
+rgrandia@ethz.ch mahutter@ethz.ch
+Digital Object Identifier (DOI): see top of this page.
+
+Simple reactive approaches can only redistribute the ground
+reaction force among the existing contacts, according to their
+knowledge of the ground shape, while proactive approaches
+have the option of planning the footholds to exploit the features
+of the terrain better. However, in real-world situations, the
+sensing capabilities of the robot might be impaired, and it
+is not always possible to build an adequate 3D model of the
+terrain. A multitude of reasons can impose such limitations:
+partially flooded terrains, environments with dust, fog, and
+smoke, vegetation occluding the field of view, mud, failing
+vision sensors. Similar conditions can be found in underground
+tunnels, mines, collapsed or burning buildings, forests, scenarios where is highly desirable to deploy robots. Moreover, even
+if it is possible to know the terrain geometry before stepping,
+the ground might shift, or small measurement inaccuracies can
+cause the real foothold to be different from the planned.
+This work focuses on improving robot locomotion in the
+scenarios mentioned above. The approach has been implemented utilizing specially designed passive adaptive sensorized feet and a hierarchical whole-body control algorithm
+that optimizes the contact force distribution on the legged
+robotic platform ANYmal. The additional information provided by the feet allows the reactive strategy to achieve a
+better distribution of the ground reaction forces.
+A. Related work
+Sensorized feet have been developed before in robotics,
+serving different purposes in quadrupeds and bipeds. Most
+biped robots use feet with actuated dorsiflexion/plantarflexion
+and inversion/eversion (necessary for static stability) as the
+Honda ASIMO robot [2], Lola [3], KHR-3 [4] and WALKMAN [5] equipped with 6-axes force/torque transducers.
+Quadruped robots on the other hand typically have ball-shaped
+feet without sensors [6] [7] [8] [9], while extended and adaptive feet with articulated ankles are less common [10] [11].
+Sensorized feet for quadruped have also been experimented,
+based on different sensing principles, such as strain gauge
+force sensor [12], sensitive skin [13] [14] [15], optical force
+sensors [16] and vibrissae [17].
+For quadruped robots, the terrain shape sensing, necessary
+to minimize the risk of slipping, has been addressed both with
+reactive and proactive strategies. [18], [19] and [20] assumed
+complete knowledge of the environment to have quadruped
+robots walking over constant slopes or steep grooves. Surface
+normal estimation by fitting planes over contact points has
+been used in [21], [22] and [8]. [16] used additional sensor
+located in the foot to estimate local normal vectors. [23] and
+[24] used external motion capture and high-resolution scans
+of the terrain. Online exteroceptive range sensor are used in
+[25]. [26] proposed a more extended approach, which mixes
+
+2
+
+IEEE ROBOTICS AND AUTOMATION LETTERS. PREPRINT VERSION. ACCEPTED JANUARY, 2020
+
+reactive and proactive strategies while taking into account the
+degradation of visual feedback.
+B. Contribution
+We present a novel sensorized foot characterized by an
+articulated passive ankle with 2 degrees of freedom, sixaxis force/torque sensors and IMUs, integrated into a robust
+modular unit interfaceable with ANYmal. We propose an
+algorithm for estimating the foot pose using the data from
+the integrated IMUs. We present an integration of the tactile
+feedback in the hierarchical whole-body control approach from
+[27], with the capability of optimizing the ground reaction
+force. The utilization of the sensed local surface normals is
+two-fold: 1) the friction cone is aligned with the local surface
+to put a hard constraint on the contact force direction, and
+2) the risk of slippage is minimized in the null-space of
+the motion control tasks. We tested the improved sensing
+capabilities of ANYmal. We performed the validation of the
+proposed controller through experiments on selected terrains.
+Field tests have been conducted to establish the effect on the
+locomotion of the proposed approach.
+II. M ETHOD
+A. sensorized foot
+
+(a) Side view
+
+(b) Bottom view
+
+Fig. 1: Side and bottom views of the newly developed foot.
+
+Fig. 2: Sub-assemblies of the foot
+We designed sensor-equipped, adaptive feet to enhance
+locomotion on rough and slippery terrains while measuring
+local ground inclination and superficial properties. Similarly
+
+to ANYmal, the feet have to be sufficiently robust to operate
+continuously in a challenging environment while while bearing
+a load of 200 N (determined from data acquired on the ANYmal). The design consists of a large flat contact surface that
+can comply to the local ground inclination without interfering
+with the kinematics of the leg.
+We considered a possible inclination of the terrain of up
+to 25°. The range of motion (ROM) for ground compliance
+is set to 50° for the pitch- and 30° for the roll axis. Since
+each leg only allows for hip abduction/adduction, hip flexion/extension, and knee flexion/extension, the foot compliance
+around yaw prevents slipping while turning. With a weight of
+314 g (including cabling and connectors), it is lighter than the
+original point foot. Fig.2 illustrates the sub-assemblies of the
+foot, which the following paragraphs describe in details.
+1) Foot sole: The sole has a surface area of 60 cm2 (100 mm
+x 60 mm) and is made from an off-road rubber tire featuring
+5 mm studs for increased traction (Fig.1b). The sole is connected to a metal rim by clamping, which avoids peeling and
+gluing issues. A damping foam placed between the rubber sole
+and the metal structure reduces the peak loads resulting from
+impact forces during walking. An acetal slider avoids the foot
+getting stuck on overhanging edges and retains the metal rim.
+2) Pivot joint: The pivot joint features a lightweight, universal joint with integrated end stops to provide the required
+ground compliance. An Ester Polyurethane rubber tube of
+Shore A70 surrounds the universal joint, providing the retaining force to reset the foot to its initial position after a
+deflection.
+3) Force sensor: A custom, in-house developed 6-axis
+force/torque sensor1 is placed above the pivot joint to measure
+the forces acting on the foot. It consists of a force sensing
+element with strain gauges. The sensor is lightweight and
+robust and allows sensing up to 1000 N along the z-axis and
+400 N along the x and y-axis. The maximum torque the sensor
+can sense is as 10 Nm. The accuracy lies within 1.5% of the
+measured value, while the repeatability lies below 0.05%. The
+sensor is temperature compensated to minimize drift during
+operation.
+4) Custom electronics: The electronics of the foot consists of
+two IMUs (MPU-9250), a force sensor and a microcontroller
+board. One IMU is located in the sole, while the PCB in
+the shank includes the second. Serial peripheral interface
+bus (SPI) connects both the IMUs and the force sensor to
+the microcontroller. The IMUs are read out at 1 kHz, while
+force measurements have an update frequency of 400 Hz. The
+microcontroller board is connected to the robot via EtherCAT
+and powered through the auxiliary 12 V power line. The
+custom 6-axis force/torque features a PCB with analog-todigital converters (ADCs) and a microcontroller that processes
+the analog signals of the strain gauges. The high-level side
+records sensor data at 400 Hz.
+5) Shank: The carbon fiber shank connects the foot to the
+knee of the robot. The shank is sealed and features a conical
+slider for protection of the force sensor.
+1 https://www.botasystems.com/
+
+VALSECCHI et al.: QUADRUPEDAL LOCOMOTION ON UNEVEN TERRAIN WITH SENSORIZED FEET
+
+6) Sealing: The joint is protected by thick bellows (visible
+in Fig.1a), mechanically clamped to the structure and sealed,
+which improves the ingress protection rating compared to
+previous work. O-rings and silicone seal all the matching
+surfaces. Water-proof cable glands and connector protect the
+cables.
+
+3
+
+estimate of the foot orientation is used to rotate the measured
+acceleration F â, to the estimated world frame W 0 â. The
+rotational difference between this measured acceleration and
+the gravity vector [0, 0, 1]T is given by the quaternion ∆qacc .
+The correction quaternion is computed as a spherical linear
+interpolation (SLERP) between ∆qacc and qI = [1, 0, 0, 0]T
+with interpolation coefficient αa
+
+B. Foot pose estimation
+
+∆qcorr = SLERP(qI , ∆qacc ; αa )
+
+The joint angles of the pivot joint shown in Fig. 2 are not
+directly measured. To estimate the orientation of the foot,
+measurements of the IMU in the foot sole are fused with
+ANYmal’s state estimation [28]. The state estimation of the
+robot base relies on points that are stationary w.r.t. the world
+frame. This would normally be the contact location of a pointfoot, but in our case to rotational center of the ankle joint is
+used. This makes the estimated state of the rest of the robot
+independent of the estimated foot pose.
+The relevant reference frames for the foot pose estimation
+algorithm are shown in Fig. 3. The body-fixed shank frame S,
+ankle frame A, and foot frame F are separated by consecutive
+rotations around the y-axis and x-axis. The world frame W is
+the world frame estimated by ANYmal’s state estimation, and
+the frame W 0 has a relative rotation around the z-axis. The
+goal of the foot pose estimation algorithm shown in Fig. 4
+is to estimate the foot pose in the world frame parameterized
+by the unit quaternion qW F from IMU angular velocity and
+acceleration measurements {F ω̂ W 0 F , F â} and the estimated
+shank orientation qSW .
+
+(2)
+
+Due to the fundamentally different nature of the swing
+and contact phase, we use two sets of parameters, shown in
+Table I. During the stance phase, the gyro bias is estimated,
+and the estimation relies mostly on acceleration measurements.
+During the swing phase, the acceleration measurements are
+less informative due to the motion of the feet, and the filter
+relies more on the integration of angular velocity.
+
+Fig. 4: Foot pose estimation block diagram consisting of a
+standard complementary filter and a drift compensation using
+the robot state and ankle kinematics.
+2) Drift correction: The drift of the foot orientation qF W 0
+with respect to the world frame used by the robot is expressed
+as
+qF W = qF W 0 ⊗ ∆qW 0 W ,
+(3)
+where ∆qW 0 W is a pure rotation around the z-axis.
+The kinematics of the ankle defined as
+qF W = qF A ⊗ qAS ⊗ qSW ,
+
+(4)
+
+are used to correct for the drift.
+Equating both expressions provides the constraint
+
+Fig. 3: The reference frames used in the foot pose estimation.
+The shank frame S, ankle A, and foot frame F are attached
+to the corresponding bodies. The frames W and W 0 are world
+frames with a relative yaw angle in between.
+1) Complementary filter: A complementary filter is used
+to estimate the roll and pitch of the foot in the world frame
+W 0 . First, the gyro bias is estimated by lowpass filtering the
+angular velocity measurements when the foot is in contact,
+k+1
+= (1 − αb )F bkω + αbF ω̂ W 0 F .
+F bω
+
+(1)
+
+Afterwards, the bias corrected angular velocity measurements
+are used to forward integrate the orientation estimate.
+Acceleration measurements are used if the magnitude is
+close to 1 g, i.e. |kF âk − 1| ≤ βa . The forward propagated
+
+qF A ⊗ qAS ⊗ qSW = qF W 0 ⊗ ∆qW 0 W
+
+(5)
+
+qx (φ) ⊗ qy (θ) ⊗ qSW = qF W 0 ⊗ qz (ψ),
+
+(6)
+
+where φ, θ, and ψ parameterize the pure roll, pitch, and
+yaw rotations. For non-singular orientations, the constraint
+consists of three independent equations and three unknowns.
+Solving the constraint symbolically results in two solutions
+{φ, θ, ψ}, neglecting additional full rotations. Typically, only
+one solution has ankle pitch and roll angles that are within
+kinematic limits. The corresponding yaw angle is then used
+to correct for the drift between the two world frames. When
+two solutions are within the kinematic limits, the drift is not
+corrected.
+C. Controller
+We use the motion optimization described in [29] to obtain
+desired torso and feet accelerations based on user commanded
+
+4
+
+IEEE ROBOTICS AND AUTOMATION LETTERS. PREPRINT VERSION. ACCEPTED JANUARY, 2020
+
+TABLE I: Foot pose estimation parameters in stance and swing
+phase.
+Parameters
+Angular velocity bias gain
+Acceleration correction SLERP coefficient
+Acceleration measurement threshold
+
+Symbol
+αb
+αa
+βa
+
+Stance
+0.001
+0.02
+0.1
+
+Swing
+0.0
+0.005
+0.1
+
+TABLE II: Prioritized tasks used in the hierarchical wholebody controller together with the task’s dimensionality and
+type (equality/inequality).
+Priority
+0
+
+1
+
+2
+
+Task
+Floating base equations of motion.
+Torque limits.
+Friction cone constraint.
+No motion at the contact points.
+Center of mass linear motion tracking.
+Base angular motion tracking.
+Swing leg position tracking.
+Contact force optimization.
+
+Dim.
+6
+12
+5nc
+3nc
+3
+3
+12 − 3nc
+3nc
+
+Type
+Eq.
+Ineq.
+Ineq.
+Eq.
+Eq.
+Eq.
+Eq.
+Eq.
+
+torso velocities and a desired gait pattern. Estimation of the
+contact state is described in [30], along with reactive measures
+when the desired and measured state differ. In short, a probabilistic algorithm fuses dynamic and kinematic information to
+classify a foot to be in contact, swing, or slip. When a leg is
+classified to be in swing, but a contact was desired, a vertical
+motion is initiated to establish contact. In case of a slip event,
+joint impedance gains are increased to stabilize the leg.
+In this work, we adapt the tracking controller to exploit
+the information about local ground inclination. We use the
+hierarchical whole-body control approach described in [27],
+which optimizes over generalized accelerations u̇ ∈ Rnu and
+λ ∈ R3nc , where nu is the number of generalized velocities,
+and nc is the number of contact points. Because of the low
+joint stiffness and small footprint of the foot compared to
+the full support polygon, each foot is modelled as a single
+contact point located at the center of rotation of the ankle joint.
+The list of prioritized tasks is given in Table II together with
+the amount and type of constraints they impose. The number
+of independent dimensions left after applying the physical
+constraints at priority 0, and motion tracking constraints at
+priority 1, has been extensively studied in [31].
+Internal forces, which do not influence the robot’s net
+acceleration, can be realized between contact points when the
+system is an overconstrained situation. While [31] outlines
+the mathematical details, we provide an intuitive explanation
+in the following paragraph.
+In full stance phase, twelve independent contact force
+directions exist (3 contact constraints per leg), with only six
+un-actuated base coordinates to control. There are, therefore,
+six dimensions left to optimize during the contact optimization
+in priority 2. With three, and two contact points, the remaining
+dimensionality reduces to three and one respectively. For a
+single and no contact points, there are no internal forces that
+can be created.
+The reference controller, referred to as standard controller,
+estimates a single terrain normal by fitting a plane through
+all available contact points. This estimated plane provides the
+surface normal for the friction cone constraint.
+
+For the Terrain aware controller presented in this work, the
+friction cone constraint and contact force optimization tasks
+are adapted to incorporate the information about local ground
+inclination. For the other tasks, we refer the reader to [27].
+From each estimated foot orientation, a surface normal, W ni ,
+and a tangential basis W Ti are extracted. The tangential basis,
+Ti = [ti,h , ti,l ], contains two unit vectors, where W ti,h is
+aligned with the heading of the torso. The contact forces
+corresponding to the i-th foot are denoted by W λi . In the
+following sections, the subscript indicating the world frame is
+dropped to simplify the notation.
+1) Friction cone constraint: The friction cone constraint is
+implemented as a friction pyramid, for each foot
+(±ti,h − µ ni )T λi ≤ 0,
+T
+
+(±ti,l − µ ni ) λi ≤ 0,
+−nTi λi ≤ −λmin ,
+
+(7)
+(8)
+(9)
+
+where µ is the friction coefficient, and λmin is a minimal
+contact force to avoid loss of contact. These parameters are
+set to 0.5 and 5 N respectively and remain fixed for all
+experiments. Note that due to the approximation of the cone
+as a√ pyramid, a ratio of tangential and normal forces up to
+0.5 2 is possible.
+2) Contact force optimization: On flat ground, the lowest
+priority task is typically used to either minimize torques or
+internal forces. Minimizing internal forces can be achieved by
+a contact force optimization task that minimizes the magnitude
+of the contact forces kλi k22 . On inclined surfaces, however,
+it becomes desirable to create internal forces such that the
+resulting contact forces are aligned with the local surface
+normal. To that end, we formulate the following optimization,
+nc
+X
+min
+kTTi λi k22 + γ 2 (nTi λi )2 ,
+(10)
+λ i=1
+where γ is a regularization parameter. Note that γ = 1.0
+retrieves the task that minimizes contact forces. Choosing
+γ = 0.0 leads to undesirable effects when the normal vectors
+of all feet are close to parallel in full stance configuration. In
+that case, the optimization problem in the last task becomes
+highly sensitive to small deviations in the surface normals,
+resulting in an unequal force distribution between the feet
+and an increased sensitivity to noise. Take the example of
+the robot standing on four feet on flat ground with vertical
+surface normal. If one foot has a minimal tilt angle, the optimal
+solution is to completely unload this leg while standing on
+the other three. Penalizing the force magnitude in normal
+direction regularizes these cases by promoting an equal force
+distribution between the legs.
+To fit the hierarchical whole-body control framework, the
+minimization in (10) is transcribed into an equality task,
+
+ T   
+Ti
+u̇
+03nc ×nu blockdiagonal
+= 0.
+(11)
+λ
+γnTi
+III. R ESULTS AND DISCUSSION
+A. Test setup
+ANYmal, a dog-sized quadrupedal robot, has been used as
+testing platform because it provides the torque controllability
+
+VALSECCHI et al.: QUADRUPEDAL LOCOMOTION ON UNEVEN TERRAIN WITH SENSORIZED FEET
+
+(a) Blocks
+
+(b) Adjustable V-shaped
+terrain
+
+(c) Concrete sewer tube
+
+(d) Large round stones
+
+5
+
+by green arrows. The plane interpolated on the contact points
+is represented as a shaded rectangle and its estimated normal,
+named ñ, is represented by the bright red small arrow. To
+better measure the difference between the actual terrain normal
+and those measured, the error angle αe is introduced, defined
+as the angle between the estimated normal and the actual one.
+The feet contact forces are named Fi , which in the analysis
+are decomposed in components perpendicular and tangential
+to the contact surface, respectively Fi⊥ and Fik . In Fig. 6.
+Red arrows represent the contact forces commanded by the
+controller, while blue arrows represent the forces measured
+by the sensorized feet.
+B. Sensorized foot sensing capabilities
+
+Fig. 5: Terrains used for testing.
+
+Fitting
+plane
+Sensorized
+foot
+
+20
+10
+0
+1
+
+2
+
+3
+
+4
+
+Fig. 7: Maximum error angles over different terrains. Terrains
+considered:block in pitch and roll directions (1 and 2), Vshaped terrain in pitch and roll direction (3 and 4).
+
+Fitting
+plane
+Sensorized
+foot
+
+α [°]
+
+60
+40
+20
+0
+0
+
+10
+
+20
+
+30
+
+40
+
+Time [s]
+
+Fig. 8: Surface angles measured by fitting plane and sensorized
+foot during changing pitch experiment.
+
+30
+
+α [°]
+
+[7] required by the controller presented in II-C. We validated
+the proposed system with a bottom-up approach: first, the
+sensing capabilities of the feet have been confirmed (III-B),
+then the performances of the terrain aware controller have been
+measured (III-C), and finally the effects on locomotion were
+evaluated (III-D). All the test were performed with a human
+operator giving velocity commands to the robot.
+Terrains and obstacles with pronounced differences between
+local and average inclination have been selected to highlight
+the sensing capabilities of the sensorized feet and the tangential force minimization of the controller. We evaluated
+the impact on locomotion performance with outdoor tests on
+terrains where slippage would occur easily in case of poor
+contact forces distribution. The complete selection of terrains
+consists in:
+• blocks with a height of 15 cm placed under the left feet,
+Fig.5a;
+• inclined wood planks, with adjustable slope, assembled
+in V shape, Fig.5b;
+• round concrete sewer tube, Fig.5c;
+• round large stones fixed to the ground, Fig.5d.
+
+αe [°]
+
+30
+
+20
+10
+16
+
+18
+
+20
+
+18
+
+20
+
+α [°]
+
+20
+15
+
+Left feet
+Right feet
+Fitting
+plane
+Ground
+truth
+
+10
+5
+16
+
+Time [s]
+
+(a) Standard controller
+
+(b) Terrain aware controller
+
+Fig. 6: 3D visualization of ANYmal. Surface normals are
+represented in green, desired contact forces in red, measured
+contact forces in blue and interpolated surface normal in bright
+red.
+Fig.6 consists of two visualizations of ANYmal, with representations of the vectors used in the following analysis. Surface normals measured by the sensorized feet, are represented
+
+Fig. 9: Surface inclinations measured by sensorized feet and
+fitting plane while walking over V shaped terrain. Front feet
+in top graph, hind feet in bottom graph.
+Fig.6 shows two visualizations of ANYmal standing over
+a V-shaped terrain, the qualitative difference between ni and
+ñ is visible in the representation. The graph in Fig. 7 gives
+a quantitative representation of the difference. The maximum
+error angles produced by the fitting plane and by the sensorized
+feet are shown, respectively in blue and red. The terrains
+considered for this test consist of the blocks in pitch and
+
+IEEE ROBOTICS AND AUTOMATION LETTERS. PREPRINT VERSION. ACCEPTED JANUARY, 2020
+
+sensitivity to noise in the normal estimate, as discussed in
+Section II-C.
+Standard
+controller
+Terrain
+aware
+controller
+
+0.6
+
+|Fk |
+|F⊥ |
+
+roll configuration (1 and 2 in the graph) and V terrain with
+30°slope in roll and pitch (3 and 4). The difference is greater
+for terrain characterized by large local inclinations and where
+the feet are all at the same height. In such cases, the error
+angle for ñ almost coincide with the local inclination, while
+the sensorized foot can produce errors significantly smaller.
+The graph in Fig. 8 shows the surface inclination measured
+by the fitting plane and the sensorized foot during a quasi-static
+experiment, where we progressively increased the inclination
+of one of the side of the V terrain until slippage occurred.
+The sensorized foot is more sensitive to the changing inclination, while the fitting plane is only marginally affected. We
+performed the experiment using the terrain aware controller.
+Such angle would be otherwise infeasible with the standard
+controller as shown in III-C
+The graph in Fig. 9 shows the performance of the sensorized
+foot while trotting on the V terrain. The upper graph represents
+the front feet, while the bottom represents the hind ones. The
+absolute surface inclination is calculated using the normals
+from the complementary filter described in II-B. The ground
+truth inclinations, measured separately, are also plotted in the
+graph. According to the data, the normal estimation from
+the sensorized foot outperforms the fitting plane also while
+walking. A higher level of noise in the feet data is present,
+which can be attributed to impacts of the other feet during
+locomotion.
+
+0.4
+0.2
+0
+1
+
+2
+
+3
+
+4
+
+Fig. 11: Average tangential to perpendicular force ratio for the
+two control strategies. Terrains used: V-shaped terrain in pitch
+and roll direction (1 and 2), sewer tube (3) and large stones
+(4)
+
+1
+0.8
+
+|Fk |
+|F⊥ |
+
+6
+
+0.6
+0.4
+0.2
+0
+30
+
+40
+
+50
+
+60
+
+70
+
+Surface inclination [°]
+
+Fig. 12: Tangential to normal force ratio for for variable pitch
+experiment.
+
+200
+
+FLF
+⊥
+FLF
+k
+
+100
+0
+
+FLF [N]
+
+C. Tangential force optimization
+
+|Fk |
+|F⊥ |
+|F⊥ |
+|Fmax
+|
+⊥
+
+0.8
+0.6
+0.4
+0.2
+0
+0
+
+0.2
+
+0.4
+
+0.6
+
+0.8
+
+1
+
+γ
+
+Fig. 10: The average tangential to normal force ratio as a
+function of the regularization parameter γ in (10). Force ratios
+are measured for a fixed configuration with ANYmal standing
+on the V-shaped terrain. The error bars represent the maximum
+and minimum values across the feet.
+We investigated the effect of the regularization parameter
+γ in (10) on ANYmal standing on the V terrain with surface
+inclinations of 30 and 19 degrees. Fig. 10 summarizes the
+results of the test, where the ratio between measured tangential and normal forces is plotted for different values of
+γ. Additionally, the ratio between the normal forces and the
+maximum across the experiments is provided. As expected,
+the maximum normal forces occur for the smallest value of
+γ. The trade-off driven by γ is visible: for large values, the
+contact force magnitude is minimized at the expenses of more
+significant tangential components, while for a smaller value
+the tangential components are reduced by creating additional
+internal forces.
+A value of γ = 0.25 was selected for the rest of the
+experiments. Lower values do not significantly decrease the
+magnitude of tangential forces and start to show increased
+
+0
+
+1
+
+2
+
+3
+
+4
+
+200
+100
+0
+0
+
+2
+
+6
+
+4
+
+Time [s]
+
+Fig. 13: Normal and absolute tangential components of the
+contact forces while walking on V-shaped terrain terrain.
+Standard controller on top and terrain aware controller on
+bottom.
+
+F⊥ [N]
+
+1
+
+Standard
+controller
+Terrain
+aware
+controller
+Slippage
+
+300
+200
+100
+20
+
+40
+
+60
+
+80
+
+Fk [N]
+
+100
+
+120
+
+Standard
+controller
+quartiles
+Terain
+aware
+controller
+quartiles
+
+Fig. 14: Scatter plot of normal and tangential force components while walking on V-shaped terrain terrain.
+In Fig. 6, the qualitative difference between the standard and
+the terrain aware controller is evident. The contact forces, both
+the requested and the measured, are vertical for the standard
+controller and roughly aligned to the local ground normal
+for the terrain aware controller. Fig. 11 gives a quantitative
+counterpart. The graph shows the behavior of the tangential to
+normal force ratio during different experiments. We conducted
+these experiments in stationary conditions on the V-shaped
+terrain (pitch and roll direction, respectively 1 and 2 in the
+
+D. Effect on locomotion
+
+F⊥ [N]
+
+300
+200
+100
+
+50
+
+100
+
+150
+
+200
+
+Fk [N]
+
+Terain
+aware
+controller
+quartiles
+Standard
+controller
+quartiles
+
+F⊥ [N]
+
+Fig. 15: Scatter plot of forces while walking on large round
+stones.
+
+200
+
+100
+
+50
+
+100
+
+Fk [N]
+
+150
+
+Terain
+aware
+controller
+quartiles
+Standard
+controller
+quartiles
+
+7
+
+0.3
+0.2
+0.1
+14
+
+16
+
+18
+
+20
+
+22
+
+24
+
+y [m]
+
+1
+0.5
+
+26
+
+Standard
+controller
+Terain
+aware
+controller
+
+0
+0
+
+20
+
+40
+
+60
+
+Time [s]
+
+x [m]
+
+Fig. 17: LF foot y coordinate while walking inside concrete
+tube.
+3
+2
+1
+0
+
+z [m]
+
+plot), in the sewer tube (3) and in over the large stones
+(4). The black error bars show the maximum and minimum
+ratio measured. The experiments performed over different
+terrains confirm that the controller is effective in reducing the
+tangential component of the contact forces.
+The graph in Fig. 12 illustrates the tangential to normal
+contact force ratio for the same quasi-static experiment of
+Fig. 8. The experiment shows how the terrain aware controller
+always manage to maintain a lower ratio (for the same local
+inclination) and how this results in a higher maximum inclination before slippage, which occurs roughly at the same ratio.
+The asymmetry of the terrain explains the non-monotonous behavior and the local minimum occurs when opposing surfaces
+have exactly the same inclination.
+The graph in Fig. 13 shows the normal and absolute tangential component of the left foot contact force while walking over
+the V-shaped terrain with the standard and the terrain aware
+controller. The graphs show qualitatively that the proposed
+controller reduces the magnitude of the tangential component
+also when walking and not only in static conditions. The
+scatter plots in Fig. 14 gives a more complete picture of Fi⊥
+and Fik for the same experiment. The forces recorded during
+the experiment are represented as dots, while the dashed lines
+represent the quartiles of the distribution. In the scatter plot
+the number of points has been reduced for clarity. It is evident
+how the terrain aware controller moves the distribution towards
+lower tangential to normal ratio.
+
+y [m]
+
+VALSECCHI et al.: QUADRUPEDAL LOCOMOTION ON UNEVEN TERRAIN WITH SENSORIZED FEET
+
+0
+
+20
+
+0
+
+20
+
+40
+
+60
+
+40
+
+60
+
+1
+0.8
+0.6
+0.4
+0.2
+0
+
+Standard
+controller
+Terain
+aware
+controller
+Tube end
+
+Time [s]
+
+Fig. 18: LF foot x and z coordinates while walking inside
+concrete tube.
+(compared to the V-shaped terrain). Another effect is slippage
+which occurs with both controllers, however with different
+intensity, and interferes with the force distribution.
+Fig.17 show the behavior of the y coordinate of the left
+front foot while walking in the pipe. The top graph focuses on
+the short period dynamics: the standard controller introduces
+very evident spikes of 10 cm completely absent in the terrain
+aware controller. Slippage, clearly observed during the tests,
+explain the spikes. The foothold locations commanded by the
+controller are too steep. Immediately after touchdown, the foot
+slips toward the center of the pipe. The bottom graph shows
+the long period effect of slippage: after only 50 seconds, the
+time necessary to traverse the 3 m tube, the state estimator
+drifted over 0.5 m. The drift for the terrain aware controller
+instead is not visible from the graph. Fig.18 shows the behavior
+of the x (top) and z (bottom) coordinates. From the x plot,
+a slightly higher velocity can be attributed to the terrain
+aware controller which reaches the end of the tube before the
+standard controller. The z graph shows again a significant drift
+for the standard controller and a much more contained drift
+for the terrain aware controller.
+It can be concluded that even if the effect on the optimization of the tangential force is smaller than in the artificial test
+case with very defined geometry, the terrain aware controller
+has a positive effect on locomotion by reducing slippage and
+containing drift of the state estimator.
+
+Fig. 16: Scatter plot of forces while walking inside the tube.
+IV. C ONCLUSION
+Fig.15 and 16 show a scatter plots of the contact force while
+walking on the large stones of picture 5d and in the pipe
+of Fig. 5c. While the shift towards lower ratio observed in
+14 is confirmed, the effect is less significant than in the lab
+tests. This reduced effect is a prevalent result also for other
+terrains. One possible interpretation for this effect could be the
+shape of the terrain less suitable for producing internal forces
+
+In this paper, a sensorized foot design, capable of measuring
+the ground contact forces as well as the ground normal using
+force/torque and IMU sensors, was presented, together with a
+control strategy that leverages its capabilities by optimization
+of the contact forces. The experiments confirmed an improvement in the perception capabilities of ANYmal, which is now
+able to sense the inclination of the ground at the contact
+
+8
+
+IEEE ROBOTICS AND AUTOMATION LETTERS. PREPRINT VERSION. ACCEPTED JANUARY, 2020
+
+points and locally measure the ground reaction force. The
+additional information can be effectively used to minimize the
+tangential component of the contact forces, which result in a
+lower probability of slipping. The improved force distribution
+is particularly effective for terrains characterized by strong
+local inclination and low friction coefficient.
+While the results obtained so far are encouraging, the
+proposed approach could be further improved both on the
+hardware and on the software side. Replacing the IMUs with
+encoders could reduce the amount of noise introduced by
+impact and vibrations. A fusion of the information coming
+from the feet in the state estimation could lead to a more
+performant and reliable estimation of the contact state, with
+consequent benefits.
+ACKNOWLEDGMENT
+The authors want to thank Klajd Lika and Ilias Patsiaouras
+from Bota Systems as well as Markus Stäuble from ETH - RSL
+for their help in integrating the force/torque sensors into the
+feet.
+R EFERENCES
+[1] Jörg P. Müller. Control architectures for autonomous and interacting
+agents: A survey. In Lawrence Cavedon, Anand Rao, and Wayne
+Wobcke, editors, Intelligent Agent Systems Theoretical and Practical
+Issues, pages 1–26, Berlin, Heidelberg, 1997. Springer Berlin Heidelberg.
+[2] Masato Hirose and Kenichi Ogawa. Honda humanoid robots development. Philosophical Transactions of the Royal Society A: Mathematical,
+Physical and Engineering Sciences, 365(1850):11–19, 2007.
+[3] Thomas Buschmann, Sebastian Lohmeier, and Heinz Ulbrich. Humanoid
+robot lola: Design and walking control. Journal of Physiology-Paris,
+103(3):141 – 148, 2009. Neurorobotics.
+[4] Ill-Woo Park, Jung-Yup Kim, Jungho Lee, and Jun-Ho Oh. Mechanical
+design of humanoid robot platform khr-3 (kaist humanoid robot 3:
+Hubo). pages 321 – 326, 02 2005.
+[5] F. Negrello, M. Garabini, M. G. Catalano, P. Kryczka, W. Choi, D. G.
+Caldwell, A. Bicchi, and N. G. Tsagarakis. Walk-man humanoid lower
+body design optimization for enhanced physical performance. In 2016
+IEEE International Conference on Robotics and Automation (ICRA),
+pages 1817–1824, May 2016.
+[6] C. Semini, V. Barasuol, J. Goldsmith, M. Frigerio, M. Focchi, Y. Gao,
+and D. G. Caldwell. Design of the hydraulically actuated, torquecontrolled quadruped robot hyq2max. IEEE/ASME Transactions on
+Mechatronics, 22(2):635–646, April 2017.
+[7] M. Hutter, C. Gehring, A. Lauber, F. Gunther, C. D. Bellicoso,
+V. Tsounis, P. Fankhauser, R. Diethelm, S. Bachmann, M. Bloesch,
+H. Kolvenbach, M. Bjelonic, L. Isler, and K. Meyer. Anymal - toward
+legged robots for harsh environments. Advanced Robotics, 31(17):918–
+931, 2017.
+[8] Gerardo Bledt, Matthew J Powell, Benjamin Katz, Jared Di Carlo,
+Patrick Wensing, and Sangbae Kim. Mit cheetah 3: Design and control
+of a robust, dynamic quadruped robot. 10 2018.
+[9] B. Katz, J. D. Carlo, and S. Kim. Mini cheetah: A platform for
+pushing the limits of dynamic quadruped control. In 2019 International
+Conference on Robotics and Automation (ICRA), pages 6295–6301, May
+2019.
+[10] S. Hirose, K. Yoneda, and H. Tsukagoshi. Titan vii: quadruped walking
+and manipulating robot on a steep slope. In Proceedings of International
+Conference on Robotics and Automation, volume 1, pages 494–500
+vol.1, April 1997.
+[11] S. Abad, N. Herzig, S. M. H. Sadati, and T. Nanayakkara. Significance
+of the compliance of the joints on the dynamic slip resistance of a
+bioinspired hoof. IEEE Transactions on Robotics, pages 1–14, 2019.
+[12] Hector Montes, Samir Nabulsi, and Manuel A. Armada. Reliable, builtin, high-accuracy force sensing for legged robots. The International
+Journal of Robotics Research, 25(9):931–950, 2006.
+
+[13] K. Suwanratchatamanee, M. Matsumoto, and S. Hashimoto. Haptic sensing foot system for humanoid robot and ground recognition with one-leg
+balance. IEEE Transactions on Industrial Electronics, 58(8):3174–3186,
+Aug 2011.
+[14] J. Rogelio Guadarrama-Olvera, F. Bergner, E. Dean, and G. Cheng.
+Enhancing biped locomotion on unknown terrain using tactile feedback.
+In 2018 IEEE-RAS 18th International Conference on Humanoid Robots
+(Humanoids), pages 1–9, Nov 2018.
+[15] K. Fondahl, D. Kuehn, F. Beinersdorf, F. Bernhard, F. Grimminger,
+M. Schilling, T. Stark, and F. Kirchner. An adaptive sensor foot
+for a bipedal and quadrupedal robot. In 2012 4th IEEE RAS EMBS
+International Conference on Biomedical Robotics and Biomechatronics
+(BioRob), pages 270–275, June 2012.
+[16] L WAGNER, Péter Fankhauser, Michael Bloesch, and Marco Hutter.
+Foot contact estimation for legged robots in rough terrain: Proceedings
+of the 19th International Conference on CLAWAR 2016, pages 395–403.
+10 2016.
+[17] Shigeo Hirose, Souichi Inoue, and Kan Yoneda. The whisker sensor
+and the transmission of multiple sensor signals. Advanced Robotics,
+4(2):105–117, 1989.
+[18] Marco Hutter, Mark Hoepflinger, C Remy, and Roland Siegwart. Hybrid
+operational space control for compliant legged systems. 07 2012.
+[19] Michele Focchi, Andrea del Prete, Ioannis Havoutis, Darwin G. Featherstone, Roya nd Caldwell, and Claudio Semini. High-slope terrain
+locomotion for torque-controlled quadruped robots. Autonomous Robots,
+41(1):259–272, Jan 2017.
+[20] Ludovic Righetti et al. Optimal distribution of contact forces with
+inverse-dynamics control. The International Journal of Robotics Research, 32(3):280–298, 2013.
+[21] C. Gehring et al. Dynamic trotting on slopes for quadrupedal robots.
+In 2015 IEEE/RSJ International Conference on Intelligent Robots and
+Systems (IROS), pages 5129–5135, Sep. 2015.
+[22] C. Dario Bellicoso et al. Perception-less terrain adaptation through
+whole body control and hierarchical optimization. In 2016 IEEE-RAS
+16th International Conference on Humanoid Robots (Humanoids), pages
+558–564, Nov 2016.
+[23] Peter D. Neuhaus, Jerry Pratt, and Matthew Johnson. Comprehensive
+summary of the institute for human and machine cognition’s experience
+with littledog. I. J. Robotic Res., 30:216–235, 01 2011.
+[24] Matt Zucker et al. Optimization and learning for rough terrain legged
+locomotion. The International Journal of Robotics Research, 30(2):175–
+191, 2011.
+[25] Péter Fankhauser, Marko Bjelonic, Dario Bellicoso, Takahiro Miki, and
+Marco Hutter. Robust rough-terrain locomotion with a quadrupedal
+robot. 05 2018.
+[26] Michele Focchi, Romeo Orsolino, Marco Camurri, Victor Barasuol, Carlos Mastalli, Darwin Caldwell, and Claudio Semini. Heuristic Planning
+for Rough Terrain Locomotion in Presence of External Disturbances
+and Variable Perception Quality. 01 2018.
+[27] C. Dario Bellicoso, F. Jenelten, P. Fankhauser, C. Gehring, J. Hwangbo,
+and M. Hutter. Dynamic locomotion and whole-body control for
+quadrupedal robots. In 2017 IEEE/RSJ International Conference on
+Intelligent Robots and Systems (IROS), pages 3359–3365, Sep. 2017.
+[28] M. Bloesch et al. State estimation for legged robots on unstable
+and slippery terrain. In 2013 IEEE/RSJ International Conference on
+Intelligent Robots and Systems, pages 6058–6064, Nov 2013.
+[29] C Dario Bellicoso, Fabian Jenelten, Christian Gehring, and Marco
+Hutter. Dynamic locomotion through online nonlinear motion optimization for quadrupedal robots. IEEE Robotics and Automation Letters,
+3(3):2261–2268, 2018.
+[30] F. Jenelten et al. Dynamic locomotion on slippery ground. IEEE
+Robotics and Automation Letters, 4(4):4170–4176, 2019.
+[31] M Hutter, H Sommer, C Gehring, M. Hoepflinger, M Bloesch, and
+R Siegwart. Quadrupedal locomotion using hierarchical operational
+space control. The International Journal of Robotics Research (IJRR),
+33(8):1062–1077, may 2014.
+
+

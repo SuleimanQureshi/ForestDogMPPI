@@ -15,9 +15,9 @@ REPO = Path(__file__).resolve().parents[2]
 XML_PATH = REPO / "models" / "MJCF" / "go2" / "scene_test_box.xml"
 
 class MuJoCo_GO2_Model:
-    def __init__(self):
-        # Load the MuJoCo model
-        self.model = mj.MjModel.from_xml_path(str(XML_PATH))
+    def __init__(self, xml_path: Path | None = None):
+        path = xml_path if xml_path is not None else XML_PATH
+        self.model = mj.MjModel.from_xml_path(str(path))
         self.data = mj.MjData(self.model)
         self.viewer = None
         self.base_bid = mj.mj_name2id(self.model, mj.mjtObj.mjOBJ_BODY, "base_link")

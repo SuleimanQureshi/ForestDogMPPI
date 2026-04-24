@@ -1,0 +1,18 @@
+1. Fig. 1. The Unitree go2 quadruped in a British Columbia forest pointcloud
+reconstructed on MuJoCo
+Fig. 2. System architecture of the quadruped navigation framework.
+Fig. 3. Example frame from the MPPI-based local planner operating
+in a cluttered environment. The planner generates a smooth trajectory
+(cyan dashed line) toward the goal (green marker) while avoiding obstacles
+represented by the costmap heatmap. The green arrow denotes the desired
+velocity from MPPI, the red arrow shows the robot’s actual velocity, and
+the black arrow indicates the current heading. The planner commands an
+angular velocity of 0.29 rad/s, while the measured yaw rate is 0.06 rad/s
+
+TABLE I
+COMPLETE MPPI CRITIC FORMULATION
+TABLE II
+RESULTS ACROSS FIVE BRITISH COLUMBIA LIDAR-DERIVED TERRAIN
+ENVIRONMENTS.[19]
+TABLE III
+ABLATION STUDY RESULTS: 5M TRAVERSAL OVER UNEVEN TERRAIN

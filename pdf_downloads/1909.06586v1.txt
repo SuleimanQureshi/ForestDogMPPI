@@ -1,0 +1,1029 @@
+Highly Dynamic Quadruped Locomotion via
+Whole-Body Impulse Control and Model Predictive Control
+
+arXiv:1909.06586v1 [cs.RO] 14 Sep 2019
+
+Donghyun Kim1 , Jared Di Carlo2 , Benjamin Katz1 , Gerardo Bledt1 , and Sangbae Kim1
+Abstract— Dynamic legged locomotion is a challenging topic
+because of the lack of established control schemes which can
+handle aerial phases, short stance times, and high-speed leg
+swings. In this paper, we propose a controller combining wholebody control (WBC) and model predictive control (MPC). In
+our framework, MPC finds an optimal reaction force profile
+over a longer time horizon with a simple model, and WBC
+computes joint torque, position, and velocity commands based
+on the reaction forces computed from MPC. Unlike existing
+WBCs, which attempt to track commanded body trajectories,
+our controller is focused more on the reaction force command,
+which allows it to accomplish high speed dynamic locomotion
+with aerial phases. The newly devised WBC is integrated
+with MPC and tested on the Mini-Cheetah quadruped robot.
+To demonstrate the robustness and versatility, the controller
+is tested on six different gaits in a number of different
+environments, including outdoors and on a treadmill, reaching
+a top speed of 3.7 m/s.
+
+I. I NTRODUCTION
+To fully exploit the hardware capability of legged systems,
+we need a controller that can address the challenging issues
+related to dynamic locomotion, such as body control during
+short stance periods, aerial phases, and high speed swing leg
+motion control. Several successful cases for both running
+bipeds [1], [2] and quadrupeds [3] have been presented, but
+they are either difficult to scale up to high degree-of-freedom
+systems [1] or heavily rely on specific system dynamics [2]
+or are undocumented [3]. Whole-body control (WBC) is a
+strong candidate as a dynamic motion controller because of
+its dynamically consistent formulation and general framework, which makes it easy to extend to various systems and
+tasks. However, existing WBCs focus on how to follow the
+given trajectory by manipulating contact forces, which makes
+it nontrivial to address motion involving frequent non-contact
+phases such as high speed running.
+To tackle the issue, we formulate WBC to follow both
+the reaction force and body trajectory commands. The idea
+of reaction force tracking originates from the impulse planning used in Cheetah 2 [4], which demonstrates successful
+dynamic bounding and jumping. The underlying idea of [4]
+is to plan reaction forces, which are impulses, rather than
+CoM trajectory, which is not practical to follow when the
+locomotion is extremely dynamic and has significant periods
+of under-actuation. In this paper, we embrace the impulse
+planning idea in WBC and formulate whole-body impulse
+Authors are with the 1 Department of Mechanical Engineering at the
+Massachusetts Institute of Technology, and the 2 Department of Electrical Engineering and Computer Science at the Massachusetts Institute
+of Technology, Cambridge, MA, 02139, USA. Corresponding Author:
+
+robot.dhkim@gmail.com
+
+Actual robot (Mini-Cheetah)
+WBC (0.5kHz)
+
+MPC (0.04kHz)
+
+Full body dynamics
+
+Simplified model
+Fig. 1. Control Architecture. The proposed control architecture consists
+of two parts: Model predictive control and whole-body control. The reaction
+forces computed by MPC are modified by WBC to incorporate body
+stabilization and swing leg control. The final commands found in WBC
+are sent to the robot to perform dynamic locomotion.
+
+control (WBIC) that can incorporate both body posture stabilization and reaction force execution. In terms of formulation,
+WBIC is not significantly different from the existing wholebody controllers [5]–[7], but the additional feature, which is
+an incorporation of pre-computed reaction forces by relaxing
+the floating base control, plays an important role in dynamic
+locomotion control. In our formulation, the WBIC is mostly
+used to track the ground reaction force profile rather than a
+body trajectory.
+To find the reaction force command, we utilize model
+predictive control (MPC). In our previous work, we demonstrated that convex MPC can perform various dynamic gaits
+at high speed on both Cheetah 3 [8] and Mini-Cheetah [9].
+Utilization of MPC enhances the versatility of locomotion,
+enabling us to switch between various gaits by simply
+changing the contact sequence. However, using MPC with
+a simple model has a fundamental limitation in position
+control because of its low update frequency (40 Hz in our
+implementations) and model simplifications. WBC provides
+a solution to the MPC’s limitation by running a highfrequency feedback loop while still accounting for full-body
+dynamics with contact.
+On the other hand, the prediction horizon of MPC compliments the WBC perfectly to fill in the WBC’s limitation that it cannot consider more than a single time step
+ahead. This limited time horizon issue has been addressed
+in [10], [11] which developed an MPC formulation using
+full-body dynamics. However, even their highly optimized
+solvers barely fit into a 200 Hz update frequency and the
+
+User input
+
+Model predictive control
+(Gait scheduler/Step planner)
+
+Gait type
+Speed cmd
+Direction cmd
+Body state (
+
+State Estimatior
+[ 0.5 kHz ]
+
+[ 0.04 kHz ]
+
+)
+
+Robot Kinematic/
+Dynamic Model
+[ 0.5 kHz ]
+Foot position
+
+Whole-body impulse control
+
+Command
+State info.
+
+[ 0.5 kHz ]
+
+Contact states
+Reaction force
+Foot pos cmd
+Body pos cmd
+
+Joint-level control
+[ 40 kHz ]
++
++
+PD
+
++
+Robot state
+
+-
+
+Robot
+
+Joint position, velocity (encoder)
+Angular velocity, linear acceleration (IMU)
+
+Fig. 2. Overall Control Framework. Using the user commanded gait type, speed, and direction from the RC-controller, the MPC computes desired
+reaction forces and foot/body position commands. From these, WBC computes joint torque, position, and velocity commands that are delivered to the each
+joint-level controller. Each component’s update frequency is represented by the color of its box.
+
+demonstrated results are not very dynamic compared to other
+controllers presented on the same robots. We believe that
+effective integration of MPC and WBC has a fundamental
+benefit over long-time horizon WBC. Moreover, by utilizing
+convex optimization, our implementation is not only fast,
+but also reliable because the solver does not get stuck in a
+strange local minimum.
+To integrate the MPC with the WBC, we modified our
+previous WBC formulation [5] to be compatible with the
+MPC and to handle dynamic locomotion with aerial phases.
+However, the novelty of our work does not come from
+the integration of two methods, MPC and WBC, since the
+incorporation of WBC with a high-level trajectory generator
+such as a motion optimizer [12], locomotion planner [13],
+[14], or MPC [15] is an established control framework.
+Our contribution lies in the method of how we utilize
+the results of MPC in the WBC. In our formulation, we
+use reaction forces computed by MPC as desired reaction
+forces in our WBC rather than attempting to track body
+trajectories computed by MPC. This is different from [15]
+that forces the robot to follow the CoM trajectory found by
+MPC and uses the reaction forces found by MPC only for
+regulating internal forces. However, attempting to track a
+CoM trajectory with a WBC will not be effective for gaits
+like galloping, where the CoM is never controllable. Our
+WBIC controls the body posture and swing foot but with a
+relaxation variable that allows the floating base movement
+to be different from the commanded trajectory. By doing so,
+WBC can perform behaviors with uncontrollable center of
+mass (CoM), movement such as jumping or bounding, by
+controlling the reaction forces found by MPC.
+Integrating WBC and MPC makes our controller versatile
+and robust. Versatile means that, in our controller, changing
+behavior or adding more tasks (e.g. manipulation if there
+are additional limbs) can be done by simply re-configuring
+the desired motions. For example, selecting different gaits
+can be done by changing the footstep pattern and timing in our formulation, and the low-level details such as
+swing foot control and body stabilization are automatically
+accomplished by our control scheme. Our controller will
+automatically handle gaits with significant flight periods,
+such as hopping, pronking, or bounding, without the need for
+
+manually planning around periods of flight or underactuation.
+“Robust” means that our controller is reliable enough to
+maintain the robot’s balance while executing a locomotion
+command, even in the presence of large disturbances. More
+importantly, the proposed method can be implemented and
+demonstrates highly dynamic locomotion in a real robot.
+In our experiments with the Mini-Cheetah robot, we accomplished a 3.7 m/s running speed, corresponding to a
+Froude number of 4.65. Most documented legged robots’
+Froude numbers are smaller than 2 [2], [16], except Cheetah
+2 demonstrated 6.4m/s bounding (Froude number 7.1) [4].
+To the best of our knowledge, our results demonstrate some
+of the most agile locomotion of any quadruped robot.
+Additionally, in order to successfully implement the algorithm on hardware, we developed an efficient dynamics
+engine including rotor dynamics [17] and linear algebra
+optimizations through template formatting. These techniques
+enable the MPC to run at 30 Hz and WBIC to run at 500 Hz
+on the low power computer installed in the Mini-Cheetah
+robot. In summary, the major contributions of this paper
+are two folds: 1) developing a versatile and robust control
+scheme for highly dynamic locomotion of quadruped robots,
+and 2) demonstrating high speed running and various gaits
+in real hardware, on the Mini-Cheetah robot.
+II. H YBRID C ONTROL A RCHITECTURE
+The key idea of our method is to reduce complexity by
+separating locomotion control into two simpler controllers.
+This first controller finds optimal reaction force profiles along
+a one full gait cycle of locomotion using an MPC with the
+following simple lumped mass model:
+
+mp̈ =
+
+nc
+X
+
+fi − cg ,
+
+(1)
+
+i=1
+nc
+X
+d
+(Iω) =
+ri × fi ,
+dt
+i=1
+
+(2)
+
+where p, fi , and cg are three dimensional vectors representing the robot’s position, reaction force, and gravitational
+acceleration with respect to the global frame. m is the robot’s
+body mass and nc is the number of contacts. I ∈ R3×3 is
+
+the rotational inertia tensor and ω is the angular velocity of
+the body. ri is the position of i-th contact point with respect
+to the CoM of the robot, which is equivalent to the moment
+arm of the contact force.
+In the second process, we use WBIC to achieve high
+bandwidth control through the use of full-body dynamics
+and high frequency feedback control. This better dynamics
+model will determine more accurate torque commands than
+the lumped mass model. The multi-body dynamics can be
+written as
+ 
+ 
+q̈f
+06
+A
++b+g =
++ Jc> fr ,
+(3)
+q̈j
+τ
+where A, b, g, τ , fr , and Jc are the generalized mass matrix,
+Coriolis force, gravitation force, joint torque, augmented
+reaction force and contact Jacobian, respectively. q̈f ∈ R6
+is the acceleration of the floating base and q̈j ∈ Rnj is
+the vector of joint accelerations, where nj is the number of
+joints. We use 06 to represent a 6 dimensional zero vector
+and 0n to represent a n-dimensional zero vector in this paper.
+Our hybrid control scheme combining these two controllers is described in Fig. 2. Beside MPC and WBIC,
+we use a Kalman Filter-based state estimator to compute
+global body position and velocity based on kinematics and
+acceleration data. We also developed a custom dynamics
+engine that efficiently includes the effects of rotor dynamics
+on the mass matrix and Coriolis vector. Although the the
+state estimator and dynamics engine contributed significantly
+to the locomotion performance, we will not explain them in
+detail since they are out of the scope of this paper.
+III. M ODEL P REDICTIVE C ONTROL
+The objective of our MPC to find reaction forces which
+make the lumped mass follow the given trajectory. In the
+optimization process of the MPC, a contact sequence is
+predefined by the gait scheduler and step planner. This keeps
+the formulation convex, meaining the optimization problem
+is both fast to solve and can be always solved to a unique
+global minimum. This is not always obtainable in nonlinear
+optimization.
+
+are the inertia tensor seen from the global and local (body)
+frame, respectively.
+The second assumption we made is that states are close
+to the commanded trajectory. Based on this assumption, we
+create a time-varying linearization of the dynamics using
+commanded ψ in a rotational matrix, Rz (ψ), and set the
+moment arm in Eq. (2) with the predetermined one from
+the commanded trajectory and step locations. The last assumption is that the pitch and roll velocities are small and
+off-diagonal terms of the inertia tensor are also small. With
+the assumption, we approximate Eq. (2) with the following:
+d
+(Iω) = I ω̇ + ω × (Iω) ≈ I ω̇.
+dt
+
+With the above three simplifications, the discrete dynamics
+of the system can be expressed as
+x(k + 1) = Ak x(k) + Bk f̂ (k) + ĝ,
+
+(7)
+
+
+>
+x = Θ> p> ω > ṗ> ,
+
+>
+f̂ = f1 · · · fn ,
+
+>
+ĝ = 01×3 01×3 01×3 g> ,
+
+(8)
+
+
+
+13×3 03×3 Rz (ψk )∆t
+03×3
+0
+03×3
+13×3 ∆t
+ 3×3 13×3
+
+A=
+,
+03×3 03×3
+13×3
+03×3 
+03×3 03×3
+03×3
+13×3
+
+
+03×3
+···
+03×3
+
+
+03×3
+···
+03×3
+
+
+B =  −1
+.
+G I [r1 ]× ∆t · · · G I −1 [rn ]× ∆t
+13×3 ∆t/m · · ·
+13×3 ∆t/m
+
+(9)
+
+where,
+
+We use the formulation described in [8] to construct a QP
+which minimizes
+
+A. MPC Formulation
+Even the simple lumped mass model is not completely
+linear due to the cross product term for the moment arm
+and the orientation dynamics. To accomplish a convex MPC
+formulation, we applied three simplifications [8]. The first
+assumption is that the roll and pitch angles are small.
+Based on this assumption, we can simplify the coordinate
+transformation as follows.
+Θ̇ ≈ Rz (ψ)ω,
+
+(4)
+>
+
+(5)
+G I ≈ Rz (ψ)B IRz (ψ) ,
+
+>
+where Θ̇ = φ̇ θ̇ ψ̇ is angular velocity of the body with
+roll (φ), pitch (θ), and yaw (ψ) Euler angle representation.
+Rz (ψ) is a rotation matrix translating angular velocity in the
+global frame, ω, to the local (body) coordinate. G I and B I
+
+(6)
+
+min
+x,f
+
+m
+X
+
+||x(k + 1) − xref (k + 1)||Q + ||f (k)||R
+
+(10)
+
+k=0
+
+subject to dynamics and initial condition constraints. Additionally, friction cones are approximated by the following
+ground reaction force constraints
+| fx |≤ µfz ,
+
+| fy |≤ µfz ,
+
+fz > 0.
+
+(11)
+
+To reduce the size of the problem, we eliminate variables
+which correspond to ground reaction forces for feet which
+are not touching the ground. This reduces the size of both the
+cost and constraint matrix, and in practice gives us a speed
+up of over 10 times. Since all contacts in our problem are
+point contacts, we do not need to account for the non-flip
+condition that is described in [18].
+
+B. Gait Scheduler
+We use a periodic phase-based gait scheduler introduced
+in [19] that needs only two parameters to specify a gait
+type; phase offset and stance period for each foot. Since
+most gaits are basically periodic, proper spacing of swing
+and stance period in one cycle is enough to define different
+gaits. We can easily change the gait frequency by changing
+the cycle duration. Because gaits are defined by a portion
+of stance/swing period in the cycle, the gait types are
+maintained even when the gait frequency changes.
+C. Foot Step Planner
+We choose the upcoming foot step location with the
+following equation:
+
+utilizing joint position control. WBIC uses similar strategy
+to obtain reliable motion stabilization.
+Although we take a similar approach to the author’s
+previous work [14], we use operational space control instead
+of configuration impedance control. We made this change
+based on difference between actuators used in each robot:
+proprioceptive actuators in Mini-Cheetah and series elastic
+actuators in Mercury. Since the proprioceptive actuator is
+highly backdrivable and provides open-loop joint torque
+control through the motor current control, it is more effective
+to directly control operational impedance rather than relying
+on joint impedance control that can delay the operational
+space control. The following sections explain the formulation
+of WBIC in detail.
+A. Prioritized Task Execution
+
+rcmd
+= pshoulder,i + psymmetry + pcentrifugal ,
+i
+
+(12)
+
+where,
+pshoulder,i = pk + Rz (ψk ) li ,
+psymmetry =
+pcentrifugal =
+
+
+tstance
+v + k v − vcmd ,
+2
+s
+1
+2
+
+h
+v × ω cmd ,
+g
+
+(13)
+(14)
+(15)
+
+In Eq. (13), pk is the body position at the k-th timestep and
+li is i-th leg shoulder location with respect to the body’s local
+frame. Therefore, pshoulder,i is the i-th shoulder location with
+respect to the global frame. psymmetry is a so-called Raibert
+heuristic [20] that forces the leg’s landing angle and leaving
+angle be identical if the robot is traveling at the commanded
+velocity. In our setup, we use 0.03 for the feedback gain, k.
+IV. W HOLE -B ODY I MPULSE C ONTROL
+Using the reaction forces found by the MPC, the WBIC
+computes joint position, velocity, and torque commands. For
+joint position, velocity, and acceleration computation, we
+utilize an inverse kinematics algorithm that strictly holds task
+priority. To compute the torque command, we use quadratic
+programming to find the reaction forces, reducing the both
+errors in acceleration command tracking and reaction force
+command tracking while satisfying inequality constraints on
+the resultant reaction forces.
+Joint position and velocity commands are used to stabilize
+a posture through joint-level position controllers. In addition
+to the torque command, which is the final output of common
+WBC, WBIC computes a desired joint position and velocity.
+Utilizing joint position feedback is beneficial for dynamic
+locomotion control because of its collocated control input
+and high frequency update. In the case of Mini-Cheetah, the
+frequency of joint PD control is 40kHz, which is 80 times
+faster than the high-level full body control. The effectiveness
+of joint position feedback in whole-body control is well
+demonstrated in the author’s previous work, passive-ankle
+biped walking [14]. In [14], the robot accomplish the stable
+body posture control and accurate swing foot control by
+
+To execute prioritized tasks, we utilize a null-space projection technique, which enables a strict task hierarchy in
+
+>
+q>
+a computationally efficient way. When q = q>
+is
+j
+f
+a vector representing full configuration space, the iteration
+rules are the following.
+∆qi = ∆qi−1 + Ji|pre † (ei − Ji ∆qi−1 ) ,
+
+†
+ẋdes
+− Ji q̇cmd
+q̇cmd
+= q̇cmd
+i
+i−1 ,
+i
+i−1 + Ji|pre
+
+
+dyn
+cmd
+− J˙i q̇ − Ji q̈cmd
+q̈cmd
+= q̈cmd
+i−1 ,
+i
+i−1 + Ji|pre ẍi
+
+(16)
+(17)
+(18)
+
+where
+Ji|pre = Ji Ni−1 ,
+Ni−1 = N0 N1|0 · · · Ni−1|i−2 ,
+N0 = I − Jc† Jc ,
+Ni|i−1 = I − Ji|i−1 † Ji|i−1 .
+
+(19)
+
+(20)
+
+Here, i ≥ 1, and
+∆q0 , q̇cmd
+= 0,
+0
+q̈cmd
+= Jcdyn (−Jc q̇).
+0
+
+(21)
+
+cmd
+ei is the position error defined by xdes
+is the
+i − xi and ẍi
+acceleration command of i-th task defined by
+
+
+ẍcmd
+= ẍdes + Kp xdes
+− xi + Kd ẋdes − ẋ , (22)
+i
+i
+
+where Kp and Kd are position and velocity feedback gains,
+respectively. Note that there is no feedback gain in Eq. (16),
+which can be interpreted as using unity gains. Ji|pre is the
+projection of the i-th task Jacobian into the null space of
+the prior tasks. Jc is a contact Jacobian, which is equivalent
+to the Jc in Eq. (3). We use two types of pseudo-inverses;
+one is an SVD-based pseudo-inverse denoted by {·}† and the
+other is dynamically consistent pseudo-inverse defined by
+−1
+J = A−1 J > J A−1 J >
+.
+(23)
+When computing acceleration (Eq. (18)), we use the dynamically consistent pseudo-inverse. Therefore, the projected
+dyn
+Jacobian, Ji|pre
+, is different from the ones used in kinematics computations. The dynamically consistent Jacobians
+
+z
+
+use {·} instead of {·}† in the null space matrix computation
+(Eq. (20)).
+Eq. (16) and (17) are used to find desired joint position and
+velocity for joint PD controller, respectively. We compute the
+desired joint position by adding the joint position portion of
+Eq. (16) to the measured joint position,
+qcmd
+= qj + ∆qj .
+j
+
+(24)
+
+The computed joint commands, qcmd
+and q̇cmd
+, are sent to
+j
+j
+the joint-level PD controller, and the acceleration commands
+q̈cmd are delivered to the QP optimization to find a torque
+command.
+B. Quadratic Programming
+We compute the final reaction force with the acceleration
+command found in the previous step and the reaction force
+obtained in MPC. For the optimization, we use the opensource QP solver [21] that is efficient for small problems.
+The formulation of our QP problem is
+min
+
+δfr ,δf
+
+δf>r Q1 δfr + δf> Q2 δf
+
+(25)
+
+q4
+
+q1
+
+q11
+
+q8
+
+q3
+
+q0
+x
+
+q5
+
+q2
+
+z
+Hind Left (HL)
+Hind Right (HR)
+
+y
+x
+
+Front Left (FL)
+Front Right (FR)
+
+Fig. 3.
+Configuration of Mini-Cheetah. Mini-cheetah uses 12 proprioceptive actuators to control 4 limbs. The numbering of joints starts
+from right front abduction/adduction joint and progresses to hip and knee
+flexion/extension joints.
+kp (s−2 )
+
+Task
+Body Orientation
+
+
+
+100
+
+100
+
+Body Position
+
+
+
+100
+
+100
+
+Foot Position
+
+
+
+100
+
+100
+
+>
+100
+>
+100
+>
+100
+
+kd (s−1 )
+
+
+10
+
+10
+
+
+
+10
+
+10
+
+
+
+10
+
+10
+
+>
+10
+>
+10
+>
+10
+
+TASK AND G AIN S ETUP
+
+Sf (Aq̈ + b + g) = Sf Jc> fr
+ 
+δ
+q̈ = q̈cmd + f
+0nj
+W fr ≥ 0,
+
+q7
+
+TABLE I
+
+s.t.
+
+fr = frMPC + δfr
+
+y
+
+(floating base dyn.)
+(acceleration)
+(reaction forces)
+
+(contact force constraints)
+
+where frMPC and Sf are reaction forces computed by the
+MPC and the floating base selection matrix, respectively.
+Jc and W are the augmented contact Jacobian and contact
+constraint matrix that are equivalent to the terms used in
+Eq. (3) and Eq. (10), respectively. δf and δfr are relaxation
+variables for the floating base acceleration and reaction
+forces.
+Because of the relaxation of floating base acceleration,
+task accelerations can differ from the ones computed in
+Section. IV-A. The difference is intended to allow for the
+base to be uncontrolled during a flight phase, but has a risk
+to introduce tracking errors to other tasks. We ignore the
+effect on the other tasks because changing task commands
+as a response of the unpredictable floating base motion is not
+desirable in the real hardware control. For example, when a
+robot jumps, we need to address a floating base acceleration
+in the computation of foot acceleration command to keep the
+strict task priority. However, in most real hardware experiments, considering a floating base acceleration incorporating
+with complex dynamics and gravitational force does not help
+enhancing the swing foot control. Therefore, we simply relax
+the floating base dynamics rather than strictly govern the
+prioritized task execution by utilizing complex algorithms
+such as hierarchical quadratic programming [22].
+The last step of WBIC is to compute a torque command
+from the reaction forces, fr , and the configuration space
+
+acceleration, q̈. By plugging these two terms into Eq. (3),
+we obtain
+ 
+τf
+= Aq̈ + b + g − Jc> fr .
+(26)
+τj
+Since all terms on the right hand side are known, we can
+easily solve it and obtain the joint torque command, τj .
+V. E XPERIMENTAL R ESULTS
+The Mini-Cheetah robot [23] is used to verify the effectiveness of the proposed controller. The task setup and feedback gains of WBIC used in the experiments are summarized
+in Table. I. The tasks are listed in order of priority. In the QP
+problem, the weight for the reaction force (Q1 ) is 1 and the
+weight for the floating base control (Q2 ) is 0.1. Every joint
+feedback controller shares the same gains, kp = 3 N m/rad
+and kd = 0.3 N m s/rad, except abduction joints, which
+have a higher derivative gain, 1. The same parameter and
+task setup is used over all tests. The labels of feet and joints
+used in the description coincide with the labels depicted in
+Fig. 3. A video recording of the experiments can be found
+in https://youtu.be/6JlVol3eyNI.
+A. High Speed Running
+In our previous work [9], Mini-Cheetah accomplished the
+running speed of 2.45 m/s in maximum. Considering the size
+of the robot, the speed is comparable to the state-of-the-art
+such as WildCat (8 m/s) and Cheetah 2 (6.4 m/s), but was
+limited by the stability of the previous MPC-only controller,
+rather than the Mini-Cheetah hardware. Our new controller
+combining MPC and WBIC achieves a maximum forward
+
+measured
+commanded
+
+measured
+commanded
+
+(a) Mini-Cheetah running
+
+(b) Body velocity
+measured
+commanded
+
+(c) Joint velocity (FL)
+WBIC
+MPC
+
+torque
+power
+
+(d) Body height and orientation
+
+(e) Reaction force (FL)
+
+(d) Joint torque and power (FL)
+
+Fig. 4. Running Experiment. Mini-Cheetah trots at 3.7m/s. (b) The observed maximum speed is 4 m/s but the robot quickly lost its balance after
+reaching this speed. The highest stable speed reached was is 3.7 m/s. (c) and (d) show the joint velocity, torque, and power. We only include data from
+three joints (abduction, hip, and knee) from the front left leg, but the other legs are similar. From the observed maximum velocity, torque, and power, we
+can see that our controller utilizes maximum hardware capacity of Mini-Cheetah. (d) and (e) show how the trajectory and reaction forces tracking work
+together to accomplish dynamic running. The robot’s height goes up and down around the constant height command while making jumps and landing,
+which is accomplished by following the vertical reaction force command (fz ). (e) Reaction forces computed by MPC update only 4 times during a stance
+period, but WBIC computes the forces every 2 ms and makes a modification from the force commands to control body posture and swing feet.
+
+velocity of 3.7 m/s, which is one of the fastest untethered
+quadruped robot running speed.
+For high speed running, we add one more feature in the
+step location algorithm. As the speed goes up, Mini-Cheetah
+narrows the step-width of the front feet and widens the hind
+feet to avoid collisions between the front and hind legs.
+Fig. 4(a) shows that the right front leg and right hind legs
+are crossed but do not collide with each other because of the
+step-width adjustment.
+Fig. 4 summarizes the test results of a high speed running
+on a treadmill. The robot’s velocity estimated by the local
+foot speed and accelerometer is presented in Fig. 4(b). The
+maximum velocity we observed is 4 m/s, but the robot falls
+over right after the speed. Therefore it is more reasonable to
+see 3.7 m/s as our record. Fig. 4(c) and (d) show how each
+joint operates during the high speed running. The maximum
+joint velocity and torque at the hip joints are 34 rad/s
+and 25.5 N m, respectively. Considering that the maximum
+joint velocity and torque are 40 rad/s and 17 N m, we can
+conclude that the hardware capability is fully utilized in the
+test. The maximum capacity utilization is also confirmed
+by the power output presented in Fig. 4(d), which records
+280 W, which is larger than the maximum actuator power,
+250 W, specified in [9]. Note that the torque presented in the
+data is not measured joint torque but commanded torque to
+motor controller. Therefore, it can have larger number than
+the actuator limit, and in that case when the commanded
+torque is larger than the limit, the actuator output is truncated
+by the maximum output torque.
+Fig. 4(d) and (e) show how the trajectory and reaction
+force tracking cooperate together to perform high speed
+running including aerial phase. The command for body
+
+posture is constant, which is the same command as for
+MPC, but WBIC does not force the robot to exactly follow
+the commanded trajectory. Instead, WBIC finds the solution
+satisfying the reaction force commands computed by MPC
+while controlling the body posture and swing feet as much as
+possible. Therefore, the measured height and pitch in Fig.(d)
+goes up and down around the constant commands since the
+robot jumps and lands as MPC plans.
+
+B. Outdoor Test
+Fig. 5 shows outdoor dynamic locomotion of various gait
+types. In the test, we use the same gains and weights over all
+gait types as we mentioned above. Over the entire outdoor
+test, the only inputs that we provide to the controller are
+gait type, running speed and direction, and all of them are
+transferred to the robot through a remote controller. Fig. 5
+is a summary of the outdoor test. As the results show, our
+controller is capable of performing the various gaits in a
+stable and robust way. The robot follows the commanded
+velocity and direction well as can be seen in Fig. 5(c).
+Mini-Cheetah can run at speeds over 1 m/s with every gait
+type. Fig. 5(b) shows that our controller commands correct
+reaction force profiles as a desired gait type is changed.
+The controller is also robust to different terrain types. The
+green field was wet and slippery because of the rain from the
+day before the test, but Mini-Cheetah stably keeps its body
+posture and accurately controls the swing legs. The robot
+can also run over the gravel terrain, which has significant
+roughness and rolling elements that cause body and step
+control to be difficult.
+
+Gallop
+
+FR
+FL
+
+measured
+commanded
+
+Trot
+
+Pacing
+
+Bounding
+
+Pronking
+
+HR
+HL
+
+(a) Snap shots
+
+(b) Vertical reaction force
+
+(c) Direction and Yaw
+
+Fig. 5. Demonstration of Various Gaits. Our controller can demonstrate various dynamic running by switching the gait types. (b) The commanded
+vertical reaction forces are presented. (c) The commanded velocity and direction are presented with the measured velocity and yaw angle. The results show
+that the actual system follows the given commands well.
+
+VI. C ONCLUSION AND D ISCUSSION
+In this paper, we propose a new control scheme that
+can accomplish various dynamic locomotion of a quadruped
+robot with minimal user intervention. The effective combination of MPC and WBC is verified by the experimental
+results on the Mini-Cheetah robot. We accomplish high
+speed running up to 3.7 m/s by fully utilizing the hardware
+capability. In the outdoor tests, Mini-Cheetah demonstrates
+various gaits with speed over 1 m/s and push-recovery on
+rough terrain.
+The immediate next step will be an implementation of the
+identical control framework to Cheetah 3 robot. We expect
+that no additional work is required for the implementation
+since the formulation is independent from the system parameters. Simple switch of system dynamics will enable high
+performance locomotion on Cheetah 3. A more interesting
+extension will be adding manipulation tasks on the cheetah
+robots with an additional manipulator. Although we do not
+mention various tasks except locomotion, WBC is naturally
+applicable to loco-manipulation tasks. With a small addition
+
+to the current scheme, our controller will be able to manage
+both locomotion and manipulation.
+The proposed control scheme does not have a limitation
+not only in the task types but also for a topology of
+the target system. Therefore, we can apply this method to
+biped locomotion. We plan to extend our controller to biped
+walking and running in the near future with small additions
+such as a new contact sequence and step location planner.
+ACKNOWLEDGMENTS
+This work was supported by the National Science Foundation [NSF- IIS-1350879], Naver Labs, and the Air Force
+Office of Scientific Research.
+R EFERENCES
+[1] K. Sreenath, H.-W. Park, I. Poulakakis, and J. Grizzle, “Embedding
+active force control within the compliant hybrid zero dynamics to
+achieve stable, fast running on MABEL,” International Journal of
+Robotics Research, vol. 32, no. 3, Mar. 2013.
+
+[2] C. Hubicki, A. Abate, P. Clary, S. Rezazadeh, M. Jones, A. Peekema,
+J. Van Why, R. Domres, A. Wu, W. Martin, H. Geyer, and J. Hurst,
+“Walking and Running with Passive Compliance: Lessons from Engineering: A Live Demonstration of the ATRIAS Biped,” IEEE Robotics
+& Automation Magazine, vol. 25, no. 3, pp. 23–39, Sep. 2016.
+[3] B. Dynamics. Introducing wildcat. Boston Dynamics. [Online].
+Available: https://www.youtube.com/watch?v=wE3fmFTtP9g
+[4] H.-W. Park, P. M. Wensing, and S. Kim, “High-speed bounding
+with the MIT Cheetah 2: Control design and experiments:,” The
+International Journal of Robotics Research, vol. 36, no. 2, pp. 167–
+192, Mar. 2017.
+[5] D. Kim, J. Lee, J. Ahn, O. Campbell, H. Hwang, and L. Sentis,
+“Computationally-Robust and Efficient Prioritized Whole-Body Controller with Contact Constraints,” in IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS), 2018.
+[6] B. Henze, M. A. Roa, and C. Ott, “Passivity-based whole-body
+balancing for torque-controlled humanoid robots in multi-contact
+scenarios,” The International Journal of Robotics Research, p.
+0278364916653815, Jul. 2016.
+[7] L. Righetti and S. Schaal, “Quadratic programming for inverse dynamics with optimal distribution of contact forces,” in 12th International
+Conference on Humanoid Robots (Humanoids). IEEE, 2012, pp.
+538–543.
+[8] J. Di Carlo, P. M. Wensing, B. Katz, G. Bledt, and S. Kim, “Dynamic
+Locomotion in the MIT Cheetah 3 Through Convex Model-Predictive
+Control,” in IEEE/RSJ International Conference on Intelligent Robots
+and Systems (IROS). IEEE, 2018, pp. 1–9.
+[9] B. Katz, J. Di Carlo, and S. Kim, “Mini Cheetah - A Platform for
+Pushing the Limits of Dynamic Quadruped Control.” in International
+Conference on Robotics and Automation (ICRA), 2019.
+[10] M. Neunert, M. Stäuble, M. Giftthaler, C. D. Bellicoso, J. Carius,
+C. Gehring, M. Hutter, and J. Buchli, “Whole-Body Nonlinear Model
+Predictive Control Through Contacts for Quadrupeds ,” IEEE Robotics
+and Automation Letters, vol. 3, Jul. 2018.
+[11] J. Koenemann, A. del Prete, Y. Tassa, E. Todorov, O. Stasse, M. Bennewitz, and N. Mansard, “Whole-body model-predictive control applied to the HRP-2 humanoid,” 2015 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS), pp. 3346–3351, Sep.
+2015.
+[12] S. Feng, E. Whitman, X. Xinjilefu, and C. G. Atkeson, “Optimizationbased Full Body Control for the DARPA Robotics Challenge,” Journal
+of Field Robotics, vol. 32, no. 2, pp. 293–312, Mar. 2015.
+[13] T. Koolen, S. Bertrand, G. Thomas, T. De Boer, T. Wu, J. Smith,
+J. Englsberger, and J. Pratt, “Design of a Momentum-Based Control
+Framework and Application to the Humanoid Robot Atlas,” International Journal of Humanoid Robotics, vol. 13, no. 01, pp. 1 650 007–
+35, Mar. 2016.
+[14] D. Kim, S. Jorgensen, J. Lee, J. Ahn, J. Luo, and L. Sentis, “Dynamic
+Locomotion For Passive-Ankle Biped Robots And Humanoids Using
+Whole-Body Locomotion Control,” arXiv.org, Jan. 2019.
+[15] R. Grandia, F. Farshidian, A. Dosovitskiy, R. Ranftl, and M. Hutter,
+“Frequency-Aware Model Predictive Control,” IEEE Robotics and
+Automation Letters, vol. 4, no. 2, pp. 1517–1524, Apr. 2019.
+[16] J. Hwangbo, J. Lee, A. Dosovitskiy, D. Bellicoso, V. Tsounis,
+V. Koltun, and M. Hutter, “Learning agile and dynamic motor skills
+for legged robots,” Science Robotics, vol. 4, no. 26, p. eaau5872, 2019.
+[17] A. Jain, Robot and Multibody Dynamics, ser. Analysis and Algorithms.
+Boston, MA: Springer Science & Business Media, Dec. 2010.
+[18] S. Caron, Q.-C. Pham, and Y. Nakamura, “Stability of Surface
+Contacts for Humanoid Robots: Closed-Form Formulae of the Contact
+Wrench Cone for Rectangular Support Areas,” arXiv.org, Jan. 2015.
+[19] G. Bledt, P. M. Wensing, S. Ingersoll, and S. Kim, “Contact model
+fusion for event-based locomotion in unstructured terrains,” in IEEE
+International Conference on Robotics and Automation (ICRA), May
+2018, pp. 1–8.
+[20] M. H. Raibert, H. B. Brown, and M. Chepponis, “Experiments in
+Balance with a 3D One-Legged Hopping Machine,” The International
+Journal of Robotics Research, vol. 3, no. 2, pp. 75–92, 1984.
+[21] D. Goldfarb and A. Idnani, “A numerically stable dual method for
+solving strictly convex quadratic programs,” Mathematical Programming, vol. 27, no. 1, pp. 1–33, Sep. 1983.
+[22] A. Escande, N. Mansard, and P.-B. Wieber, “Hierarchical quadratic
+programming: Fast online humanoid-robot motion generation,” The
+International Journal of Robotics Research, vol. 33, no. 7, pp. 1006–
+1028, 2014.
+
+[23] B. G. Katz, “A Low Cost Modular Actuator for Dynamic Robots,”
+Master’s thesis, Massachusetts Institute of Technology, 2018.
+
+

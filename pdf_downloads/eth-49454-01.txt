@@ -1,0 +1,819 @@
+ETH Library
+
+ANYmal - A Highly Mobile and
+Dynamic Quadrupedal Robot
+Conference Paper
+Author(s):
+Hutter, Marco ; Gehring, Christian; Jud, Dominic; Lauber, Andreas; Bellicoso, C. Dario; Tsounis, Vassilios; Hwangbo, Jemin;
+Bodie, Karen; Fankhauser, Peter; Bloesch, Michael; Diethelm, Remo; Bachmann, Samuel; Melzer, Amir; Hoepflinger, Mark
+Publication date:
+2016
+Permanent link:
+https://doi.org/https://doi.org/10.3929/ethz-a-010686165
+Rights / license:
+In Copyright - Non-Commercial Use Permitted
+Originally published in:
+https://doi.org/10.1109/IROS.2016.7758092
+
+This page was generated automatically upon download from the ETH Zurich Research Collection.
+For more information, please consult the Terms of use.
+
+ANYmal - A Highly Mobile and Dynamic Quadrupedal Robot*
+Marco Hutter1 , Christian Gehring2 , Dominic Jud1 , Andreas Lauber1 , C. Dario Bellicoso1 , Vassilios Tsounis1 ,
+Jemin Hwangbo1 , Karen Bodie 1 , Peter Fankhauser1 , Michael Bloesch2 , Remo Diethelm2 , Samuel Bachmann2 ,
+Amir Melzer 1 , Mark Hoepflinger 1
+
+Abstract— This paper introduces ANYmal, a quadrupedal
+robot that features outstanding mobility and dynamic motion
+capability. Thanks to novel, compliant joint modules with
+integrated electronics, the 30 kg, 0.5 m tall robotic dog is torque
+controllable and very robust against impulsive loads during
+running or jumping. The presented machine was designed
+with a focus on outdoor suitability, simple maintenance, and
+user-friendly handling to enable future operation in real world
+scenarios. Performance tests with the joint actuators indicated a
+torque control bandwidth of more than 70 Hz, high disturbance
+rejection capability, as well as impact robustness when moving
+with maximal velocity. It is demonstrated in a series of experiments that ANYmal can execute walking gaits, dynamically trot
+at moderate speed, and is able to perform special maneuvers
+to stand up or crawl very steep stairs. Detailed measurements
+unveil that even full-speed running requires less than 280 W,
+resulting in an autonomy of more than 2 h.
+
+I. I NTRODUCTION
+Legged robotics has potential advantages in terms of
+mobility and versatility as compared to tracked or wheeled
+vehicles. So far, the technological complexity to build and
+control such vehicles has prevented these systems from being
+applied in real world scenarios and only few teams managed
+to develop machines that work beyond laboratory test-bench
+settings. With major advances over the recent years, pushed
+by various large scale research programs or investment
+from industry, our community is about to overcome the last
+technical hurdles and make legged robots available for real
+world applications. Most prominently, the DARPA Robotics
+Challenge (DRC) brought together some of the best research
+groups in the field of humanoid robots to successfully use
+such machines in a disaster mitigation scenario [1]. Since
+the scenario is very close to reality, all teams were forced
+to massively invest in hardware development to improve
+not only versatility but also reliability and ruggedness of
+the robots. These developments resulted in many highperformance machines like ATLAS[2], Valkyrie [3], DRC
+Hubo [4], HRP2+ [5], Walkman and others, most of them
+based on earlier robot versions. This new generation of
+humanoid robots commonly feature some sort of force or
+torque control - either by integrated load cells in the joints
+or at the end-effector, or by a series elasticity in every
+*This work was supported in part by the Swiss National Science
+Foundation (SNF) through the National Centre of Competence in Research
+Robotics, by the EC’s 7th Famework ECHORD++ Project Module, and by
+TOTAL SA through the ARGOS Challenge.
+1 Authors are with the Robotic Systems Lab, ETH Zurich, Switzerland,
+
+mahutter@ethz.ch
+2 Authors are with the Autonomous Systems Lab, ETH Zurich, Switzerland.
+
+Fig. 1. ANYmal, an autonomous quadrupedal robot for rough terrain
+operation
+
+actuator. This allows them to properly control interaction
+forces with the environment and hence to balance the system
+or manipulate the environment.
+Despite all these advances, the locomotory performance
+of the human-like robots is still far behind the natural
+counterparts. All these robots are relatively slow, require a
+lot of power, and can only negotiate small terrain obstacles.
+Better locomotion performance in terms of speed, energetic efficiency, and obstacle negotiation skills, is achieved
+with multi-legged systems. Paramount example is Boston
+Dynamics’ Spot robot, a direct successor of Big Dog [6], of
+which unfortunately no scientific publications are available.
+Similar locomotion performance, demonstrated in various
+highly dynamic gaits and maneuvers, was also achieved
+by research groups around IIT’s hydraulic HyQ [7] and its
+follower HyQ2max [8], MIT’s directly electrically actuated
+cheetah [9], or ETH’s serial elastic robot StarlETH [10].
+All these robots have demonstrated dynamic running on
+different grounds or to dynamically overcome obstacles however, none of these machines has been used in a real
+world application.
+This paper presents ANYmal (Fig. 1), a highly mobile
+
+Fig. 3.
+
+Fig. 2.
+
+Main components of ANYmal
+
+and rugged quadrupedal platform developed for autonomous
+operation in challenging environments. ANYmal was designed to combine outstanding mobility with dynamic motion
+capability that enables it to climb large obstacles as well as
+to dynamically run. This completely autonomous machine
+paves the road for real world applications. It is in use for
+the NCCR Search and Rescue grand challenge1 as well as
+in the ARGOS oil and gas site inspection challenge2 - both
+scenarios with very harsh and demanding environments. In
+the following, we present the underlying mechanics and
+actuation concept, illustrate the electronics and software
+setup, sketch out the applied locomotion control algorithms
+with appropriate references to their implementation, and
+finally summarize the paper with a series of experiments3
+highlighting the overall system performance.
+II. S YSTEM DESCRIPTION
+ANYmal was specifically built for long endurance autonomous operation in harsh environments. Focus was put
+on large mobility, fast and dynamic locomotion skills, high
+robustness, simple maintenance, and safe handling by a
+single operator.
+A. Overview
+The presented quadrupedal robot, with the main components depicted in Fig. 2, features three actuated joints per leg
+with point feet. With an approximate link length of 250 mm
+for thigh and shank, and a total weight of slightly less than
+30 kg, it resembles a medium-sized dog. To achieve this
+lightweight design, the main body and the leg segments are
+built from aluminum and carbon fiber. Onboard batteries of
+about 650 Wh energy and 3 kg weight provide power for
+more than 2 h autonomous operation. A protection frame
+and pads at the legs prevent the system from damage when
+falling and allows for handy transportation and deployment.
+1 http://www.argos-challenge.com
+2 http://www.nccr-robotics.ch/RescueRobots
+3 for illustration, see http://www.rsl.ethz.ch/robots-media/anymal
+
+Range of motion of a single leg of ANYmal
+
+Optofoce sensors are used as tactile feet and rotating Hokuyo
+UTM-30LX sensors provide 3D perception of the environment. To make ANYmal applicable for different scenarios,
+a modular pan-tilt head with variable sensory payload can
+be mounted. For example, in the setup for the ARGOS
+challenge, the sensory head includes an optical zoom and
+thermal camera for visual inspection, a gas detection sensor,
+microphones for sound identification, as well as artificial
+lighting.
+B. Modular joint setup
+Key to simultaneously achieving the design goals are
+the robotic joint units described in Sec. III. This enabled
+the creation of a very simple mechanical topology with
+three equal joint units per leg that are linked by rigid
+mechanical segments and interconnected with a power and
+communication bus. Since the encapsulated and sealed joint
+units integrate drive electronics and sensing, as well as the
+joint axle bearing, the robot does not require any additional
+bearings, transmission, proprioceptive sensors, or electronics
+in its legs. Such a setup combines several advantages: Given
+the drive units, the robot is simple to manufacture, assemble,
+and maintain. In case of failure, a complete joint can be
+quickly exchanged. Furthermore, design variations to build
+different robots requires only to change the mechanical links.
+The joint arrangement of ANYmal is chosen mammalian
+with successive hip abduction/adduction (HAA), hip flexion/extension (HFE), and knee flexion/extension (KFE). In
+contrast to its predecessor StarlETH [10], the MIT cheetah
+[9], IIT HyQ [7], Big Dog [6] or other legged systems, the
+leg links of ANYmal are built with an offset such that all
+joints can be fully rotated. So far, this was typically only
+done in walking machines like JPL’s robosimian [11] that
+moves in a quasi static manner. As depicted in Fig. 3, the
+joint offset enables a huge range of motion which is key to
+high mobility. With this, ANYmal is able to use its feet high
+above ground for tasks like opening a door or surmounting
+large obstacles, it can be folded for transport or deployment,
+and can change its leg configuration (Fig. 4).
+C. Main body package
+Computers, batteries, network devices, the power management system, and basic navigation sensors are integrated in
+a single box-shaped and ingress protected main body. Three
+
+Fig. 5.
+The software architecture with clear real-time priority ranked
+separation on different PCs.
+
+A. A brief review on existing actuation concepts
+Fig. 4.
+tions.
+
+Full rotation in all joints of ANYmal allow for various configura-
+
+intel NUC PCs connected over an internal gigabit network
+form the removable brain of ANYmal that is accessible
+via WiFi link from any operator machine. To get proper
+heat dissipation from the sealed main body, all components
+are thermally coupled to the main body which is used as
+heat sink. The main body is controlled from a small touch
+screen on the back of the robot which allows to individually
+enable PCs and sensors. A rotating Hokuyo UTM-30lx laser
+sensor and an Xsens MTi-100 IMU are fixedly installed for
+localization, navigation, and environment mapping.
+D. Software architecture
+The three PCs share the work load of the locomotion,
+navigation and inspection tasks as illustrated in Fig. 5. The
+data is transferred over the network by the Robot Operating
+System (ROS) running on a low-latency patched Ubuntu
+14.04. The ROS master, which manages the connections
+between the different processes, runs on the locomotion
+PC. The real-time critical whole-body controller and state
+estimator are timed by the CAN driver that communicates
+with the actuator units at 400 Hz. The readings and commands are exchanged through shared memory and published
+through ROS to less time-critical workers like the foothold
+planner. The localization and mapping tasks are outsourced
+to the navigation PC that is responsible for the laser-based
+localization and mapping of the environment. High-level
+navigation tasks are coordinated by a mission planner and
+executed by a path planner that sends velocity commands
+to the locomotion controller. Optionally, a third application
+specific PC can be activated to handle for example the
+computationally extensive video processing for inspection.
+III. ANY DRIVE - M ODULAR JOINT UNITS
+Dynamic locomotion imposes very demanding requirements on the actuation system, namely:
+• High impact robustness
+• Fast motion tracking
+• Low impedance force controllability
+Furthermore, actuators must be lightweight and energetically
+as efficient as possible.
+
+The classical approach of electric motors with highreduction mechanical gears as employed in almost all industrial robot arms does not satisfy the first requirement.
+Legged robots using such actuation approach are limited to
+slow and static locomotion in order to prevent the actuators
+from impulsive forces. For dynamic locomotion, three major
+concepts have established as adequate actuation technology.
+1) Hydraulic actuation: Hydraulic actuators as used in
+machines like HyQ [7], BigDog [6] or Atlas [2] are naturally
+robust against impulsive loads and provide extremely high
+power and force density. Thanks to very fast valve units
+in combination with load cells for force measurement or
+pressure based force estimation [12], hydraulic actuators
+provide also high performance torque control.
+On the negative side, hydraulic systems tend to be energetically inefficient, in particular when operated with constant
+pressure. For this reason, many systems used in research
+still rely on off-board supply. At the cost of increased
+system complexity, this can be overcome to certain extent
+by sophisticated pumps and variable pressure levels. Another
+problem is scalability which makes hydraulic legged systems
+rather large and heavy.
+2) Pseudo-direct-drive systems: When using gearing systems of very low reduction and high efficiency, electric actuators can become very transparent and the reflected inertia
+of the actuation compared to the output becomes small. As a
+result, motor current control, which can be done at very high
+bandwidth, is equivalent to regulation of the output force
+[13]. These benefits have been exploited for many years in
+rehabilitation engineering and for haptic devices. Thanks to
+recent advances in actuator development, pseudo-direct-drive
+concepts find application in high-dynamic legged robots as
+in the example of MIT-cheetah [9], which is able to run and
+jump at high speeds.
+Unfortunately, while electric motors have extremely high
+power, their torque is limited. Therefore, direct actuation
+without any gear is not possible with existing technology.
+Furthermore, motors of large diameter must be used to create
+high forces, which largely limits flexibility in system design.
+3) Series elastic actuation: Inspired from biology and
+along the seminal work of Pratt [14], the third common actuation approach for legged robots are series elastic actuators.
+
+Fig. 6. ANYdrive: Compact, compliant joint units for advanced interaction
+
+Position Control
+
+des
+
+θj
+
+eθ
+
++
+
+PID τ
+
+-
+
+des
+
+Torque Control
+
+1
+N KT
+eτ
+
++
+-
+
++
+
+PID +
+
+i des
++
+
++
+
+θg
+
+SEA
+
+-
+
+θj
+
+Friction
+Compensation
+
++
+
+θ̇ j
+
+k
+
+[20], which is also the basis of the control of Valkyrie [15],
+we realized a simple PID torque feedback loop with feedback
+friction compensation. The position PID control builds upon
+the torque controller as an additional cascade.
+The torque controller tracks a desired torque τ des by
+measuring the actual output torque τ and setting the desired
+current ides accordingly. The spring deflection is calculated
+from the difference in the joint position θj and the gear
+position θg . The output torque τ is then calculated using
+the spring constant k. The torque controller consists of three
+elements, i.e. a PID controller, a feed forward term and a
+feedback friction compensation. The feed forward term is
+determined from the inverse of the gear ratio N and the
+motor constant KT , both typically provided in by data sheets.
+The friction compensation
+
+τ
+
+d
+dt
+
+Fig. 7. Block diagram of the cascaded joint position and torque control
+loop. The SEA block represents the physical actuator unit including field
+oriented control (FOC) to apply the desired current ides
+
+By integrating a carefully selected mechanical compliance
+between the gearbox output and joint, classical geared motors
+can be adapted for applications with dynamic interactions.
+Several state of the art robots like the humanoid Valkyrie
+[15] or the quadruped StarlETH [10] showed how to use
+such actuators not only for precise output force regulation,
+but even to temporarily store energy during locomotion and
+hence to increase locomotion efficiency [16]. In order to
+simplify the use of such actuators, different groups target
+the development of modular units [17], [18].
+The mechanical compliance in the system is not only a
+low pass filter (and hence protection) for the impact loads
+at the output, but additionally limits control bandwidth and
+requires careful design of the joint level control structure.
+B. Overview
+ANYdrive (Fig. 6), the joint units of ANYmal, is a
+highly integrated series elastic actuator. It is built upon high
+torque motors and harmonic drive gears in series with a
+rotational spring. Joint output position and spring deflection
+are measured using absolute position sensors providing a position accuracy of 0.025◦ and a torque resolution of 0.08 Nm.
+Thanks to integrated custom motor control electronics, the
+joint torque, position, and impedance can be directly regulated without any additional components. The corresponding
+command values are sent over CAN bus using CANopen
+standard. With a nominal voltage of 48 V, the joint reaches
+a speed of 12 rad/s and a maximal torque of 40 Nm.
+C. Control structure
+Joint torque, position and impedance control is realized as
+a cascaded structure that considers the motor as torque source
+(c.f. [19]) as illustrated in Fig. 7. Similar to the work by Paine
+
+icomp (θ̇j ) = iba sSign(θ̇j , θ̇band ) + µθ̇j
+
+(1)
+
+takes two effects into account, namely stiction and viscous
+friction. Firstly the break-away current iba is modeled as
+Coulomb friction. To prevent undesired switching around the
+zero velocity point, it is implemented as simple smooth sign
+function
+
+
+if x < xb
+−1,
+sSign(x, xb ) = 1,
+if x > xb
+
+
+x+xb 2
+x
+−1 + 2( 2xb ) (2 − xb ), otherwise
+(2)
+Secondly, the joint velocity dependent viscous friction is
+linearly modeled with the friction coefficient µ. All these
+parameters can be experimentally identified from very few
+measurements.
+The position controller is a PID controller that tracks
+a desired joint position θjdes by setting a desired torque
+τ des . An important note is that the position gains are highly
+depending on the output load since there is no knowledge
+about the joint load in the control architecture.
+D. Performance evaluation
+The performance of ANYdrive with respect to torque and
+position reference tracking as well as impulsive disturbance
+rejection is evaluated on a single axis test bench. As illustrated in Fig. 8, the bandwidth for low amplitudes is as high
+as 70 Hz. Due to motor saturation effects, the bandwidth
+gradually decreases to 24 Hz for 10 Nm amplitude. These
+performance values are substantially higher than what was
+achieved with our previous system [21] and about the same
+as in Valkyrie [15]. Interestingly, this high performance was
+achievable without a disturbance observer as used in [22].
+As illustrated in Fig. 9, the controller is very reactive
+showing a 90% settling time of 13 ms for a step of 10 Nm
+and 35 ms for a step of 40 Nm with only small overshoot.
+Disturbance rejection to impulsive loads is evaluated in
+a collision test. To this end, a pendulum is mounted at the
+output and the actuator is requested to produce zero torque.
+The free swinging pendulum is crashed with high velocity
+into a hard wall and brought to instantaneous rest (ideal
+plastic collision with a restitution coefficient of zero). Despite
+
+Fig. 10. Joint torque during impulsive collision. The motor velocity is
+scaled with the gear ratio for plotting purposes.
+
+Fig. 8. Experimentally identified torque control transfer function indicating
+a bandwidth of 70 Hz.
+
+Fig. 11. Zero torque tracking error (blue) when the output joint is randomly
+moved by hand (red).
+
+Fig. 9.
+Torque step responses show a quick response time and low
+overshoot.
+
+high motor speed before the collision, the motor produces
+only little torque during the impact (Fig. 10). In fact, already
+2 ms after the collision, the motor maximally decelerates to
+keep the torque in the spring as small as possible. Due to
+the motor and gearbox inertia, it takes about 10 ms to bring
+the motor to a complete rest. If the pendulum collides with
+the maximal motor velocity, the peak force is smaller than
+7 Nm. This implies that, whatever collision a system that is
+built from these joint units experiences, forces occurring at
+the gear never exceed the peak loads it is rated for. In other
+words, the drive is ”perfectly robust” against self inflicted
+collisions.
+As final performance evaluation experiment, the actuator
+was again commanded to produce zero torque while the output is randomly moved by hand (Fig. 11). Despite very large
+disturbances (2 rad amplitude and about 4 Hz motion), the
+output torque can be kept at less than 0.2 Nm. A qualitative
+comparison to Valkyrie [3] indicates a significantly better
+disturbance rejection performance.
+IV. L OCOMOTION C ONTROL
+Since ANYmal is fully torque controllable and of similar geometry as its predecessor StarlETH [10], locomotion
+control could be transferred relatively directly. A detailed
+description would go beyond the scope of this paper, we
+
+refer the interested reader to the related work introduced in
+the following.
+ANYmal features a purely proprioceptive state estimation
+based on fusion of IMU, leg kinematics, and ground contact
+measurements [23], [24]. For static walking gaits, a ZMP
+planner [25] is implemented to plan a smooth main body
+trajectory while applying a standard crawling gait [26].
+Foothold placement during dynamic gaits is based on simplified inverted pendulum models [27]. To balance the system,
+we build upon whole body control techniques that accounts
+for the complete system kinematics and dynamics [28], [29].
+The optimal actuator commands are found at every time step
+by solving a constrained optimization problem of prioritized
+tasks and constraints on joint torques, contact forces, and
+body motion.
+V. E XPERIMENTS
+The performance of ANYmal was tested in different maneuvers and locomotion experiments illustrated in Fig. 124 .
+In order to ensure fast and stable locomotion, particular
+attention was paid to accurate swing leg position and stance
+leg force tracking, as well as good following behavior of the
+target base motion.
+A. Walking
+ANYmal is able to perform a very smooth walking gait,
+whereby a single leg is moved at the time and the base is
+shifted in order to maintain balance. As illustrated in Fig. 13,
+joint torques and positions are followed very accurately
+during the entire gait cycle and hence also the base position
+can be accurately moved according to the preplanned trajectory. It is important to know that the latter follows only
+from virtual model control (task space control) at the base
+4 For videos, see http://www.rsl.ethz.ch/robots-media/anymal
+
+(a) Walking
+Fig. 12.
+
+(b) Trotting
+
+(c) Stair Climbing
+
+ANYmal was tested in different gaits like walking, trotting, or stair climbing
+8
+measured
+desired
+
+knee joint position [rad]
+
+1.3
+1.2
+1.1
+1
+0.9
+0.8
+0.7
+0.6
+0.5
+
+0
+
+0.1
+
+0.2
+
+0.3
+
+0.4
+
+0.5
+
+0.6
+
+knee joint velocity [rad/s]
+
+1.4
+
+measured
+desired
+
+6
+4
+2
+0
+-2
+-4
+-6
+-8
+
+0
+
+0.1
+
+0.2
+
+time [s]
+
+Fig. 14.
+joint.
+
+0.3
+
+0.4
+
+0.5
+
+0.6
+
+time [s]
+
+Tracking performance of the position and velocity of the knee
+
+10
+
+49
+
+350
+
+300
+
+8
+
+48
+4
+
+250
+
+200
+
+power [W]
+
+Torque and position tracking while walking.
+
+6
+
+voltage [V]
+
+Fig. 13.
+
+current [A]
+
+48.5
+
+150
+
+47.5
+
+and without any joint position or impedance regulation. By
+applying a classical ZMP planner [25], forward locomotion
+results in a very smooth and almost straight line of the base
+as illustrated in the movie. In such gait, the robot moves with
+approximately 0.3 m/s. Thanks to the full rotation capability,
+the motion planner does not have to account for complex
+geometric collision constraints but only for limited abduction
+freedom due to the main body. Furthermore, ANYmal can
+take fairly big steps.
+B. Trotting
+ANYmal is able to trot on different grounds and under
+large external disturbances. Similar to the walking gait,
+already the first experiments unveiled large advantages of the
+big range of motion as the legs can be moved relatively far
+in all directions. Using a 50% duty cycle gait, the machine
+achieves a speed of about 0.8 m/s. Key to robust trotting
+is fast and accurate position tracking. For a typical joint
+motion of a fast gait (Fig. 14), joint positions and velocities
+are followed accurately despite the joint compliance. A
+thorough evaluation of the overall energy consumption at
+the onboard battery indicated a relatively low consumption
+even during dynamic trotting gait. As depicted in Fig. 15,
+ANYmal requires in average about 290 W with about 5%
+
+2
+
+100
+
+trotting
+0
+
+0
+
+50
+
+100
+
+150
+
+200
+
+250
+
+300
+
+350
+
+400
+
+450
+
+47
+500
+
+50
+
+time [s]
+
+Fig. 15.
+
+Power consumption during trotting.
+
+fluctuation when trotting, about 100 W is consumed while
+idling in standing configuration. The total power consumption corresponds to a cost of transport of about 1.2. These
+measurements are comparable to our previous results with
+StarlETH [30] and enables the machine to autonomously run
+for more than 2 h with its current batteries.
+C. Stair Climbing
+As a proof of high mobility, ANYmal was tested for the
+ability to get up an industrial ladder of about 50◦ . To do
+this in a save manner and to prevent falling by all possible
+means, a turtle like crawling gait was implemented. The main
+body lies on the ground, the legs are moved to find the
+next stable contact holds, and the machine is subsequently
+pulled upwards (see Fig. 12(c)). Due to ANYmal’s large
+range of motion, the legs can be literally turned overhead
+to prevent collision with the ground or side rails. This
+maneuver was inspired by our work with ALoF, a kinematic
+quadrupedal robot that was developed for the ESA Lunar
+
+Robotic Challenge [31]. This machine successfully exhibited
+such gait to reliably overcome steep inclinations with loose
+sand during a moon testing scenario on a volcano.
+VI. C ONCLUSION /F UTURE WORK
+ANYmal is considered a step towards unification of high
+mobility with dynamic locomotion capability.
+From the beginning of the design phase, special attention
+was put on a rugged and simple to maintain system. This
+was achieved with the modular joint units ANYdrive that
+allow to very simply create robots of different kinematic
+structure. In case of failure, these modules can be easily
+and quickly exchanged without special knowledge. These
+actuators are based on a series elastic concept as already
+implemented on StarlETH, where we did not have a single
+gearbox failure in 4 years of almost daily operation with
+high-dynamic maneuvers. The presented experiments support
+the claim of robustness since even completely plastic and
+unexpected output collisions do not lead to higher gearbox
+loads than during nominal operation.
+Beside the highly improved protection, the biggest advantage of ANYmal is clearly the outstanding range of motion
+in all joints. This enables a large variety of maneuvers to
+overcome obstacles or to get up after falling. Furthermore, it
+simplifies motion planning as there are less internal system
+constraints. The initial objectives of creating a dynamic
+and highly mobile autonomous walking machine could be
+confirmed in preliminary experiments including careful stair
+climbing, ZMP-based walking and dynamic trotting. The
+present development shall enable deployment of legged
+robots in real world scenarios such as for search and rescue
+or industrial inspection.
+R EFERENCES
+[1] DRC,
+“DARPA
+Robotics
+Challenge
+(DRC)
+,
+http://www.theroboticschallenge.org/.”
+[2] Boston
+Dynamics,
+“ATLAS
+Robot
+http://www.bostondynamics.com/robot Atlas.html.”
+[3] N. A. Radford et al., “Valkyrie: NASA’s First Bipedal Humanoid
+Robot,” Journal of Field Robotics, vol. 32, no. 3, pp. 397–419, 2015.
+[4] H. Wang, Y. F. Zheng, Y. Jun, and P. Oh, “DRC-hubo walking on
+rough terrains,” in IEEE International Conference on Technologies
+for Practical Robot Applications (TePRA), 2014.
+[5] K. Kaneko et al., “Humanoid robot HRP-2Kai Improvement of HRP-2
+towards disaster response tasks,” in 2015 IEEE-RAS 15th International
+Conference on Humanoid Robots (Humanoids), pp. 132–139, 2015.
+[6] M. Raibert, K. Blankespoor, G. Nelson, and R. Playter, “BigDog,
+the rough-terrain quadruped robot,” in Proceedings of the 17th World
+Congress, pp. 10823–10825, 2008.
+[7] C. Semini, N. G. Tsagarakis, E. Guglielmino, M. Focchi, F. Cannella,
+and D. G. Caldwell, “Design of HyQ – a hydraulically and electrically
+actuated quadruped robot,” Proceedings of the Institution of Mechanical Engineers, Part I: Journal of Systems and Control Engineering,
+vol. 225, no. 6, pp. 831–849, 2011.
+[8] C. Semini, V. Barasuol, T. Boaventura, M. Frigerio, M. Focchi, D. G.
+Caldwell, and J. Buchli, “Towards versatile legged robots through
+active impedance control,” The International Journal of Robotics
+Research, vol. 34, no. 7, pp. 1003–1020, 2015.
+[9] S. Seok, A. Wang, D. Otten, J. Lang, and S. Kim, “Design principles
+for highly efficient quadrupeds and implementation on the MIT
+Cheetah robot,” in IEEE International Conference on Robotics and
+Automation (ICRA), pp. 3307–3312, 2013.
+
+[10] M. Hutter, C. Gehring, M. Bloesch, M. H. Hoepflinger, C. D. Remy,
+and R. Siegwart, “StarlETH: a Compliant Quadrupedal Robot for Fast,
+Efficient, and Versatile Locomotion,” in International Conference on
+Climbing and Walking Robots (CLAWAR), pp. 483–490, 2012.
+[11] P. Hebert et al., “Mobile Manipulation and Mobility as ManipulationDesign and Algorithms of RoboSimian,” Journal of Field Robotics,
+vol. 32, no. 2, pp. 255–274, 2015.
+[12] T. C. Boaventura, Hydraulic Compliance Control of the Quadruped
+Robot HyQ. PhD thesis, University of Genoa, Italy and Istituto Italiano
+di Tecnologia (IIT), 2013.
+[13] S. Seok, A. Wang, D. Otten, and S. Kim, “Actuator design for high
+force proprioceptive control in fast legged locomotion,” in IEEE/RSJ
+International Conference on Intelligent Robots and Systems (IROS),
+pp. 1970–1975, 2012.
+[14] G. A. Pratt and M. M. Williamson, “Series elastic actuators,” in IEEE
+International Conference on Intelligent Robots and Systems (IROS),
+pp. 399–406, MIT, 1995.
+[15] N. Paine, J. Holley, G. Johnson, and L. Sentis, “Actuator Control for
+the NASA-JSC Valkyrie Humanoid Robot : A Decoupled Dynamics
+Approach for Torque Control of Series Elastic Robots,” Journal of
+Field Robotics, 2014.
+[16] M. Hutter, C. D. Remy, M. A. Hoepflinger, and R. Siegwart, “Efficient
+and Versatile Locomotion with Highly Compliant Legs,” IEEE/ASME
+Transactions on Mechatronics, vol. 18, no. 2, pp. 449–458, 2013.
+[17] D. Rollinson et al., “Design and architecture of a series elastic snake
+robot,” in IEEE/RSJ International Conference on Intelligent Robots
+and Systems (IROS), pp. 4630–4636, 2014.
+[18] J. Paskarbeit, S. Annunziata, D. Basa, and A. Schneider, “A selfcontained, elastic joint drive for robotics applications based on a
+sensorized elastomer couplingDesign and identification,” Sensors and
+Actuators A: Physical, vol. 199, pp. 56–66, sep 2013.
+[19] G. A. Pratt, P. Willisson, C. Bolton, and A. Hofman, “Late motor
+processing in low-impedance robots: impedance control of serieselastic actuators,” in American Control Conference (ACC), vol. 4,
+pp. 3245–3251, 2004.
+[20] N. A. Paine, High-Performance Series Elastic Actuation. PhD thesis,
+The University of Texas at Austin, 2014.
+[21] M. Hutter, C. D. Remy, M. H. Hoepflinger, and R. Siegwart, “High
+Compliant Series Elastic Actuation for the Robotic Leg ScarlETH,” in
+International Conference on Climbing and Walking Robots (CLAWAR),
+(Paris, Fr), pp. 507–514, 2011.
+[22] N. Paine, S. Oh, and L. Sentis, “Design and Control Considerations for
+High-Performance Series Elastic Actuators,” IEEE/ASME Transactions
+on Mechatronics, vol. 19, no. 3, pp. 1080–1091, 2014.
+[23] M. Bloesch, M. Hutter, M. Hoepflinger, S. Leutenegger, C. Gehring,
+C. D. Remy, and R. Siegwart, “State Estimation for Legged Robots Consistent Fusion of Leg Kinematics and IMU,” in Robotics Science
+and Systems (RSS), pp. 17–24, 2012.
+[24] M. Bloesch, C. Gehring, P. Fankhauser, M. Hutter, M. A. Hoepflinger,
+and R. Siegwart, “State estimation for legged robots on unstable and
+slippery terrain,” in IEEE/RSJ International Conference on Intelligent
+Robots and Systems (IROS), pp. 6058–6064, 2013.
+[25] M. Vukobratovic and D. Juricic, “Contribution to the synthesis of
+biped gait,” IEEE Transactions on Biomedical Engineering, no. 1,
+1969.
+[26] R. B. McGhee, “Some finite state aspects of legged locomotion,”
+Mathematical Biosciences, vol. 2, no. 1-2, pp. 67–84, 1968.
+[27] C. Gehring et al., “Towards Automatic Discovery of Agile Gaits for
+Quadrupedal Robots,” in IEEE International Conference on Robotics
+and Automation (ICRA), pp. 4243–4248, 2014.
+[28] M. Hutter, H. Sommer, C. Gehring, M. Hoepflinger, M. Bloesch, and
+R. Siegwart, “Quadrupedal locomotion using hierarchical operational
+space control,” The International Journal of Robotics Research (IJRR),
+vol. 33, pp. 1062–1077, may 2014.
+[29] C. Gehring et al., “Practice Makes Perfect: An Optimization-Based
+Approach to Controlling Agile Motions for a Quadruped Robot,” IEEE
+Robotics & Automation Magazine, vol. 23, no. 1, pp. 34–43, 2016.
+[30] M. Hutter, C. Gehring, M. A. Hopflinger, M. Blosch, and R. Siegwart,
+“Toward Combining Speed, Efficiency, Versatility, and Robustness in
+an Autonomous Quadruped,” IEEE Transactions on Robotics, vol. 30,
+pp. 1427–1440, dec 2014.
+[31] C. D. Remy et al., “Walking and crawling with ALoF: a robot for autonomous locomotion on four legs,” Industrial Robot: An International
+Journal, vol. 38, no. 3, pp. 264–268, 2011.
+
+
