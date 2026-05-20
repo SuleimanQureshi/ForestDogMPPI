@@ -1,6 +1,10 @@
 /third_party/
 /src/python/convex_mpc/__pycache__
 
+# Large LiDAR/terrain source files
+*.tif
+*.tiff
+
 *.egg-info/
 dist/
 build/

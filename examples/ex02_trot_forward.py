@@ -1365,9 +1365,11 @@ def debug_plot_heightmap(hmap, res, origin):
 
 _REPO = Path(__file__).resolve().parents[1]
 _FOREST_SCENE = _REPO / "models" / "MJCF" / "go2" / "scene_test_forest.xml"
+_SCENE_XML = Path(os.environ.get("EX02_SCENE_XML", str(_FOREST_SCENE)))
+_VIDEO_LABEL = os.environ.get("EX02_VIDEO_LABEL", "")
 
 go2 = PinGo2Model()
-mujoco_go2 = MuJoCo_GO2_Model(xml_path=_FOREST_SCENE)
+mujoco_go2 = MuJoCo_GO2_Model(xml_path=_SCENE_XML)
 lidar = MuJoCoLidar3D(
     mujoco_go2.model,
     mujoco_go2.data,
@@ -1443,6 +1445,18 @@ sim_start_time = time.perf_counter()
 ctrl_i = 0
 tau_hold = np.zeros(12, dtype=float)
 debug_frames = []
+_replan_count = 0
+_path_length = 0.0
+_prev_robot_xy = None
+_foot_obstacle_contacts = 0
+
+# geom IDs for the 4 foot spheres and the ground hfield
+_FOOT_GEOM_IDS = {
+    mj.mj_name2id(mujoco_go2.model, mj.mjtObj.mjOBJ_GEOM, leg)
+    for leg in ("FL", "FR", "RL", "RR")
+}
+_GROUND_GEOM_ID = mj.mj_name2id(mujoco_go2.model, mj.mjtObj.mjOBJ_GEOM, "ground")
+
 with mj.viewer.launch_passive(mujoco_go2.model, mujoco_go2.data) as viewer:
 
     viewer.cam.type = mj.mjtCamera.mjCAMERA_TRACKING
@@ -1469,6 +1483,10 @@ with mj.viewer.launch_passive(mujoco_go2.model, mujoco_go2.data) as viewer:
             py = x_vec[1, ctrl_i]
             yaw = x_vec[5, ctrl_i]
             robot_xy = x_vec[0:2, ctrl_i]
+            # accumulate path length
+            if _prev_robot_xy is not None:
+                _path_length += float(np.linalg.norm(robot_xy - _prev_robot_xy))
+            _prev_robot_xy = robot_xy.copy()
             # box_xy = box_pos[0:2]
 
             # dist = np.linalg.norm(robot_xy - box_xy)
@@ -1533,7 +1551,7 @@ with mj.viewer.launch_passive(mujoco_go2.model, mujoco_go2.data) as viewer:
                     new_path = planner.plan(np.array([px, py]), goal_xy)
                     if new_path is not None:
                         mppi.set_path(new_path)
-                        # print(f"[Planner] Replanned: {len(new_path)} pts")
+                        _replan_count += 1
 
                     # Compute clearance per hit cell (object vs ground)
                     ix, iy = heightmap.world_to_grid(hits_filt[:,0], hits_filt[:,1])
@@ -1666,6 +1684,14 @@ with mj.viewer.launch_passive(mujoco_go2.model, mujoco_go2.data) as viewer:
         mj.mj_step1(mujoco_go2.model, mujoco_go2.data)
         mujoco_go2.set_joint_torque(tau_hold)
         mj.mj_step2(mujoco_go2.model, mujoco_go2.data)
+
+        # count foot contacts with obstacles (anything that is not the ground hfield)
+        for c in mujoco_go2.data.contact[:mujoco_go2.data.ncon]:
+            g1, g2 = int(c.geom1), int(c.geom2)
+            foot_involved = g1 in _FOOT_GEOM_IDS or g2 in _FOOT_GEOM_IDS
+            ground_involved = g1 == _GROUND_GEOM_ID or g2 == _GROUND_GEOM_ID
+            if foot_involved and not ground_involved:
+                _foot_obstacle_contacts += 1
         # viewer.sync()
         #Render-rate logging for smooth replay
         t_after = float(mujoco_go2.data.time)
@@ -1693,12 +1719,20 @@ from matplotlib.lines import Line2D
 
 # Explicitly point matplotlib at the conda-env ffmpeg so it works under sudo
 # (sudo strips PATH, so the system can't find the conda-installed ffmpeg).
-_FFMPEG_PATH = "/home/suleiman/miniconda3/envs/go2-convex-mpc/bin/ffmpeg"
+_FFMPEG_PATH = str(Path(os.environ.get("CONDA_PREFIX", "/home/ailiya/miniconda3/envs/go2-convex-mpc")) / "bin" / "ffmpeg")
 if not matplotlib.rcParams.get('animation.ffmpeg_path') or \
         matplotlib.rcParams['animation.ffmpeg_path'] == 'ffmpeg':
     matplotlib.rcParams['animation.ffmpeg_path'] = _FFMPEG_PATH
 
-base_name = "mppi_debug"
+_final_dist = float(np.linalg.norm(x_vec[0:2, ctrl_i - 1] - goal_xy))
+print(f"EXPERIMENT_METRICS label={_VIDEO_LABEL or 'default'} "
+      f"replan_count={_replan_count} "
+      f"path_length_m={_path_length:.2f} "
+      f"final_dist_to_goal_m={_final_dist:.2f} "
+      f"goal_reached={_final_dist < 0.5} "
+      f"foot_obstacle_contacts={_foot_obstacle_contacts}")
+
+base_name = f"mppi_debug{'_' + _VIDEO_LABEL if _VIDEO_LABEL else ''}"
 ext = ".mp4"
 MPPI_VIDEO_PATH = os.path.abspath(f"{base_name}{ext}")
 counter = 1
