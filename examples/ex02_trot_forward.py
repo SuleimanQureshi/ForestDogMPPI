@@ -1445,6 +1445,17 @@ sim_start_time = time.perf_counter()
 ctrl_i = 0
 tau_hold = np.zeros(12, dtype=float)
 debug_frames = []
+
+# Offscreen renderer for 3D simulation video
+_3d_renderer = mj.Renderer(mujoco_go2.model, height=720, width=1280)
+_3d_cam = mj.MjvCamera()
+mj.mjv_defaultCamera(_3d_cam)
+_3d_cam.type       = mj.mjtCamera.mjCAMERA_TRACKING
+_3d_cam.trackbodyid = mujoco_go2.base_bid
+_3d_cam.distance   = 5.0
+_3d_cam.elevation  = -30.0
+_3d_cam.azimuth    = 90.0
+_3d_frames = []
 _replan_count = 0
 _path_length = 0.0
 _prev_robot_xy = None
@@ -1693,12 +1704,14 @@ with mj.viewer.launch_passive(mujoco_go2.model, mujoco_go2.data) as viewer:
             if foot_involved and not ground_involved:
                 _foot_obstacle_contacts += 1
         # viewer.sync()
-        #Render-rate logging for smooth replay
+        #Render-rate logging for smooth replay + 3D video capture
         t_after = float(mujoco_go2.data.time)
         if t_after + 1e-12 >= next_render_t:
             time_log_render.append(t_after)
             q_log_render.append(mujoco_go2.data.qpos.copy())
             tau_log_render.append(tau_hold.copy())
+            _3d_renderer.update_scene(mujoco_go2.data, camera=_3d_cam)
+            _3d_frames.append(_3d_renderer.render().copy())
             next_render_t += RENDER_DT
 
 sim_end_time = time.perf_counter()
@@ -1723,6 +1736,25 @@ _FFMPEG_PATH = str(Path(os.environ.get("CONDA_PREFIX", "/home/ailiya/miniconda3/
 if not matplotlib.rcParams.get('animation.ffmpeg_path') or \
         matplotlib.rcParams['animation.ffmpeg_path'] == 'ffmpeg':
     matplotlib.rcParams['animation.ffmpeg_path'] = _FFMPEG_PATH
+
+# --- 3D simulation video ---
+import cv2 as _cv2
+_sim_label = f"sim3d{'_' + _VIDEO_LABEL if _VIDEO_LABEL else ''}"
+_sim_video_path = os.path.abspath(f"{_sim_label}.mp4")
+_sim_counter = 1
+while os.path.exists(_sim_video_path):
+    _sim_video_path = os.path.abspath(f"{_sim_label}_{_sim_counter}.mp4")
+    _sim_counter += 1
+print(f"Writing 3D simulation video ({len(_3d_frames)} frames) -> {_sim_video_path}")
+_h, _w = _3d_frames[0].shape[:2]
+_vw = _cv2.VideoWriter(_sim_video_path,
+                       _cv2.VideoWriter_fourcc(*"mp4v"),
+                       RENDER_HZ, (_w, _h))
+for _frame in _3d_frames:
+    _vw.write(_cv2.cvtColor(_frame, _cv2.COLOR_RGB2BGR))
+_vw.release()
+_3d_renderer.close()
+print(f"3D video saved: {_sim_video_path}")
 
 _final_dist = float(np.linalg.norm(x_vec[0:2, ctrl_i - 1] - goal_xy))
 print(f"EXPERIMENT_METRICS label={_VIDEO_LABEL or 'default'} "
