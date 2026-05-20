@@ -37,10 +37,17 @@ def make_scene_xml(terrain_png: Path) -> Path:
     """
     src = SCENE_TMPL.read_text()
     rel = os.path.relpath(terrain_png, SCENE_DIR / "assets")
+    # swap PNG path
     patched = re.sub(
         r'(<hfield\b[^>]*\bfile=")[^"]*(")',
         lambda m: m.group(1) + rel + m.group(2),
         src,
+    )
+    # ensure z_scale=0.40 regardless of what the template says
+    patched = re.sub(
+        r'(size="\d+\.?\d* \d+\.?\d*) \d+\.?\d* (\d+\.?\d*")',
+        lambda m: m.group(1) + ' 0.40 ' + m.group(2),
+        patched,
     )
     out = SCENE_DIR / f"_tmp_scene_{terrain_png.stem}.xml"
     out.write_text(patched)
