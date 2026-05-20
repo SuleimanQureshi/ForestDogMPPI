@@ -20,7 +20,7 @@
     <!-- <material name="groundplane" texture="groundplane" texuniform="true" texrepeat="5 5" reflectance="0.2"/> -->
     <hfield name="forest"
         file="terrain/forest_hfield.png"
-        size="12 12 0.40 0.01"/>
+        size="12 12 0.20 0.01"/>
   </asset>
 
     <worldbody>
