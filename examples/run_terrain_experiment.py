@@ -17,23 +17,26 @@ TERRAIN_DIR = REPO / "models" / "MJCF" / "assets" / "terrain"
 EX02        = Path(__file__).parent / "ex02_trot_forward.py"
 PYTHON      = sys.executable
 
+# (label, png_path, z_scale)
+# forest uses the original synthetic z_scale=0.12; BC LiDAR terrains use 0.50
 TERRAINS = {
-    "forest":        REPO / "models" / "MJCF" / "go2" / "assets" / "terrain" / "forest_hfield.png",
-    "bc_093p056":    TERRAIN_DIR / "bc_093p056_xli1m_utm10_20240610_20240621.png",
-    "bc_093p066":    TERRAIN_DIR / "bc_093p066_1_1_4_xli1m_utm10_20240610_20240621.png",
-    "bc_094a059sub": TERRAIN_DIR / "bc_094a059_2_4_4_xli1m_utm10_20240628_20240628.png",
-    "bc_094a059":    TERRAIN_DIR / "bc_094a059_xli1m_utm10_20240611_20240620.png",
-    "bc_094a060":    TERRAIN_DIR / "bc_094a060_xli1m_utm10_20240610_20240611.png",
-    "lidar":         TERRAIN_DIR / "lidar.png",
+    "forest":        (REPO / "models/MJCF/go2/assets/terrain/forest_hfield.png",    None),
+    "bc_093p056":    (TERRAIN_DIR / "bc_093p056_xli1m_utm10_20240610_20240621.png", 1.50),
+    "bc_093p066":    (TERRAIN_DIR / "bc_093p066_1_1_4_xli1m_utm10_20240610_20240621.png", 1.50),
+    "bc_094a059sub": (TERRAIN_DIR / "bc_094a059_2_4_4_xli1m_utm10_20240628_20240628.png", 1.50),
+    "bc_094a059":    (TERRAIN_DIR / "bc_094a059_xli1m_utm10_20240611_20240620.png",  1.50),
+    "bc_094a060":    (TERRAIN_DIR / "bc_094a060_xli1m_utm10_20240610_20240611.png",  1.50),
+    "lidar":         (TERRAIN_DIR / "lidar.png",                                     1.50),
 }
 
 
-def make_scene_xml(terrain_png: Path) -> Path:
+def make_scene_xml(terrain_png: Path, z_scale: float | None = None) -> Path:
     """Write a patched scene XML into models/MJCF/go2/ so include/asset paths resolve.
 
     go2.xml sets <compiler meshdir="assets"/>, so MuJoCo prepends assets/ to every
     hfield file= path.  We must therefore express the PNG path relative to
     SCENE_DIR/assets/, not SCENE_DIR itself.
+    If z_scale is None the template value is kept (e.g. 0.12 for the synthetic forest).
     """
     src = SCENE_TMPL.read_text()
     rel = os.path.relpath(terrain_png, SCENE_DIR / "assets")
@@ -43,12 +46,13 @@ def make_scene_xml(terrain_png: Path) -> Path:
         lambda m: m.group(1) + rel + m.group(2),
         src,
     )
-    # ensure z_scale=0.40 regardless of what the template says
-    patched = re.sub(
-        r'(size="\d+\.?\d* \d+\.?\d*) \d+\.?\d* (\d+\.?\d*")',
-        lambda m: m.group(1) + ' 0.40 ' + m.group(2),
-        patched,
-    )
+    if z_scale is not None:
+        patched = re.sub(
+            r'(<hfield\b[^>]*size="\d+\.?\d* \d+\.?\d*) \d+\.?\d*( \d+\.?\d*")',
+            lambda m: f'{m.group(1)} {z_scale}{m.group(2)}',
+            patched,
+        )
+
     out = SCENE_DIR / f"_tmp_scene_{terrain_png.stem}.xml"
     out.write_text(patched)
     return out
@@ -94,16 +98,16 @@ def run_terrain(label: str, scene_xml: Path) -> dict:
 def main():
     results = []
 
-    for label, png_path in TERRAINS.items():
+    for label, (png_path, z_scale) in TERRAINS.items():
         if not png_path.exists():
             print(f"\n[SKIP] {label}: {png_path} not found\n")
             continue
 
         print(f"\n{'='*60}")
-        print(f"[RUN] terrain={label}  png={png_path.name}")
+        print(f"[RUN] terrain={label}  png={png_path.name}  z_scale={z_scale or 'template'}")
         print(f"{'='*60}\n")
 
-        scene_xml = make_scene_xml(png_path)
+        scene_xml = make_scene_xml(png_path, z_scale)
         try:
             metrics = run_terrain(label, scene_xml)
         finally:

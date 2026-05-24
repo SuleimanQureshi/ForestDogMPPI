@@ -8,6 +8,13 @@ import mujoco as mj
 import numpy as np
 import heapq
 from dataclasses import dataclass, field
+from pathlib import Path as _Path
+
+# Scene / label injected by run_terrain_experiment.py
+_REPO         = _Path(__file__).resolve().parents[1]
+_FOREST_SCENE = _REPO / "models" / "MJCF" / "go2" / "scene_test_forest.xml"
+_SCENE_XML    = _Path(os.environ.get("EX02_SCENE_XML", str(_FOREST_SCENE)))
+_VIDEO_LABEL  = os.environ.get("EX02_VIDEO_LABEL", "")
 
 from convex_mpc.go2_robot_data import PinGo2Model
 from convex_mpc.mujoco_model import MuJoCo_GO2_Model
@@ -29,7 +36,7 @@ from matplotlib.patches import Arc
 INITIAL_X_POS = -2
 INITIAL_Y_POS = 0
 # How long does the simulation run for How much time 
-RUN_SIM_LENGTH_S = 2.0
+RUN_SIM_LENGTH_S = 18.0
 
 RENDER_HZ = 120.0
 RENDER_DT = 1.0 / RENDER_HZ
@@ -1365,7 +1372,19 @@ if __name__ == "__main__":
     # --------------------------------------------------------------------------------
 
     go2 = PinGo2Model()
-    mujoco_go2 = MuJoCo_GO2_Model()
+    mujoco_go2 = MuJoCo_GO2_Model(xml_path=_SCENE_XML)
+
+    # --- 3D offscreen renderer (tracking camera) ---
+    _3d_renderer = mj.Renderer(mujoco_go2.model, height=720, width=1280)
+    _3d_cam = mj.MjvCamera()
+    mj.mjv_defaultCamera(_3d_cam)
+    _3d_cam.type        = mj.mjtCamera.mjCAMERA_TRACKING
+    _3d_cam.trackbodyid = mujoco_go2.base_bid
+    _3d_cam.distance    = 5.0
+    _3d_cam.elevation   = -30.0
+    _3d_cam.azimuth     = 90.0
+    _3d_frames = []
+
     lidar = MuJoCoLidar3D(
         mujoco_go2.model,
         mujoco_go2.data,
@@ -1676,6 +1695,9 @@ if __name__ == "__main__":
                 time_log_render.append(t_after)
                 q_log_render.append(mujoco_go2.data.qpos.copy())
                 tau_log_render.append(tau_hold.copy())
+                # Capture 3D offscreen frame
+                _3d_renderer.update_scene(mujoco_go2.data, camera=_3d_cam)
+                _3d_frames.append(_3d_renderer.render().copy())
                 next_render_t += RENDER_DT
 
     sim_end_time = time.perf_counter()
@@ -1690,24 +1712,40 @@ if __name__ == "__main__":
     # --------------------------------------------------------------------------------
     # blocker = input("Press Enter to continue...")
 
+    # --- Write 3D sim video ---
+    import cv2 as _cv2
+    _sim_label     = f"sim3d{'_' + _VIDEO_LABEL if _VIDEO_LABEL else ''}"
+    _sim_video_path = str(_REPO / f"{_sim_label}.mp4")
+    _h, _w = 720, 1280
+    print(f"Writing 3D simulation video ({len(_3d_frames)} frames) -> {_sim_video_path}")
+    _vw = _cv2.VideoWriter(_sim_video_path, _cv2.VideoWriter_fourcc(*"mp4v"),
+                           RENDER_HZ, (_w, _h))
+    for _frame in _3d_frames:
+        _vw.write(_cv2.cvtColor(_frame, _cv2.COLOR_RGB2BGR))
+    _vw.release()
+    _3d_renderer.close()
+    print(f"3D video saved: {_sim_video_path}")
+
     print("Rendering MPPI debug video...")
 
     from matplotlib.lines import Line2D
 
-    # Explicitly point matplotlib at the conda-env ffmpeg so it works under sudo
-    # (sudo strips PATH, so the system can't find the conda-installed ffmpeg).
-    _FFMPEG_PATH = "/home/suleiman/miniconda3/envs/go2-convex-mpc/bin/ffmpeg"
+    # Resolve ffmpeg: prefer conda env, fall back to PATH
+    import shutil as _shutil
+    from pathlib import Path as _Path
+    _FFMPEG_PATH = str(
+        _Path(os.environ.get("CONDA_PREFIX",
+                             "/home/ailiya/miniconda3/envs/go2-convex-mpc"))
+        / "bin" / "ffmpeg"
+    )
+    if not _Path(_FFMPEG_PATH).exists():
+        _FFMPEG_PATH = _shutil.which("ffmpeg") or _FFMPEG_PATH
     if not matplotlib.rcParams.get('animation.ffmpeg_path') or \
             matplotlib.rcParams['animation.ffmpeg_path'] == 'ffmpeg':
         matplotlib.rcParams['animation.ffmpeg_path'] = _FFMPEG_PATH
 
-    base_name = "mppi_debug"
-    ext = ".mp4"
-    MPPI_VIDEO_PATH = os.path.abspath(f"{base_name}{ext}")
-    counter = 1
-    while os.path.exists(MPPI_VIDEO_PATH):
-        MPPI_VIDEO_PATH = os.path.abspath(f"{base_name}_{counter}{ext}")
-        counter += 1
+    base_name = f"mppi_debug{'_' + _VIDEO_LABEL if _VIDEO_LABEL else ''}"
+    MPPI_VIDEO_PATH = str(_REPO / f"{base_name}.mp4")
     VIDEO_FPS = 25
 
     fig, ax = plt.subplots(figsize=(8, 8))
