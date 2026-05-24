@@ -1,0 +1,18 @@
+{
+  "case_name": "case3_no_terrain_friction_cones",
+  "goal_reached": false,
+  "traversal_time_s": null,
+  "dist_to_goal_final_m": 3.506504069461331,
+  "roll_rms_rad": 1.9068570831204825,
+  "pitch_rms_rad": 0.28203182528989695,
+  "mean_abs_roll_deg": 102.6095595705543,
+  "mean_abs_pitch_deg": 14.847034898203681,
+  "max_abs_roll_deg": 179.69955605513144,
+  "max_abs_pitch_deg": 23.34434934638586,
+  "total_path_length_m": 3.106020965935915,
+  "num_body_contacts": 1,
+  "body_contact_steps": 8,
+  "mpc_solve_time_mean_ms": 7.534260767774362,
+  "mpc_solve_time_max_ms": 43.920138999965275,
+  "sim_wall_time_s": 324.64760251700136
+}

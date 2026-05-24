@@ -1,0 +1,491 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf-8]{inputenc}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{geometry}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{array}
+
+\geometry{margin=1in}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.5em}
+
+\title{Integrated Terrain-Aware Navigation and Locomotion for Quadruped Robots using Hierarchical MPC}
+\author{}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\section{SYSTEM ARCHITECTURE}
+
+We present a tightly-integrated locomotion and navigation framework for the Unitree Go2 quadruped robot operating on unstructured terrain. The key insight is that a single terrain representation---a dual-layer heightmap constructed from onboard LiDAR---simultaneously informs decisions at every level of the control hierarchy: global path planning, local trajectory optimization, contact force generation, foothold selection, and swing leg control.
+
+The system operates as a cascaded loop at four rates:
+
+\begin{center}
+\begin{tabular}{|c|c|l|}
+\hline
+\textbf{Layer} & \textbf{Rate} & \textbf{Function} \\
+\hline
+Physics simulation & 1000 Hz & MuJoCo rigid-body dynamics \\
+Leg controller & 200 Hz & Cartesian impedance + force tracking \\
+Centroidal MPC & 30--50 Hz & Convex QP for optimal contact forces \\
+MPPI planner & 15--25 Hz & Sampling-based velocity command generation \\
+Perception + A* & $\sim$6 Hz & LiDAR scan, heightmap update, global replan \\
+\hline
+\end{tabular}
+\end{center}
+
+The terrain representation is consumed by five distinct subsystems:
+\begin{enumerate}
+\item Friction cone rotation in the MPC
+\item COM height adaptation in the trajectory generator
+\item Foothold quality scoring in the gait planner
+\item Steppability and obstacle costs in the MPPI local planner
+\item Edge traversability in the A* global planner
+\end{enumerate}
+
+This coupling ensures that the robot's navigation decisions are grounded in the same physical constraints that govern its locomotion.
+
+\section{TERRAIN PERCEPTION AND REPRESENTATION}
+
+\subsection{3D LiDAR Simulation}
+
+We simulate a 3D LiDAR sensor mounted at the robot's trunk using MuJoCo ray-casting. The sensor fires $N_{az} \times N_{el} = 90 \times 15 = 1350$ rays per scan, spanning azimuth $[-\pi, \pi)$ and elevation $[-30°, 15°]$ with a maximum range of 6 m. Each ray direction in the body frame is
+
+\begin{equation}
+\mathbf{d}_{\text{body}} = \begin{bmatrix} \cos\phi\cos\theta \\ \cos\phi\sin\theta \\ \sin\phi \end{bmatrix}
+\end{equation}
+
+where $\theta$ is azimuth and $\phi$ is elevation. Rays are rotated to world frame via the trunk orientation $\mathbf{R}_{\text{wb}}$, and hits on the robot's own body are discarded. Points with radial distance $< 0.45$ m from the base or with height outside $[-0.5, 2.0]$ m are filtered.
+
+\subsection{Dual-Layer Global Heightmap}
+
+We maintain a global heightmap $\mathcal{H}$ on a 2D grid of resolution $\delta = 0.05$ m covering a $12 \times 12$ m region. Each cell $(i,j)$ stores two height values updated via exponential moving average (EMA):
+
+\textbf{Ground layer} (walkable surface estimate):
+\begin{equation}
+h^{\text{ground}}_{i,j} \leftarrow (1 - \alpha_g)\, h^{\text{ground}}_{i,j} + \alpha_g\, Q_{0.2}(\{z_k\}_{k \in \text{cell}})
+\end{equation}
+
+where $Q_{0.2}$ denotes the 20th percentile of height samples within the cell, and $\alpha_g = 0.25$.
+
+\textbf{Top layer} (highest observed surface):
+\begin{equation}
+h^{\text{top}}_{i,j} \leftarrow (1 - \alpha_t)\, h^{\text{top}}_{i,j} + \alpha_t\, \max(\{z_k\}_{k \in \text{cell}})
+\end{equation}
+
+with $\alpha_t = 0.50$. The ground layer uses a low quantile to robustly estimate the walkable surface even when obstacle points fall in the same cell.
+
+\subsection{Derived Terrain Quantities}
+
+From the dual-layer heightmap we derive three quantities consumed by downstream modules:
+
+\textbf{Surface normal.} Estimated via central differences on the ground layer:
+
+\begin{equation}
+\hat{\mathbf{n}}_{i,j} = \frac{1}{\|\mathbf{n}\|}\begin{bmatrix} -\partial h^{\text{ground}} / \partial x \\ -\partial h^{\text{ground}} / \partial y \\ 1 \end{bmatrix}, \quad \frac{\partial h^{\text{ground}}}{\partial x} \approx \frac{h^{\text{ground}}_{i,j+1} - h^{\text{ground}}_{i,j-1}}{2\delta}
+\end{equation}
+
+\textbf{Clearance.} Per-cell vertical gap between top and ground layers:
+
+\begin{equation}
+c_{i,j} = h^{\text{top}}_{i,j} - h^{\text{ground}}_{i,j}
+\end{equation}
+
+Cells with $c_{i,j} \geq c_{\text{lethal}} = 0.25$ m are classified as obstacles.
+
+\textbf{Steppability (Foothold Quality).} A composite terrain quality metric $\sigma \in [0, 1]$ (0 = ideal, 1 = untraversable):
+
+\begin{equation}
+\sigma(\mathbf{p}) = 0.6\, \sigma_{\text{slope}}(\mathbf{p}) + 0.4\, \sigma_{\text{rough}}(\mathbf{p})
+\end{equation}
+
+where
+
+\begin{equation}
+\sigma_{\text{slope}} = \text{clip}\!\left(\frac{\|\nabla h^{\text{ground}}\|}{0.5},\; 0,\; 1\right), \quad \sigma_{\text{rough}} = \text{clip}\!\left(\frac{\text{std}_5(\mathbf{p})}{0.03},\; 0,\; 1\right)
+\end{equation}
+
+A slope magnitude of 0.5 ($\approx 27°$) saturates the slope term; surface roughness of 3 cm saturates the roughness term.
+
+\subsection{Obstacle Cost Map}
+
+Obstacle cells are inflated radially to create a smooth cost field for planning:
+
+\begin{equation}
+\mathcal{C}(\mathbf{p}) = \max_{(i,j) \in \mathcal{O}} \left[ \max\!\left(0,\; 1 - \frac{\|\mathbf{p} - \mathbf{p}_{ij}\|}{r_{\text{inflate}}}\right) \right]
+\end{equation}
+
+where $\mathcal{O}$ is the set of lethal cells and $r_{\text{inflate}} = 0.70$ m. The cost map applies temporal decay $\mathcal{C} \leftarrow 0.98\,\mathcal{C}$ each update cycle.
+
+\section{GLOBAL PATH PLANNING}
+
+\subsection{Terrain-Aware Weighted A*}
+
+Given the robot's current position $\mathbf{p}_{\text{start}}$ and a goal $\mathbf{p}_{\text{goal}}$, we compute a global path on the cost map grid using weighted A*. The edge cost between adjacent cells incorporates both obstacle proximity and terrain traversability:
+
+\begin{equation}
+w(i \to j) = \|\mathbf{p}_i - \mathbf{p}_j\| \cdot \left(1 + w_{\text{obs}}\left(e^{4\,\mathcal{C}_j} - 1\right) + w_{\text{terr}}\,\sigma_j\right)
+\end{equation}
+
+where $w_{\text{obs}} = 100$, $w_{\text{terr}} = 5$, $\mathcal{C}_j$ is the obstacle cost, and $\sigma_j$ is the steppability score at cell $j$. Cells with $\mathcal{C} \geq 0.8$ are treated as impassable.
+
+The heuristic is $h(\mathbf{p}) = 1.5\,\|\mathbf{p} - \mathbf{p}_{\text{goal}}\|$ (weighted A* with $\epsilon = 1.5$ for faster planning).
+
+\subsection{Path Hysteresis}
+
+To prevent left-right flip-flopping on successive replans, cells lying on the previous path receive a 50\% edge-cost discount:
+
+\begin{equation}
+w_{\text{hysteresis}}(i \to j) = \begin{cases} 0.5\, w(i \to j) & \text{if } j \in \mathcal{P}_{\text{prev}} \\ w(i \to j) & \text{otherwise} \end{cases}
+\end{equation}
+
+\subsection{Path Post-Processing}
+
+The raw A* path is resampled to uniform arc-length spacing of 0.15 m, then smoothed via 40 iterations of Laplacian averaging with collision checking:
+
+\begin{equation}
+\mathbf{p}_k \leftarrow (1 - \alpha)\,\mathbf{p}_k + \frac{\alpha}{2}(\mathbf{p}_{k-1} + \mathbf{p}_{k+1}), \quad \alpha = 0.25
+\end{equation}
+
+Each smoothed candidate is accepted only if $\mathcal{C}(\mathbf{p}_k) < 0.8$.
+
+\section{LOCAL TRAJECTORY OPTIMIZATION (MPPI)}
+
+\subsection{Dynamics Model}
+
+The MPPI local planner generates body-frame velocity commands $\mathbf{u} = [v_x, v_y, \omega_z]^T$ by optimizing over a finite horizon. We model the robot as a planar unicycle with first-order velocity dynamics:
+
+\begin{align}
+\dot{x} &= v_x \cos\psi - v_y \sin\psi, \quad \dot{y} = v_x \sin\psi + v_y \cos\psi, \quad \dot{\psi} = \omega_z \\
+\dot{v}_x &= \frac{v_x^{\text{cmd}} - v_x}{\tau}, \quad \dot{v}_y = \frac{v_y^{\text{cmd}} - v_y}{\tau}, \quad \dot{\omega}_z = \frac{\omega_z^{\text{cmd}} - \omega_z}{\tau}
+\end{align}
+
+where $\tau = 0.4$ s is a velocity tracking time constant. The state is $\mathbf{s} = [x, y, \psi, v_x, v_y, \omega_z]^T \in \mathbb{R}^6$.
+
+\subsection{Sampling and Optimization}
+
+At each MPPI cycle, we maintain a nominal control sequence $\mathbf{U} = [\mathbf{u}_0, \ldots, \mathbf{u}_{H-1}] \in \mathbb{R}^{H \times 3}$ with horizon $H = 80$ steps. We draw $K = 400$ perturbation sequences with temporally-correlated AR(1) noise:
+
+\begin{equation}
+\boldsymbol{\epsilon}^{(k)}_t = \alpha\,\boldsymbol{\epsilon}^{(k)}_{t-1} + (1 - \alpha)\,\boldsymbol{\xi}^{(k)}_t, \quad \boldsymbol{\xi}^{(k)}_t \sim \mathcal{N}(\mathbf{0}, \boldsymbol{\Sigma})
+\end{equation}
+
+where $\alpha = 0.5$ and $\boldsymbol{\Sigma} = \text{diag}(\sigma_{v_x}^2, \sigma_{v_y}^2, \sigma_{\omega_z}^2)$. The nominal sequence is updated via importance-weighted averaging:
+
+\begin{equation}
+\mathbf{U} \leftarrow \sum_{k=1}^{K} w_k\, \mathbf{U}^{(k)}, \quad w_k = \frac{\exp\left(-\frac{1}{\lambda}(J_k - J_{\min})\right)}{\sum_{j=1}^{K}\exp\left(-\frac{1}{\lambda}(J_j - J_{\min})\right)}
+\end{equation}
+
+with temperature $\lambda = 8.0$. This is repeated for $I = 5$ iterations per cycle.
+
+\subsection{Cost Function (Nav2-Style Critics)}
+
+The total cost for rollout $k$ is a sum of eight critic terms:
+
+\begin{equation}
+J_k = J_{\text{path}} + J_{\text{heading}} + J_{\text{turn}} + J_{\text{progress}} + J_{\text{obs}} + J_{\text{step}} + J_{\text{slope}} + J_{\text{smooth}}
+\end{equation}
+
+\textbf{1) Path-Following Critic.} Penalizes cross-track error:
+
+\begin{equation}
+J_{\text{path}} = 80 \cdot \frac{1}{|\{t_s\}|}\sum_{t_s} \min_{\mathbf{p}_j \in \mathcal{P}} \|\mathbf{x}^{(k)}_{t_s} - \mathbf{p}_j\|
+\end{equation}
+
+\textbf{2) Path Angle Critic.} Aligns heading $\psi$ with path tangent $\hat{\mathbf{t}}$:
+
+\begin{equation}
+J_{\text{heading}} = 120 \cdot \frac{1}{|\{t_s\}|}\sum_{t_s} \left|\text{atan2}\!\left(\sin(\psi_{t_s} - \theta_{\hat{\mathbf{t}}}),\; \cos(\psi_{t_s} - \theta_{\hat{\mathbf{t}}})\right)\right|
+\end{equation}
+
+\textbf{3) Turn-in-Place Critic.} Prevents forward motion when heading error is large:
+
+\begin{equation}
+J_{\text{turn}} = 500 \cdot \frac{1}{|\{t_s\}|}\sum_{t_s} \left[\max(v_{x,t_s}, 0)\right]^2 \cdot \left[\max(|e_{\psi,t_s}| - 0.2, 0)\right]^2
+\end{equation}
+
+\textbf{4) Path Progress Critic.} Rewards reaching further along path arc length:
+
+\begin{equation}
+J_{\text{progress}} = 20 \cdot \frac{L_{\text{total}} - s_{\max}^{(k)}}{L_{\text{total}}}
+\end{equation}
+
+\textbf{5) Obstacle Critic.} Graduated penalty using cost map $\mathcal{C}$:
+
+\begin{equation}
+J_{\text{obs}} = \frac{1}{20}\sum_{t=0}^{H-1} P_t + 3 \cdot \max_t P_t, \quad P_t = \begin{cases} 300 & \text{if } \mathcal{C}_t \geq 1.0 \\ 150\,\mathcal{C}_t & \text{if } \mathcal{C}_t > 0.3 \\ 30\,\mathcal{C}_t & \text{otherwise} \end{cases}
+\end{equation}
+
+\textbf{6) Foothold-Quality-Aware (FQA) Steppability Critic.} Predicts foot locations and penalizes poor stepping surfaces:
+
+\begin{equation}
+\mathbf{p}_l^{\text{foot}}(t) = \begin{bmatrix} x_t \\ y_t \end{bmatrix} + \mathbf{R}(\psi_t)\,\mathbf{h}_l
+\end{equation}
+
+\begin{equation}
+J_{\text{step}} = \frac{w_{\text{step}}}{4} \sum_{l=1}^{4} \frac{1}{H}\sum_{t=0}^{H-1} \sigma^2(\mathbf{p}_l^{\text{foot}}(t)), \quad w_{\text{step}} = 3.0
+\end{equation}
+
+\textbf{7) Slope Critic.} Penalizes steep terrain:
+
+\begin{equation}
+J_{\text{slope}} = 2.5 \cdot \frac{1}{H}\sum_{t=0}^{H-1} \|\nabla h^{\text{ground}}(\mathbf{x}_t)\|
+\end{equation}
+
+\textbf{8) Smoothness Critic.} Regularizes control changes:
+
+\begin{equation}
+J_{\text{smooth}} = 0.1 \cdot \frac{1}{H-1}\sum_{t=0}^{H-2} |\mathbf{u}_{t+1} - \mathbf{u}_t|
+\end{equation}
+
+\subsection{Adaptive Noise and Warm-Starting}
+
+The noise standard deviation $\boldsymbol{\Sigma}$ is adapted based on context:
+
+\begin{itemize}
+\item \textbf{Near goal and on-track} ($d < 1.5$ m, cross-track $< 0.3$ m): $\boldsymbol{\sigma} = [0.08, 0.05, 0.40]$ (narrow, exploit)
+\item \textbf{Stuck or near obstacle}: $\boldsymbol{\sigma} = [0.30, 0.10, 1.20]$ (wide yaw exploration)
+\item \textbf{Default}: $\boldsymbol{\sigma} = [0.35, 0.05, 1.00]$
+\end{itemize}
+
+The first command $\mathbf{u}_0$ is acceleration-clamped before execution:
+
+\begin{equation}
+\mathbf{u}_0 \leftarrow \mathbf{u}_{\text{prev}} + \text{clip}(\mathbf{u}_0 - \mathbf{u}_{\text{prev}},\; -\mathbf{a}_{\max}\Delta t,\; \mathbf{a}_{\max}\Delta t)
+\end{equation}
+
+with $\mathbf{a}_{\max} = [2.0, 1.5, 10.0]$ in $[\text{m/s}^2, \text{m/s}^2, \text{rad/s}^2]$.
+
+\section{CENTROIDAL MODEL PREDICTIVE CONTROL}
+
+\subsection{Centroidal Dynamics}
+
+We model the quadruped as a single rigid body with mass $m$ and rotational inertia $\mathbf{I}_{\text{com}}$ in the world frame. The centroidal state is
+
+\begin{equation}
+\mathbf{x} = \begin{bmatrix} \mathbf{p} \\ \boldsymbol{\Theta} \\ \dot{\mathbf{p}} \\ \boldsymbol{\omega} \end{bmatrix} \in \mathbb{R}^{12}
+\end{equation}
+
+where $\mathbf{p} \in \mathbb{R}^3$ is the center-of-mass position, $\boldsymbol{\Theta} = [\phi, \theta, \psi]^T$ are roll-pitch-yaw Euler angles, $\dot{\mathbf{p}} \in \mathbb{R}^3$ is COM velocity, and $\boldsymbol{\omega} \in \mathbb{R}^3$ is angular velocity.
+
+The control input is the concatenated contact forces at four feet:
+
+\begin{equation}
+\mathbf{u} = \begin{bmatrix} \mathbf{f}_{\text{FL}} \\ \mathbf{f}_{\text{FR}} \\ \mathbf{f}_{\text{RL}} \\ \mathbf{f}_{\text{RR}} \end{bmatrix} \in \mathbb{R}^{12}
+\end{equation}
+
+The continuous-time dynamics are:
+
+\begin{equation}
+\dot{\mathbf{x}} = \mathbf{A}_c\,\mathbf{x} + \mathbf{B}_c(t)\,\mathbf{u} + \mathbf{g}_c
+\end{equation}
+
+with
+
+\begin{equation}
+\mathbf{A}_c = \begin{bmatrix} \mathbf{0} & \mathbf{0} & \mathbf{I}_3 & \mathbf{0} \\ \mathbf{0} & \mathbf{0} & \mathbf{0} & \mathbf{R}_z^T \\ \mathbf{0} & \mathbf{0} & \mathbf{0} & \mathbf{0} \\ \mathbf{0} & \mathbf{0} & \mathbf{0} & \mathbf{0} \end{bmatrix}, \quad \mathbf{B}_c(t) = \begin{bmatrix} \mathbf{0}_{3 \times 12} \\ \mathbf{0}_{3 \times 12} \\ \frac{1}{m}\begin{bmatrix}\mathbf{I}_3 & \mathbf{I}_3 & \mathbf{I}_3 & \mathbf{I}_3\end{bmatrix} \\ \mathbf{I}_{\text{com}}^{-1}\begin{bmatrix}[\mathbf{r}_1]_\times & [\mathbf{r}_2]_\times & [\mathbf{r}_3]_\times & [\mathbf{r}_4]_\times\end{bmatrix} \end{bmatrix}
+\end{equation}
+
+\begin{equation}
+\mathbf{g}_c = \begin{bmatrix} \mathbf{0}_6 \\ [0, 0, -g]^T \\ \mathbf{0}_3 \end{bmatrix}
+\end{equation}
+
+\subsection{Discretization}
+
+We discretize over a horizon of $N = 16$ steps with timestep $\Delta t = T_{\text{gait}}/N$. Using zero-order hold (ZOH):
+
+\begin{equation}
+\mathbf{A}_d, \mathbf{B}_{d,k} = \text{ZOH}(\mathbf{A}_c, \mathbf{B}_{c,k}, \Delta t)
+\end{equation}
+
+The discrete gravity term requires integration:
+
+\begin{equation}
+\mathbf{g}_d = \int_0^{\Delta t} e^{\mathbf{A}_c \tau}\,\mathbf{g}_c\,d\tau \approx \text{trapz}\!\left(\left\{e^{\mathbf{A}_c \tau_i}\,\mathbf{g}_c\right\}_{i=0}^{49}\right)
+\end{equation}
+
+\subsection{Convex QP Formulation}
+
+The MPC solves:
+
+\begin{equation}
+\min_{\mathbf{x}_{1:N},\, \mathbf{u}_{0:N-1}} \sum_{k=0}^{N-1}\left[\|\mathbf{x}_k - \mathbf{x}_k^{\text{ref}}\|_{\mathbf{Q}}^2 + \|\mathbf{u}_k\|_{\mathbf{R}}^2\right]
+\end{equation}
+
+subject to:
+
+\begin{align}
+\mathbf{x}_{k+1} &= \mathbf{A}_d\,\mathbf{x}_k + \mathbf{B}_{d,k}\,\mathbf{u}_k + \mathbf{g}_d \\
+\mathbf{f}_l &= \mathbf{0} \quad \text{(swing legs)} \\
+(\hat{\mathbf{t}}_i - \mu\,\hat{\mathbf{n}}_l)^T \mathbf{f}_l &\leq 0, \quad i = 1, 2 \\
+-\hat{\mathbf{n}}_l^T \mathbf{f}_l &\leq -f_{\min}
+\end{align}
+
+Cost weights: $\mathbf{Q} = \text{diag}(1, 1, 50, 10, 20, 1, 2, 2, 1, 1, 1, 1)$, $\mathbf{R} = 10^{-5}\mathbf{I}_{12}$.
+
+\subsection{Terrain-Adaptive Friction Cones}
+
+Surface normals $\hat{\mathbf{n}}_l$ from the heightmap are used to construct an orthonormal tangent basis via Gram-Schmidt:
+
+\begin{align}
+\hat{\mathbf{t}}_1 &= \frac{\hat{\mathbf{n}} \times \mathbf{a}}{\|\hat{\mathbf{n}} \times \mathbf{a}\|} \\
+\hat{\mathbf{t}}_2 &= \frac{\hat{\mathbf{n}} \times \hat{\mathbf{t}}_1}{\|\hat{\mathbf{n}} \times \hat{\mathbf{t}}_1\|}
+\end{align}
+
+The friction pyramid faces are:
+
+\begin{equation}
+(\hat{\mathbf{t}}_i - \mu\,\hat{\mathbf{n}}_l)^T \mathbf{f}_l \leq 0, \quad (-\hat{\mathbf{t}}_i - \mu\,\hat{\mathbf{n}}_l)^T \mathbf{f}_l \leq 0, \quad i = 1, 2
+\end{equation}
+
+with $\mu = 0.8$ and $f_{\min} = 10$ N.
+
+\section{REFERENCE TRAJECTORY GENERATION}
+
+\subsection{Position and Velocity}
+
+World-frame reference velocity is $\mathbf{v}_{\text{ref}} = \mathbf{R}_z(\psi)\,[v_x^{\text{cmd}}, v_y^{\text{cmd}}, 0]^T$. Position is extrapolated linearly with error clamping $\|\mathbf{p}^{\text{ref}} - \mathbf{p}_{\text{current}}\|_\infty \leq 0.1$ m.
+
+\subsection{Terrain-Consistent Height}
+
+\begin{equation}
+z_k^{\text{ref}} = \max\!\left(h^{\text{ground}}(x_k, y_k),\; \bar{h}_{\text{hip},k}\right) + z_{\text{des}}
+\end{equation}
+
+\subsection{Slope-Aligned Orientation}
+
+\begin{align}
+\phi_k^{\text{ref}} &= -\kappa\,\arctan\!\left(\frac{n_y}{n_z}\right) \\
+\theta_k^{\text{ref}} &= \kappa\,\arctan\!\left(\frac{n_x}{n_z}\right)
+\end{align}
+
+with blending factor $\kappa = 0.25$.
+
+\section{GAIT SCHEDULING AND FOOTHOLD SELECTION}
+
+\subsection{Trot Gait}
+
+Contact phase for leg $l$ at time $t$:
+
+\begin{equation}
+c_l(t) = \begin{cases} 1 & \text{if } \left(\frac{t}{T} + \phi_l\right) \bmod 1 < D \\ 0 & \text{otherwise} \end{cases}
+\end{equation}
+
+with phase offsets $\boldsymbol{\phi} = [0, 0.25, 0.5, 0.75]$ and duty cycle $D = 0.8$.
+
+\subsection{Touchdown Position}
+
+\begin{equation}
+\mathbf{p}_{\text{td}} = \mathbf{p}_{\text{hip}} + \mathbf{v}_{\text{des}}\,\tfrac{T_{\text{pred}}}{2} + k_p(\mathbf{p}_{\text{com}} - \mathbf{p}_{\text{des}}) + k_v(\dot{\mathbf{p}}_{\text{com}} - \mathbf{v}_{\text{des}}) + \boldsymbol{\delta}_{\text{yaw}} + \boldsymbol{\delta}_{\text{capture}}
+\end{equation}
+
+\textbf{Yaw rotation correction:}
+
+\begin{equation}
+\boldsymbol{\delta}_{\text{yaw}} = \begin{bmatrix} -\dot{\psi}\,T_{\text{pred}}\,r_y \\ \dot{\psi}\,T_{\text{pred}}\,r_x \\ 0 \end{bmatrix}
+\end{equation}
+
+\textbf{Roll-reactive capture point (LIPM):}
+
+\begin{equation}
+\omega_0 = \sqrt{\frac{g}{h_{\text{com}}}}, \quad x_{\text{cap}} = \frac{v_{\text{lat}}}{\omega_0} - \sin(\phi)\,h_{\text{com}}
+\end{equation}
+
+For right legs when falling rightward:
+
+\begin{equation}
+\boldsymbol{\delta}_{\text{capture}} = 0.6\,\mathbf{R}_z\,[0,\; x_{\text{cap}},\; 0]^T
+\end{equation}
+
+\subsection{Terrain-Aware Foothold Selection}
+
+\textbf{Hard gates:} Slope $> 25°$, reachability $\notin [0.08, 0.35]$ m, height jump $> 0.10$ m, plane-fit residual $> 0.015$ m.
+
+\textbf{Support polygon stability.} COM prediction with roll acceleration:
+
+\begin{equation}
+\mathbf{p}_{\text{com}}^{\text{pred}} = \mathbf{p}_{\text{com}} + (\dot{\mathbf{p}}_{\text{com}} + \dot{\mathbf{p}}_{\text{lat}})\,t_{\text{swing}} + \tfrac{1}{2}\,g\sin(\phi)\,t_{\text{swing}}^2\,\hat{\mathbf{y}}_{\text{world}}
+\end{equation}
+
+\textbf{Multi-objective scoring:}
+
+\begin{equation}
+S = w_d\,\bar{d} + w_s\,\bar{s} + w_r\,\bar{r} + w_f\,\bar{f} + w_g\,\bar{g} + w_{\text{stab}}(\phi)\,\bar{m}
+\end{equation}
+
+\textbf{Adaptive stability weight:}
+
+\begin{equation}
+w_{\text{stab}}(\phi) = 0.20 + 0.50\,\text{clip}\!\left(\frac{|\phi|}{10°} + \frac{|\dot{\phi}|}{1.0},\; 0,\; 1\right)
+\end{equation}
+
+\subsection{Swing Trajectory}
+
+Minimum-jerk trajectory:
+
+\begin{equation}
+\mathbf{p}(s) = \mathbf{p}_0 + (\mathbf{p}_f - \mathbf{p}_0)\,\mu(s), \quad \mu(s) = 10s^3 - 15s^4 + 6s^5
+\end{equation}
+
+Height bump:
+
+\begin{equation}
+\Delta z(s) = h_{\text{sw}} \cdot 64\,s^3(1 - s)^3
+\end{equation}
+
+\section{LOW-LEVEL LEG CONTROLLER}
+
+\subsection{Swing Phase}
+
+Cartesian impedance with inverse-dynamics feedforward:
+
+\begin{equation}
+\mathbf{f}_{\text{swing}} = \mathbf{K}_p(\mathbf{p}_{\text{des}} - \mathbf{p}) + \mathbf{K}_d(\dot{\mathbf{p}}_{\text{des}} - \dot{\mathbf{p}}) + \boldsymbol{\Lambda}(\ddot{\mathbf{p}}_{\text{des}} - \dot{\mathbf{J}}\dot{\mathbf{q}})
+\end{equation}
+
+where $\boldsymbol{\Lambda} = (\mathbf{J}\mathbf{M}^{-1}\mathbf{J}^T)^{-1}$, $\mathbf{K}_p = 400\,\mathbf{I}_3$ N/m, $\mathbf{K}_d = 75\,\mathbf{I}_3$ Ns/m.
+
+\subsection{Stance Phase}
+
+Force tracking with foothold hold:
+
+\begin{equation}
+\mathbf{f}_{\text{stance}} = -\mathbf{f}_{\text{mpc}} + \mathbf{K}_p^{\text{st}}(\mathbf{p}_{\text{td}} - \mathbf{p}) + \mathbf{K}_d^{\text{st}}(-\dot{\mathbf{p}})
+\end{equation}
+
+with $\mathbf{K}_p^{\text{st}} = \text{diag}(300, 300, 0)$ N/m, $\mathbf{K}_d^{\text{st}} = \text{diag}(40, 40, 20)$ Ns/m.
+
+\subsection{Joint Torques}
+
+\begin{equation}
+\boldsymbol{\tau} = \mathbf{J}_{\text{leg}}^T\,\mathbf{f} + (\mathbf{C}\dot{\mathbf{q}} + \mathbf{g})_{\text{leg}}
+\end{equation}
+
+Joint torques are saturated at 90\% of hardware limits.
+
+\section{INTEGRATION: TERRAIN DATA FLOW}
+
+\begin{center}
+\begin{tabular}{|l|l|l|}
+\hline
+\textbf{Consumer} & \textbf{Terrain Query} & \textbf{Effect} \\
+\hline
+A* planner & Steppability $\sigma$ per cell & Routes around poor surfaces \\
+MPPI planner & Steppability at foothold predictions & Penalizes rough/steep terrain \\
+MPPI planner & Obstacle cost map $\mathcal{C}$ & Avoids collisions \\
+MPPI planner & Terrain gradient $\nabla h$ & Penalizes steep slopes \\
+COM trajectory & Ground height $h^{\text{ground}}$, normal $\hat{\mathbf{n}}$ & Terrain-consistent COM height/orientation \\
+Centroidal MPC & Surface normal $\hat{\mathbf{n}}_l$ per foot & Rotates friction cone constraints \\
+Foothold selector & Slope, roughness, residual, height & Multi-criteria terrain quality \\
+Swing trajectory & Touchdown height $h^{\text{ground}}$ & Sets correct foot landing height \\
+\hline
+\end{tabular}
+\end{center}
+
+\end{document}

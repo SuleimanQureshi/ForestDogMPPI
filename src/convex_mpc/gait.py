@@ -225,7 +225,7 @@ class Gait():
 
 
     FH_STAB_MARGIN_MIN = 0.00   # gate: must be inside polygon
-    FH_STAB_TARGET     = 0.06   # 6 cm: "good" margin
+    FH_STAB_TARGET     = 0.08   # 8 cm: "good" margin
 
     def _project_to_plane2(self, p, origin, t1, t2):
         d = p - origin

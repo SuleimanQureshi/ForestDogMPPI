@@ -1,0 +1,18 @@
+{
+  "case_name": "case0_full_system",
+  "goal_reached": false,
+  "traversal_time_s": null,
+  "dist_to_goal_final_m": 0.8410216748939897,
+  "roll_rms_rad": 1.2547468988977368,
+  "pitch_rms_rad": 0.16631752548321915,
+  "mean_abs_roll_deg": 60.962152661507524,
+  "mean_abs_pitch_deg": 7.022786111809094,
+  "max_abs_roll_deg": 179.96317357541088,
+  "max_abs_pitch_deg": 44.53826974207911,
+  "total_path_length_m": 7.350951871388196,
+  "num_body_contacts": 9,
+  "body_contact_steps": 71,
+  "mpc_solve_time_mean_ms": 8.836580731084622,
+  "mpc_solve_time_max_ms": 59.53329299882171,
+  "sim_wall_time_s": 422.9805614910001
+}

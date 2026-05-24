@@ -1,0 +1,17 @@
+{
+  "case_name": "case2_no_fqa_steppability",
+  "goal_reached": true,
+  "traversal_time_s": 14.624999999997334,
+  "dist_to_goal_final_m": 0.17003094052243325,
+  "roll_rms_rad": 0.32752927414202765,
+  "pitch_rms_rad": 0.06112511026728526,
+  "mean_abs_roll_deg": 15.772715813545634,
+  "mean_abs_pitch_deg": 2.88825930110515,
+  "max_abs_roll_deg": 42.68147445778759,
+  "max_abs_pitch_deg": 9.180976102192119,
+  "total_path_length_m": 9.056405572507167,
+  "num_falls": 1,
+  "mpc_solve_time_mean_ms": 8.772205944451343,
+  "mpc_solve_time_max_ms": 27.707398000529793,
+  "sim_wall_time_s": 344.5824323830002
+}

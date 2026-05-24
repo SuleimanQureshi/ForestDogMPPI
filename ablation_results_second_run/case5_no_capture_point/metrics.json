@@ -1,0 +1,17 @@
+{
+  "case_name": "case5_no_capture_point",
+  "goal_reached": true,
+  "traversal_time_s": 11.034999999999323,
+  "dist_to_goal_final_m": 0.059439733290236316,
+  "roll_rms_rad": 0.22348600038536698,
+  "pitch_rms_rad": 0.07028221665693196,
+  "mean_abs_roll_deg": 8.602846809899711,
+  "mean_abs_pitch_deg": 2.559262919134009,
+  "max_abs_roll_deg": 62.14969780231373,
+  "max_abs_pitch_deg": 21.231661735525577,
+  "total_path_length_m": 6.850238876348764,
+  "num_falls": 0,
+  "mpc_solve_time_mean_ms": 8.537166741093138,
+  "mpc_solve_time_max_ms": 31.971553999937896,
+  "sim_wall_time_s": 377.5600837689999
+}

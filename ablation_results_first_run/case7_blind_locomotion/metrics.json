@@ -1,0 +1,17 @@
+{
+  "case_name": "case7_blind_locomotion",
+  "goal_reached": false,
+  "traversal_time_s": null,
+  "dist_to_goal_final_m": 2.0031120426698954,
+  "roll_rms_rad": 0.6238543253977195,
+  "pitch_rms_rad": 0.08858508750819771,
+  "mean_abs_roll_deg": 20.665531170418028,
+  "mean_abs_pitch_deg": 3.252134724526105,
+  "max_abs_roll_deg": 179.4068839976769,
+  "max_abs_pitch_deg": 28.673833878806285,
+  "total_path_length_m": 5.46862661083931,
+  "num_falls": 1,
+  "mpc_solve_time_mean_ms": 8.59645174111342,
+  "mpc_solve_time_max_ms": 34.721085999990464,
+  "sim_wall_time_s": 233.53909522999993
+}

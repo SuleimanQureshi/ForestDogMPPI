@@ -1,0 +1,3208 @@
+
+======================================================================
+  ENVIRONMENT 1/5: bc_093p056_xli1m_utm10_20240610_20240621
+  Scene XML: /home/suleiman/dog/go2-convex-mpc/models/MJCF/go2/environments/bc_093p056_xli1m_utm10_20240610_20240621.xml
+======================================================================
+  SKIP (results already exist). Use --force to re-run.
+
+======================================================================
+  ENVIRONMENT 2/5: bc_093p066_1_1_4_xli1m_utm10_20240610_20240621
+  Scene XML: /home/suleiman/dog/go2-convex-mpc/models/MJCF/go2/environments/bc_093p066_1_1_4_xli1m_utm10_20240610_20240621.xml
+======================================================================
+
+[QP Init] ===== MPC QP Structure =====
+  H:  384 x 384  | nnz =    384 | dens =  0.0026
+  A:  512 x 384  | nnz =   5616 | dens =  0.0286
+  vars: 384 | constr: 512 | horizon N = 16
+[QP Init] ✓ Initialization complete.
+
+[Planner] Path found: 34 pts, 5.00m
+[Planner] Path found: 34 pts, 5.05m
+[MPPI] dist=5.03 best=22.3 path=0.04 obs=0.0 prog=0.61 stk=0
+[MPPI] dist=5.12 best=109.5 path=1.06 obs=1.4 prog=0.00 stk=0
+[Planner] Path found: 35 pts, 5.20m
+[MPPI] dist=5.18 best=33.5 path=0.04 obs=10.8 prog=0.76 stk=0
+[MPPI] dist=5.11 best=20.4 path=0.04 obs=0.0 prog=1.52 stk=0
+[Planner] Path found: 34 pts, 5.05m
+[MPPI] dist=5.03 best=20.1 path=0.05 obs=0.0 prog=1.22 stk=0
+[MPPI] dist=4.98 best=20.1 path=0.04 obs=0.0 prog=1.07 stk=1
+[Planner] Path found: 34 pts, 4.98m
+[MPPI] dist=4.93 best=32.3 path=0.04 obs=9.7 prog=0.91 stk=2
+[MPPI] dist=4.91 best=32.4 path=0.04 obs=8.9 prog=0.76 stk=0
+[Planner] Path found: 34 pts, 4.92m
+[MPPI] dist=4.90 best=35.1 path=0.04 obs=9.5 prog=0.58 stk=0
+[MPPI] dist=4.89 best=35.4 path=0.04 obs=10.2 prog=0.58 stk=0
+[Planner] Path found: 34 pts, 4.92m
+[MPPI] dist=4.89 best=35.3 path=0.05 obs=8.9 prog=0.56 stk=0
+[MPPI] dist=4.89 best=34.4 path=0.04 obs=9.4 prog=0.56 stk=0
+[Planner] Path found: 34 pts, 4.92m
+[MPPI] dist=4.89 best=26.7 path=0.06 obs=0.0 prog=0.58 stk=0
+[MPPI] dist=4.88 best=26.3 path=0.05 obs=0.0 prog=0.43 stk=0
+[Planner] Path found: 34 pts, 4.92m
+[MPPI] dist=4.88 best=28.5 path=0.04 obs=0.0 prog=0.74 stk=1
+[MPPI] dist=4.88 best=27.1 path=0.04 obs=0.0 prog=0.74 stk=2
+[Planner] Path found: 34 pts, 4.92m
+[MPPI] dist=4.88 best=30.7 path=0.04 obs=0.0 prog=0.45 stk=3
+[MPPI] dist=4.88 best=34.5 path=0.04 obs=7.3 prog=0.59 stk=4
+[Planner] Path found: 38 pts, 5.33m
+[MPPI] dist=4.87 best=32.6 path=0.05 obs=7.4 prog=0.59 stk=5
+[MPPI] dist=4.87 best=33.0 path=0.05 obs=7.9 prog=0.59 stk=6
+[Planner] Path found: 38 pts, 5.32m
+[MPPI] dist=4.87 best=32.8 path=0.05 obs=7.0 prog=0.56 stk=7
+[MPPI] dist=4.87 best=33.8 path=0.04 obs=8.5 prog=0.56 stk=8
+[Planner] Path found: 38 pts, 5.31m
+[MPPI] dist=4.87 best=33.5 path=0.05 obs=7.5 prog=0.44 stk=9
+[MPPI] dist=4.86 best=32.6 path=0.05 obs=6.8 prog=0.58 stk=10
+[Planner] Path found: 38 pts, 5.31m
+[MPPI] dist=4.86 best=26.7 path=0.05 obs=0.0 prog=0.58 stk=11
+[MPPI] dist=4.86 best=25.7 path=0.05 obs=0.0 prog=0.58 stk=12
+[Planner] Path found: 38 pts, 5.31m
+[MPPI] dist=4.85 best=26.0 path=0.04 obs=0.0 prog=0.59 stk=13
+[MPPI] dist=4.85 best=26.3 path=0.04 obs=0.0 prog=0.59 stk=14
+[Planner] Path found: 38 pts, 5.31m
+[MPPI] dist=4.84 best=26.7 path=0.04 obs=0.0 prog=0.58 stk=15
+[MPPI] dist=4.84 best=27.3 path=0.04 obs=0.0 prog=0.44 stk=16
+[Planner] Path found: 38 pts, 5.31m
+[MPPI] dist=4.84 best=25.9 path=0.04 obs=0.0 prog=0.58 stk=17
+[MPPI] dist=4.84 best=25.5 path=0.04 obs=0.0 prog=0.58 stk=18
+[Planner] Path found: 39 pts, 5.39m
+[MPPI] dist=4.84 best=26.7 path=0.04 obs=0.0 prog=0.44 stk=19
+[MPPI] dist=4.84 best=25.2 path=0.04 obs=0.0 prog=0.59 stk=20
+[Planner] Path found: 39 pts, 5.40m
+[MPPI] dist=4.83 best=25.2 path=0.04 obs=0.0 prog=0.74 stk=21
+[MPPI] dist=4.83 best=27.0 path=0.04 obs=0.0 prog=0.44 stk=22
+[Planner] Path found: 39 pts, 5.40m
+[MPPI] dist=4.83 best=25.5 path=0.04 obs=0.0 prog=0.59 stk=23
+[MPPI] dist=4.83 best=25.4 path=0.04 obs=0.0 prog=0.59 stk=24
+[Planner] Path found: 39 pts, 5.40m
+[MPPI] dist=4.83 best=25.3 path=0.04 obs=0.0 prog=0.59 stk=25
+[MPPI] dist=4.82 best=25.9 path=0.04 obs=0.0 prog=0.59 stk=26
+[Planner] Path found: 38 pts, 5.34m
+[MPPI] dist=4.82 best=25.1 path=0.03 obs=0.0 prog=0.45 stk=27
+[MPPI] dist=4.82 best=26.2 path=0.04 obs=0.0 prog=0.30 stk=28
+[Planner] Path found: 39 pts, 5.36m
+[MPPI] dist=4.82 best=26.0 path=0.04 obs=0.0 prog=0.58 stk=29
+[MPPI] dist=4.82 best=26.6 path=0.04 obs=0.0 prog=0.58 stk=30
+[Planner] Path found: 38 pts, 5.35m
+[MPPI] dist=4.81 best=26.2 path=0.04 obs=0.0 prog=0.45 stk=30
+[MPPI] dist=4.81 best=26.5 path=0.03 obs=0.0 prog=0.59 stk=30
+[Planner] Path found: 39 pts, 5.36m
+[MPPI] dist=4.81 best=28.4 path=0.04 obs=0.0 prog=0.43 stk=30
+[MPPI] dist=4.81 best=25.2 path=0.04 obs=0.0 prog=0.43 stk=30
+[Planner] Path found: 38 pts, 5.35m
+[MPPI] dist=4.81 best=26.5 path=0.03 obs=0.0 prog=0.44 stk=30
+[MPPI] dist=4.81 best=27.8 path=0.04 obs=0.0 prog=0.44 stk=30
+[Planner] Path found: 39 pts, 5.36m
+[MPPI] dist=4.81 best=25.9 path=0.03 obs=0.0 prog=0.43 stk=30
+[MPPI] dist=4.81 best=25.5 path=0.04 obs=0.0 prog=0.58 stk=30
+[Planner] Path found: 39 pts, 5.35m
+[MPPI] dist=4.81 best=26.1 path=0.04 obs=0.0 prog=0.42 stk=30
+[MPPI] dist=4.81 best=25.8 path=0.03 obs=0.0 prog=0.42 stk=30
+[Planner] Path found: 39 pts, 5.35m
+[MPPI] dist=4.81 best=26.6 path=0.05 obs=0.0 prog=0.42 stk=30
+[MPPI] dist=4.81 best=26.2 path=0.03 obs=0.0 prog=0.42 stk=30
+[Planner] Path found: 39 pts, 5.35m
+[MPPI] dist=4.81 best=26.1 path=0.03 obs=0.0 prog=0.42 stk=30
+[MPPI] dist=4.81 best=25.3 path=0.04 obs=0.0 prog=0.56 stk=30
+[Planner] Path found: 39 pts, 5.35m
+[MPPI] dist=4.81 best=26.3 path=0.04 obs=0.0 prog=0.42 stk=30
+[MPPI] dist=4.81 best=26.0 path=0.04 obs=0.0 prog=0.56 stk=30
+[Planner] Path found: 39 pts, 5.35m
+[MPPI] dist=4.80 best=25.8 path=0.04 obs=0.0 prog=0.42 stk=30
+[MPPI] dist=4.80 best=26.7 path=0.03 obs=0.0 prog=0.42 stk=30
+[Planner] Path found: 39 pts, 5.35m
+[MPPI] dist=4.80 best=27.5 path=0.04 obs=0.0 prog=0.42 stk=30
+[MPPI] dist=4.80 best=26.1 path=0.04 obs=0.0 prog=0.56 stk=30
+[Planner] Path found: 39 pts, 5.35m
+[MPPI] dist=4.80 best=25.3 path=0.04 obs=0.0 prog=0.42 stk=30
+[MPPI] dist=4.80 best=25.8 path=0.04 obs=0.0 prog=0.56 stk=30
+[Planner] Path found: 39 pts, 5.35m
+[MPPI] dist=4.80 best=25.8 path=0.03 obs=0.0 prog=0.42 stk=30
+[MPPI] dist=4.80 best=25.6 path=0.04 obs=0.0 prog=0.56 stk=30
+[Planner] Path found: 39 pts, 5.35m
+[MPPI] dist=4.80 best=26.0 path=0.04 obs=0.0 prog=0.56 stk=30
+[MPPI] dist=4.80 best=25.6 path=0.04 obs=0.0 prog=0.56 stk=30
+[Planner] Path found: 39 pts, 5.35m
+[MPPI] dist=4.80 best=26.0 path=0.04 obs=0.0 prog=0.56 stk=30
+[MPPI] dist=4.80 best=25.8 path=0.04 obs=0.0 prog=0.56 stk=30
+[Planner] Path found: 39 pts, 5.35m
+[MPPI] dist=4.80 best=26.5 path=0.04 obs=0.0 prog=0.56 stk=30
+[MPPI] dist=4.80 best=25.5 path=0.04 obs=0.0 prog=0.42 stk=30
+[Planner] Path found: 39 pts, 5.35m
+[MPPI] dist=4.80 best=25.9 path=0.04 obs=0.0 prog=0.42 stk=30
+[MPPI] dist=4.80 best=25.6 path=0.04 obs=0.0 prog=0.56 stk=30
+[Planner] Path found: 39 pts, 5.35m
+[MPPI] dist=4.80 best=27.0 path=0.04 obs=0.0 prog=0.56 stk=30
+[MPPI] dist=4.80 best=25.8 path=0.04 obs=0.0 prog=0.56 stk=30
+[Planner] Path found: 39 pts, 5.35m
+[MPPI] dist=4.79 best=25.7 path=0.04 obs=0.0 prog=0.42 stk=30
+[MPPI] dist=4.79 best=29.2 path=0.04 obs=2.7 prog=0.42 stk=30
+[Planner] Path found: 39 pts, 5.36m
+[MPPI] dist=4.79 best=26.9 path=0.04 obs=0.0 prog=0.42 stk=30
+[MPPI] dist=4.79 best=25.5 path=0.03 obs=0.0 prog=0.42 stk=30
+[Planner] Path found: 39 pts, 5.36m
+[MPPI] dist=4.79 best=26.3 path=0.04 obs=0.0 prog=0.56 stk=30
+[MPPI] dist=4.79 best=26.3 path=0.04 obs=0.0 prog=0.56 stk=30
+[Planner] Path found: 40 pts, 5.49m
+[MPPI] dist=4.79 best=33.7 path=0.03 obs=0.0 prog=0.40 stk=30
+[MPPI] dist=4.79 best=31.9 path=0.04 obs=0.7 prog=0.54 stk=30
+[Planner] Path found: 40 pts, 5.56m
+[MPPI] dist=4.79 best=30.8 path=0.04 obs=0.0 prog=0.44 stk=30
+[MPPI] dist=4.79 best=32.4 path=0.05 obs=2.5 prog=0.58 stk=30
+[Planner] Path found: 41 pts, 5.56m
+[MPPI] dist=4.79 best=34.6 path=0.04 obs=0.0 prog=0.54 stk=30
+[MPPI] dist=4.79 best=32.5 path=0.04 obs=0.7 prog=0.41 stk=30
+[Planner] Path found: 40 pts, 5.55m
+[MPPI] dist=4.79 best=30.6 path=0.04 obs=0.6 prog=0.44 stk=30
+[MPPI] dist=4.79 best=29.7 path=0.04 obs=0.0 prog=0.58 stk=30
+[Planner] Path found: 41 pts, 5.57m
+[MPPI] dist=4.79 best=35.7 path=0.04 obs=0.0 prog=0.54 stk=30
+[MPPI] dist=4.79 best=33.6 path=0.04 obs=0.0 prog=0.54 stk=30
+[Planner] Path found: 40 pts, 5.55m
+[MPPI] dist=4.79 best=30.8 path=0.04 obs=0.0 prog=0.58 stk=30
+[MPPI] dist=4.79 best=31.2 path=0.04 obs=0.0 prog=0.44 stk=30
+[Planner] Path found: 41 pts, 5.55m
+[MPPI] dist=4.79 best=36.3 path=0.04 obs=0.0 prog=0.54 stk=30
+[MPPI] dist=4.79 best=31.8 path=0.04 obs=0.7 prog=0.41 stk=30
+[Planner] Path found: 40 pts, 5.54m
+[MPPI] dist=4.79 best=30.6 path=0.04 obs=0.6 prog=0.59 stk=30
+[MPPI] dist=4.79 best=29.4 path=0.04 obs=0.0 prog=0.59 stk=30
+[Planner] Path found: 41 pts, 5.55m
+[MPPI] dist=4.78 best=34.4 path=0.04 obs=0.6 prog=0.53 stk=30
+[MPPI] dist=4.78 best=33.1 path=0.04 obs=2.1 prog=0.53 stk=30
+[Planner] Path found: 40 pts, 5.54m
+[MPPI] dist=4.78 best=31.8 path=0.04 obs=0.0 prog=0.44 stk=30
+[MPPI] dist=4.78 best=30.6 path=0.04 obs=0.0 prog=0.59 stk=30
+[Planner] Path found: 41 pts, 5.55m
+[MPPI] dist=4.78 best=33.6 path=0.04 obs=2.1 prog=0.52 stk=30
+[MPPI] dist=4.79 best=29.7 path=0.04 obs=2.1 prog=0.52 stk=30
+[Planner] Path found: 40 pts, 5.53m
+[MPPI] dist=4.79 best=31.8 path=0.05 obs=1.9 prog=0.44 stk=30
+[MPPI] dist=4.79 best=29.9 path=0.05 obs=1.9 prog=0.44 stk=30
+[Planner] Path found: 41 pts, 5.54m
+[MPPI] dist=4.79 best=31.0 path=0.04 obs=2.1 prog=0.54 stk=30
+[MPPI] dist=4.79 best=35.9 path=0.06 obs=1.9 prog=0.54 stk=30
+[Planner] Path found: 40 pts, 5.53m
+[MPPI] dist=4.78 best=30.9 path=0.05 obs=1.8 prog=0.58 stk=30
+[MPPI] dist=4.78 best=28.9 path=0.05 obs=1.8 prog=0.58 stk=30
+[Planner] Path found: 41 pts, 5.54m
+[MPPI] dist=4.78 best=32.4 path=0.05 obs=0.6 prog=0.53 stk=30
+[MPPI] dist=4.78 best=32.2 path=0.05 obs=0.5 prog=0.53 stk=30
+[Planner] Path found: 40 pts, 5.53m
+[MPPI] dist=4.78 best=28.9 path=0.05 obs=1.9 prog=0.58 stk=30
+[MPPI] dist=4.78 best=28.3 path=0.05 obs=1.9 prog=0.58 stk=30
+[Planner] Path found: 41 pts, 5.55m
+[MPPI] dist=4.78 best=33.3 path=0.04 obs=1.8 prog=0.56 stk=30
+[MPPI] dist=4.78 best=35.8 path=0.04 obs=1.9 prog=0.42 stk=30
+[Planner] Path found: 41 pts, 5.54m
+[MPPI] dist=4.78 best=31.1 path=0.05 obs=1.9 prog=0.55 stk=30
+[MPPI] dist=4.78 best=30.4 path=0.04 obs=1.9 prog=0.55 stk=30
+[Planner] Path found: 41 pts, 5.54m
+[MPPI] dist=4.78 best=30.7 path=0.04 obs=1.7 prog=0.56 stk=30
+[MPPI] dist=4.78 best=28.3 path=0.04 obs=1.9 prog=0.56 stk=30
+[Planner] Path found: 40 pts, 5.53m
+[MPPI] dist=4.78 best=28.0 path=0.04 obs=1.7 prog=0.58 stk=30
+[MPPI] dist=4.78 best=33.9 path=0.06 obs=1.8 prog=0.44 stk=30
+[Planner] Path found: 41 pts, 5.55m
+[MPPI] dist=4.78 best=35.6 path=0.05 obs=1.7 prog=0.54 stk=30
+[MPPI] dist=4.78 best=41.7 path=0.05 obs=1.7 prog=0.41 stk=30
+[Planner] Path found: 41 pts, 5.55m
+[MPPI] dist=4.78 best=31.1 path=0.04 obs=1.6 prog=0.54 stk=30
+[MPPI] dist=4.78 best=34.6 path=0.06 obs=1.6 prog=0.54 stk=30
+[Planner] Path found: 40 pts, 5.53m
+[MPPI] dist=4.78 best=32.2 path=0.06 obs=1.5 prog=0.57 stk=30
+[MPPI] dist=4.78 best=28.6 path=0.04 obs=1.7 prog=0.57 stk=30
+[Planner] Path found: 41 pts, 5.57m
+[MPPI] dist=4.78 best=33.1 path=0.04 obs=1.6 prog=0.57 stk=30
+[MPPI] dist=4.78 best=29.3 path=0.05 obs=1.5 prog=0.43 stk=30
+[Planner] Path found: 41 pts, 5.58m
+[MPPI] dist=4.78 best=30.6 path=0.04 obs=1.5 prog=0.58 stk=30
+[MPPI] dist=4.78 best=31.1 path=0.05 obs=1.6 prog=0.58 stk=30
+[Planner] Path found: 41 pts, 5.58m
+[MPPI] dist=4.78 best=31.1 path=0.04 obs=1.5 prog=0.57 stk=30
+[MPPI] dist=4.78 best=30.6 path=0.04 obs=1.4 prog=0.57 stk=30
+[Planner] Path found: 41 pts, 5.58m
+[MPPI] dist=4.78 best=30.6 path=0.04 obs=1.4 prog=0.71 stk=30
+[MPPI] dist=4.78 best=31.4 path=0.04 obs=1.5 prog=0.57 stk=30
+[Planner] Path found: 41 pts, 5.63m
+[MPPI] dist=4.78 best=31.8 path=0.04 obs=1.4 prog=0.44 stk=30
+[MPPI] dist=4.78 best=30.6 path=0.05 obs=1.4 prog=0.59 stk=30
+[Planner] Path found: 40 pts, 5.61m
+[MPPI] dist=4.78 best=31.8 path=0.04 obs=1.5 prog=0.44 stk=30
+[MPPI] dist=4.78 best=29.6 path=0.04 obs=0.0 prog=0.59 stk=30
+[Planner] Path found: 41 pts, 5.61m
+[MPPI] dist=4.78 best=29.5 path=0.04 obs=0.0 prog=0.58 stk=30
+[MPPI] dist=4.78 best=32.6 path=0.04 obs=1.3 prog=0.43 stk=30
+[Planner] Path found: 40 pts, 5.60m
+[MPPI] dist=4.78 best=29.0 path=0.05 obs=0.0 prog=0.59 stk=30
+[MPPI] dist=4.78 best=29.2 path=0.04 obs=0.0 prog=0.59 stk=30
+[Planner] Path found: 40 pts, 5.59m
+[MPPI] dist=4.78 best=33.3 path=0.04 obs=1.4 prog=0.59 stk=30
+[MPPI] dist=4.78 best=32.9 path=0.04 obs=1.4 prog=0.59 stk=30
+[Planner] Path found: 40 pts, 5.56m
+[MPPI] dist=4.79 best=31.1 path=0.03 obs=1.6 prog=0.44 stk=30
+[MPPI] dist=4.79 best=30.3 path=0.04 obs=1.4 prog=0.58 stk=30
+[Planner] Path found: 41 pts, 5.61m
+[MPPI] dist=4.79 best=33.1 path=0.04 obs=1.3 prog=0.58 stk=30
+[MPPI] dist=4.79 best=31.4 path=0.04 obs=1.3 prog=0.58 stk=30
+[Planner] Path found: 42 pts, 5.61m
+[MPPI] dist=4.79 best=30.2 path=0.04 obs=1.4 prog=0.44 stk=30
+[MPPI] dist=4.79 best=29.8 path=0.04 obs=1.4 prog=0.44 stk=30
+[Planner] Path found: 41 pts, 5.62m
+[MPPI] dist=4.80 best=30.6 path=0.03 obs=1.7 prog=0.44 stk=30
+[MPPI] dist=4.81 best=29.9 path=0.03 obs=1.6 prog=0.44 stk=30
+[Planner] Path found: 42 pts, 5.64m
+[MPPI] dist=4.81 best=28.8 path=0.05 obs=1.2 prog=0.43 stk=30
+[MPPI] dist=4.82 best=29.4 path=0.04 obs=1.2 prog=0.43 stk=30
+[Planner] Path found: 42 pts, 5.72m
+[MPPI] dist=4.82 best=31.2 path=0.04 obs=1.3 prog=0.58 stk=30
+[MPPI] dist=4.82 best=30.8 path=0.04 obs=1.4 prog=0.43 stk=30
+[Planner] Path found: 42 pts, 5.76m
+[MPPI] dist=4.82 best=33.0 path=0.04 obs=1.4 prog=0.45 stk=30
+[MPPI] dist=4.82 best=31.4 path=0.04 obs=1.3 prog=0.60 stk=30
+[Planner] Path found: 41 pts, 5.70m
+[MPPI] dist=4.81 best=30.7 path=0.04 obs=1.3 prog=0.44 stk=30
+[MPPI] dist=4.82 best=31.1 path=0.04 obs=1.3 prog=0.44 stk=30
+[Planner] Path found: 43 pts, 5.77m
+[MPPI] dist=4.82 best=32.3 path=0.05 obs=1.0 prog=0.58 stk=30
+[MPPI] dist=4.82 best=31.0 path=0.05 obs=1.0 prog=0.58 stk=30
+[Planner] Path found: 41 pts, 5.70m
+[MPPI] dist=4.82 best=25.6 path=0.04 obs=0.0 prog=0.60 stk=30
+[MPPI] dist=4.82 best=31.5 path=0.04 obs=1.1 prog=0.45 stk=30
+[Planner] Path found: 41 pts, 5.67m
+[MPPI] dist=4.82 best=30.2 path=0.04 obs=1.2 prog=0.60 stk=30
+[MPPI] dist=4.81 best=28.6 path=0.05 obs=0.0 prog=0.60 stk=30
+[Planner] Path found: 43 pts, 5.71m
+[MPPI] dist=4.81 best=26.1 path=0.04 obs=0.0 prog=0.58 stk=30
+[MPPI] dist=4.81 best=27.6 path=0.04 obs=1.2 prog=0.58 stk=30
+[Planner] Path found: 42 pts, 5.68m
+[MPPI] dist=4.81 best=26.6 path=0.04 obs=0.0 prog=0.45 stk=30
+[MPPI] dist=4.81 best=27.1 path=0.04 obs=0.0 prog=0.45 stk=30
+[Planner] Path found: 42 pts, 5.66m
+[MPPI] dist=4.82 best=26.3 path=0.04 obs=0.0 prog=0.59 stk=30
+[MPPI] dist=4.82 best=24.5 path=0.03 obs=0.0 prog=0.44 stk=30
+[Planner] Path found: 42 pts, 5.66m
+[MPPI] dist=4.81 best=24.4 path=0.04 obs=0.0 prog=0.59 stk=30
+[MPPI] dist=4.81 best=26.7 path=0.04 obs=0.0 prog=0.59 stk=30
+[Planner] Path found: 42 pts, 5.67m
+[MPPI] dist=4.80 best=26.5 path=0.04 obs=0.0 prog=0.59 stk=30
+[MPPI] dist=4.80 best=25.8 path=0.05 obs=0.0 prog=0.59 stk=30
+[Planner] Path found: 42 pts, 5.67m
+[MPPI] dist=4.80 best=26.5 path=0.05 obs=0.0 prog=0.59 stk=30
+[MPPI] dist=4.79 best=25.4 path=0.04 obs=0.0 prog=0.59 stk=30
+[Planner] Path found: 42 pts, 5.67m
+[MPPI] dist=4.79 best=26.4 path=0.07 obs=0.0 prog=0.59 stk=30
+[MPPI] dist=4.80 best=25.4 path=0.05 obs=0.0 prog=0.59 stk=30
+[Planner] Path found: 42 pts, 5.66m
+[MPPI] dist=4.80 best=24.5 path=0.04 obs=0.0 prog=0.44 stk=30
+[MPPI] dist=4.81 best=35.9 path=0.09 obs=2.6 prog=0.30 stk=30
+[Planner] Path found: 42 pts, 5.70m
+[MPPI] dist=4.84 best=32.4 path=0.06 obs=6.1 prog=0.30 stk=30
+[MPPI] dist=4.87 best=33.3 path=0.07 obs=6.5 prog=0.30 stk=30
+[Planner] Path found: 43 pts, 5.76m
+[MPPI] dist=4.90 best=33.7 path=0.07 obs=7.4 prog=0.29 stk=30
+[MPPI] dist=4.92 best=41.1 path=0.09 obs=10.6 prog=0.44 stk=30
+[Planner] Path found: 44 pts, 5.80m
+[MPPI] dist=4.95 best=31.3 path=0.04 obs=7.5 prog=0.44 stk=30
+[MPPI] dist=4.97 best=32.7 path=0.04 obs=7.3 prog=0.44 stk=30
+[Planner] Path found: 44 pts, 5.83m
+[MPPI] dist=4.99 best=39.5 path=0.04 obs=15.0 prog=0.44 stk=30
+[MPPI] dist=5.01 best=43.1 path=0.04 obs=17.3 prog=0.44 stk=30
+[Planner] Path found: 44 pts, 5.89m
+[MPPI] dist=5.04 best=46.4 path=0.04 obs=22.2 prog=0.44 stk=30
+[MPPI] dist=5.05 best=38.5 path=0.05 obs=13.8 prog=0.59 stk=30
+[Planner] Path found: 44 pts, 5.89m
+[MPPI] dist=5.06 best=40.8 path=0.06 obs=12.7 prog=0.44 stk=30
+[MPPI] dist=5.06 best=35.6 path=0.04 obs=11.9 prog=0.59 stk=30
+[Planner] Path found: 44 pts, 5.88m
+[MPPI] dist=5.06 best=38.4 path=0.06 obs=12.3 prog=0.59 stk=30
+[MPPI] dist=5.07 best=48.2 path=0.09 obs=18.1 prog=0.44 stk=30
+[Planner] Path found: 45 pts, 5.95m
+[MPPI] dist=5.08 best=44.0 path=0.05 obs=18.8 prog=0.44 stk=30
+[MPPI] dist=5.09 best=43.5 path=0.06 obs=18.7 prog=0.44 stk=30
+[Planner] Path found: 44 pts, 5.94m
+[MPPI] dist=5.10 best=41.8 path=0.04 obs=17.9 prog=0.60 stk=30
+[MPPI] dist=5.11 best=48.1 path=0.06 obs=23.2 prog=0.45 stk=30
+[Planner] Path found: 44 pts, 5.96m
+[MPPI] dist=5.12 best=50.7 path=0.08 obs=24.2 prog=0.45 stk=30
+[MPPI] dist=5.13 best=49.1 path=0.07 obs=23.3 prog=0.45 stk=30
+[Planner] Path found: 44 pts, 5.99m
+[MPPI] dist=5.14 best=54.6 path=0.07 obs=21.5 prog=0.60 stk=30
+[MPPI] dist=5.14 best=50.1 path=0.10 obs=20.4 prog=0.60 stk=30
+[Planner] Path found: 45 pts, 5.99m
+[MPPI] dist=5.14 best=47.3 path=0.04 obs=20.7 prog=0.44 stk=30
+[MPPI] dist=5.15 best=45.4 path=0.04 obs=20.7 prog=0.59 stk=30
+[Planner] Path found: 44 pts, 5.99m
+[MPPI] dist=5.15 best=42.9 path=0.04 obs=18.7 prog=0.60 stk=30
+[MPPI] dist=5.15 best=43.2 path=0.04 obs=18.8 prog=0.60 stk=30
+[Planner] Path found: 44 pts, 6.00m
+[MPPI] dist=5.15 best=47.6 path=0.04 obs=20.1 prog=0.46 stk=30
+[MPPI] dist=5.15 best=43.3 path=0.03 obs=19.7 prog=0.46 stk=30
+[Planner] Path found: 44 pts, 5.99m
+[MPPI] dist=5.16 best=45.1 path=0.05 obs=19.2 prog=0.60 stk=30
+[MPPI] dist=5.16 best=44.8 path=0.04 obs=20.0 prog=0.45 stk=30
+[Planner] Path found: 44 pts, 6.00m
+[MPPI] dist=5.17 best=52.5 path=0.03 obs=24.4 prog=0.45 stk=30
+[MPPI] dist=5.18 best=55.0 path=0.05 obs=25.8 prog=0.45 stk=30
+[Planner] Path found: 45 pts, 6.04m
+[MPPI] dist=5.19 best=57.2 path=0.05 obs=28.8 prog=0.58 stk=30
+[MPPI] dist=5.21 best=63.4 path=0.06 obs=35.1 prog=0.44 stk=30
+[Planner] Path found: 45 pts, 6.05m
+[MPPI] dist=5.22 best=72.8 path=0.04 obs=38.1 prog=0.30 stk=30
+[MPPI] dist=5.24 best=65.9 path=0.05 obs=34.6 prog=0.44 stk=30
+[Planner] Path found: 45 pts, 6.09m
+[MPPI] dist=5.25 best=63.0 path=0.04 obs=32.6 prog=0.61 stk=30
+[MPPI] dist=5.26 best=58.3 path=0.04 obs=32.5 prog=0.61 stk=30
+[Planner] Path found: 45 pts, 6.09m
+[MPPI] dist=5.27 best=74.4 path=0.04 obs=39.5 prog=0.46 stk=30
+[MPPI] dist=5.28 best=69.4 path=0.04 obs=37.5 prog=0.61 stk=30
+[Planner] Path found: 45 pts, 6.15m
+[MPPI] dist=5.30 best=70.7 path=0.03 obs=40.3 prog=0.45 stk=30
+[MPPI] dist=5.31 best=208.9 path=0.04 obs=180.6 prog=0.45 stk=30
+[Planner] Path found: 48 pts, 6.28m
+[MPPI] dist=5.33 best=78.2 path=0.03 obs=46.1 prog=0.54 stk=30
+[MPPI] dist=5.35 best=71.5 path=0.05 obs=43.7 prog=0.54 stk=30
+[Planner] Path found: 48 pts, 6.27m
+[MPPI] dist=5.36 best=217.5 path=0.05 obs=187.9 prog=0.54 stk=30
+[MPPI] dist=5.38 best=238.3 path=0.05 obs=199.7 prog=0.54 stk=30
+[Planner] Path found: 48 pts, 6.29m
+[MPPI] dist=5.39 best=244.4 path=0.06 obs=217.2 prog=0.57 stk=30
+[MPPI] dist=5.41 best=246.5 path=0.05 obs=213.9 prog=0.57 stk=30
+[Planner] Path found: 49 pts, 6.36m
+[MPPI] dist=5.43 best=265.4 path=0.03 obs=238.1 prog=0.54 stk=30
+[MPPI] dist=5.44 best=238.0 path=0.03 obs=212.1 prog=0.67 stk=30
+[Planner] Path found: 47 pts, 6.37m
+[MPPI] dist=5.45 best=251.7 path=0.04 obs=216.0 prog=0.58 stk=30
+[MPPI] dist=5.46 best=267.6 path=0.05 obs=232.6 prog=0.73 stk=30
+[Planner] Path found: 47 pts, 6.35m
+[MPPI] dist=5.46 best=238.5 path=0.04 obs=207.5 prog=0.72 stk=30
+[MPPI] dist=5.45 best=191.9 path=0.04 obs=164.6 prog=0.72 stk=30
+[Planner] Path found: 47 pts, 6.38m
+[MPPI] dist=5.44 best=187.0 path=0.04 obs=157.3 prog=0.73 stk=30
+[MPPI] dist=5.43 best=69.8 path=0.04 obs=39.7 prog=0.73 stk=30
+[Planner] Path found: 48 pts, 6.37m
+[MPPI] dist=5.41 best=81.8 path=0.05 obs=38.6 prog=0.66 stk=30
+[MPPI] dist=5.40 best=78.9 path=0.04 obs=37.1 prog=0.66 stk=30
+[Planner] Path found: 46 pts, 6.26m
+[MPPI] dist=5.38 best=75.6 path=0.08 obs=31.4 prog=0.72 stk=30
+[MPPI] dist=5.36 best=79.3 path=0.05 obs=32.1 prog=0.72 stk=30
+[Planner] Path found: 46 pts, 6.19m
+[MPPI] dist=5.34 best=82.3 path=0.05 obs=29.1 prog=0.70 stk=28
+[MPPI] dist=5.32 best=71.5 path=0.04 obs=26.5 prog=0.85 stk=26
+[Planner] Path found: 45 pts, 6.15m
+[MPPI] dist=5.30 best=68.0 path=0.05 obs=26.3 prog=0.72 stk=24
+[MPPI] dist=5.28 best=60.4 path=0.04 obs=22.7 prog=0.86 stk=22
+[Planner] Path found: 47 pts, 6.27m
+[MPPI] dist=5.26 best=61.3 path=0.03 obs=21.6 prog=0.57 stk=20
+[MPPI] dist=5.25 best=60.4 path=0.06 obs=23.6 prog=0.71 stk=18
+[Planner] Path found: 46 pts, 6.17m
+[MPPI] dist=5.24 best=58.8 path=0.06 obs=22.6 prog=0.71 stk=16
+[MPPI] dist=5.22 best=52.2 path=0.05 obs=19.4 prog=0.71 stk=14
+[Planner] Path found: 45 pts, 6.04m
+[MPPI] dist=5.22 best=49.0 path=0.04 obs=19.0 prog=0.68 stk=12
+[MPPI] dist=5.20 best=48.2 path=0.03 obs=17.6 prog=0.68 stk=10
+[Planner] Path found: 45 pts, 6.03m
+[MPPI] dist=5.19 best=47.2 path=0.04 obs=16.5 prog=0.83 stk=8
+[MPPI] dist=5.17 best=41.2 path=0.04 obs=13.2 prog=0.83 stk=6
+[Planner] Path found: 47 pts, 6.16m
+[MPPI] dist=5.15 best=40.3 path=0.04 obs=12.1 prog=0.71 stk=4
+[MPPI] dist=5.13 best=39.8 path=0.04 obs=10.6 prog=0.71 stk=2
+[Planner] Path found: 46 pts, 6.05m
+[MPPI] dist=5.12 best=42.1 path=0.06 obs=11.9 prog=0.56 stk=0
+[MPPI] dist=5.10 best=40.2 path=0.06 obs=11.2 prog=0.70 stk=0
+[Planner] Path found: 44 pts, 5.93m
+[MPPI] dist=5.09 best=36.8 path=0.04 obs=10.5 prog=0.67 stk=0
+[MPPI] dist=5.07 best=34.0 path=0.03 obs=7.4 prog=0.67 stk=0
+[Planner] Path found: 44 pts, 5.88m
+[MPPI] dist=5.06 best=34.6 path=0.05 obs=7.5 prog=0.80 stk=0
+[MPPI] dist=5.04 best=33.1 path=0.04 obs=6.6 prog=0.80 stk=0
+[Planner] Path found: 43 pts, 5.82m
+[MPPI] dist=5.02 best=30.9 path=0.05 obs=3.2 prog=0.83 stk=0
+[MPPI] dist=5.00 best=28.9 path=0.04 obs=3.6 prog=0.83 stk=0
+[Planner] Path found: 43 pts, 5.83m
+[MPPI] dist=4.98 best=27.5 path=0.04 obs=2.3 prog=0.83 stk=0
+[MPPI] dist=4.95 best=28.2 path=0.05 obs=2.1 prog=0.83 stk=0
+[Planner] Path found: 43 pts, 5.74m
+[MPPI] dist=4.92 best=38.8 path=0.08 obs=1.2 prog=0.79 stk=0
+[MPPI] dist=4.89 best=29.1 path=0.05 obs=1.6 prog=0.79 stk=0
+[Planner] Path found: 42 pts, 5.66m
+[MPPI] dist=4.86 best=26.6 path=0.05 obs=1.6 prog=0.83 stk=0
+[MPPI] dist=4.83 best=28.8 path=0.07 obs=1.1 prog=0.83 stk=0
+[Planner] Path found: 42 pts, 5.63m
+[MPPI] dist=4.80 best=26.5 path=0.06 obs=1.1 prog=0.85 stk=0
+[MPPI] dist=4.77 best=26.9 path=0.07 obs=0.8 prog=0.85 stk=0
+[Planner] Path found: 41 pts, 5.58m
+[MPPI] dist=4.75 best=26.4 path=0.05 obs=0.8 prog=0.88 stk=0
+[MPPI] dist=4.72 best=26.3 path=0.06 obs=0.6 prog=0.73 stk=0
+[Planner] Path found: 40 pts, 5.55m
+[MPPI] dist=4.69 best=27.8 path=0.06 obs=0.5 prog=0.74 stk=0
+[MPPI] dist=4.67 best=25.9 path=0.05 obs=0.5 prog=0.89 stk=0
+[Planner] Path found: 40 pts, 5.47m
+[MPPI] dist=4.64 best=27.0 path=0.07 obs=0.1 prog=0.88 stk=0
+[MPPI] dist=4.61 best=24.3 path=0.05 obs=0.7 prog=0.88 stk=0
+[Planner] Path found: 39 pts, 5.41m
+[MPPI] dist=4.58 best=24.8 path=0.06 obs=0.1 prog=0.90 stk=0
+[MPPI] dist=4.56 best=29.6 path=0.12 obs=0.1 prog=0.75 stk=0
+[Planner] Path found: 39 pts, 5.37m
+[MPPI] dist=4.53 best=28.1 path=0.09 obs=0.0 prog=0.76 stk=0
+[MPPI] dist=4.51 best=23.9 path=0.05 obs=0.1 prog=0.76 stk=0
+[Planner] Path found: 39 pts, 5.34m
+[MPPI] dist=4.50 best=27.1 path=0.05 obs=0.1 prog=0.74 stk=0
+[MPPI] dist=4.48 best=25.2 path=0.06 obs=0.0 prog=0.60 stk=0
+[Planner] Path found: 39 pts, 5.26m
+[MPPI] dist=4.47 best=24.8 path=0.06 obs=0.0 prog=0.73 stk=0
+[MPPI] dist=4.46 best=22.9 path=0.04 obs=0.0 prog=0.59 stk=0
+[Planner] Path found: 38 pts, 5.23m
+[MPPI] dist=4.44 best=26.8 path=0.07 obs=0.0 prog=0.75 stk=0
+[MPPI] dist=4.43 best=29.7 path=0.10 obs=0.0 prog=0.75 stk=0
+[Planner] Path found: 38 pts, 5.23m
+[MPPI] dist=4.41 best=24.2 path=0.05 obs=0.0 prog=0.60 stk=0
+[MPPI] dist=4.40 best=23.4 path=0.05 obs=0.0 prog=0.74 stk=0
+[Planner] Path found: 38 pts, 5.18m
+[MPPI] dist=4.38 best=28.9 path=0.08 obs=0.0 prog=0.75 stk=0
+[MPPI] dist=4.37 best=28.4 path=0.07 obs=0.0 prog=0.60 stk=0
+[Planner] Path found: 38 pts, 5.19m
+[MPPI] dist=4.35 best=27.2 path=0.07 obs=0.0 prog=0.60 stk=0
+[MPPI] dist=4.33 best=29.3 path=0.08 obs=0.0 prog=0.60 stk=0
+[Planner] Path found: 38 pts, 5.11m
+[MPPI] dist=4.32 best=27.6 path=0.10 obs=0.0 prog=0.59 stk=0
+[MPPI] dist=4.30 best=25.7 path=0.09 obs=0.0 prog=0.73 stk=0
+[Planner] Path found: 38 pts, 5.08m
+[MPPI] dist=4.28 best=24.8 path=0.06 obs=0.0 prog=0.73 stk=0
+[MPPI] dist=4.26 best=24.8 path=0.07 obs=0.0 prog=0.73 stk=0
+[Planner] Path found: 38 pts, 5.08m
+[MPPI] dist=4.25 best=26.0 path=0.09 obs=0.0 prog=0.72 stk=0
+[MPPI] dist=4.23 best=26.1 path=0.08 obs=0.0 prog=0.72 stk=0
+[Planner] Path found: 37 pts, 5.00m
+[MPPI] dist=4.21 best=26.4 path=0.09 obs=0.0 prog=0.58 stk=0
+[MPPI] dist=4.19 best=27.6 path=0.11 obs=0.0 prog=0.58 stk=0
+[Planner] Path found: 38 pts, 5.00m
+[MPPI] dist=4.17 best=26.9 path=0.07 obs=0.0 prog=0.58 stk=0
+[MPPI] dist=4.16 best=27.3 path=0.07 obs=0.0 prog=0.44 stk=0
+[Planner] Path found: 37 pts, 4.94m
+[MPPI] dist=4.14 best=28.2 path=0.08 obs=0.0 prog=0.72 stk=0
+[MPPI] dist=4.12 best=27.8 path=0.08 obs=0.0 prog=0.72 stk=0
+[Planner] Path found: 37 pts, 4.87m
+[MPPI] dist=4.10 best=25.5 path=0.06 obs=0.0 prog=0.54 stk=0
+[MPPI] dist=4.09 best=26.0 path=0.07 obs=0.0 prog=0.54 stk=0
+[Planner] Path found: 37 pts, 4.88m
+[MPPI] dist=4.08 best=26.3 path=0.06 obs=0.0 prog=0.56 stk=0
+[MPPI] dist=4.07 best=26.2 path=0.07 obs=0.0 prog=0.56 stk=0
+[Planner] Path found: 35 pts, 4.81m
+[MPPI] dist=4.06 best=24.7 path=0.05 obs=0.0 prog=0.45 stk=0
+[MPPI] dist=4.05 best=23.7 path=0.05 obs=0.0 prog=0.60 stk=0
+[Planner] Path found: 36 pts, 4.80m
+[MPPI] dist=4.04 best=28.4 path=0.06 obs=0.0 prog=0.55 stk=0
+[MPPI] dist=4.03 best=24.2 path=0.04 obs=0.0 prog=0.55 stk=0
+[Planner] Path found: 36 pts, 4.77m
+[MPPI] dist=4.03 best=26.6 path=0.06 obs=0.0 prog=0.54 stk=1
+[MPPI] dist=4.03 best=27.3 path=0.04 obs=0.0 prog=0.54 stk=2
+[Planner] Path found: 36 pts, 4.80m
+[MPPI] dist=4.03 best=24.3 path=0.04 obs=0.0 prog=0.56 stk=3
+[MPPI] dist=4.03 best=26.1 path=0.04 obs=0.0 prog=0.56 stk=4
+[Planner] Path found: 35 pts, 4.73m
+[MPPI] dist=4.02 best=24.4 path=0.04 obs=0.0 prog=0.54 stk=5
+[MPPI] dist=4.02 best=25.2 path=0.04 obs=0.0 prog=0.54 stk=6
+[Planner] Path found: 36 pts, 4.78m
+[MPPI] dist=4.01 best=27.7 path=0.06 obs=0.0 prog=0.54 stk=7
+[MPPI] dist=4.00 best=27.6 path=0.05 obs=0.0 prog=0.68 stk=8
+[Planner] Path found: 36 pts, 4.70m
+[MPPI] dist=3.98 best=26.7 path=0.03 obs=0.0 prog=0.54 stk=9
+[MPPI] dist=3.98 best=26.4 path=0.04 obs=0.0 prog=0.54 stk=10
+[Planner] Path found: 36 pts, 4.70m
+[MPPI] dist=3.96 best=27.0 path=0.04 obs=0.0 prog=0.56 stk=11
+[MPPI] dist=3.95 best=29.1 path=0.06 obs=0.0 prog=0.56 stk=12
+[Planner] Path found: 36 pts, 4.65m
+[MPPI] dist=3.94 best=29.9 path=0.04 obs=0.9 prog=0.53 stk=13
+[MPPI] dist=3.93 best=28.4 path=0.04 obs=0.0 prog=0.53 stk=14
+[Planner] Path found: 39 pts, 4.97m
+[MPPI] dist=3.92 best=177.0 path=0.11 obs=0.0 prog=0.14 stk=12
+[MPPI] dist=3.90 best=164.2 path=0.10 obs=0.0 prog=0.00 stk=10
+[Planner] Path found: 39 pts, 4.97m
+[MPPI] dist=3.89 best=216.6 path=0.14 obs=0.0 prog=0.00 stk=8
+[MPPI] dist=3.88 best=142.2 path=0.09 obs=0.0 prog=0.00 stk=6
+[Planner] Path found: 42 pts, 5.68m
+[MPPI] dist=3.87 best=239.2 path=0.10 obs=0.0 prog=0.00 stk=4
+[MPPI] dist=3.86 best=156.0 path=0.02 obs=0.0 prog=0.00 stk=2
+[Planner] Path found: 41 pts, 5.58m
+[MPPI] dist=3.86 best=211.0 path=0.07 obs=0.0 prog=0.00 stk=3
+[MPPI] dist=3.85 best=135.7 path=0.05 obs=0.0 prog=0.00 stk=4
+[Planner] Path found: 43 pts, 5.80m
+[MPPI] dist=3.85 best=187.5 path=0.08 obs=0.0 prog=0.00 stk=5
+[MPPI] dist=3.84 best=129.9 path=0.06 obs=0.0 prog=0.00 stk=6
+[Planner] Path found: 42 pts, 5.65m
+[MPPI] dist=3.83 best=203.3 path=0.05 obs=0.0 prog=0.00 stk=7
+[MPPI] dist=3.83 best=140.9 path=0.04 obs=0.0 prog=0.00 stk=8
+[Planner] Path found: 40 pts, 5.56m
+[MPPI] dist=3.82 best=212.0 path=0.10 obs=0.0 prog=0.00 stk=9
+[MPPI] dist=3.82 best=118.9 path=0.05 obs=0.0 prog=0.00 stk=10
+[Planner] Path found: 41 pts, 5.59m
+[MPPI] dist=3.82 best=189.2 path=0.12 obs=5.3 prog=0.00 stk=11
+[MPPI] dist=3.81 best=114.9 path=0.13 obs=0.0 prog=0.00 stk=12
+[Planner] Path found: 41 pts, 5.61m
+[MPPI] dist=3.81 best=219.6 path=0.18 obs=5.9 prog=0.00 stk=13
+[MPPI] dist=3.80 best=120.2 path=0.15 obs=0.0 prog=0.00 stk=14
+[Planner] Path found: 41 pts, 5.67m
+[MPPI] dist=3.80 best=147.2 path=0.07 obs=1.7 prog=0.00 stk=15
+[MPPI] dist=3.80 best=102.1 path=0.07 obs=0.0 prog=0.00 stk=16
+[Planner] Path found: 41 pts, 5.66m
+[MPPI] dist=3.81 best=150.2 path=0.09 obs=0.0 prog=0.00 stk=17
+[MPPI] dist=3.83 best=90.5 path=0.06 obs=0.0 prog=0.15 stk=18
+[Planner] Path found: 43 pts, 5.84m
+[MPPI] dist=3.84 best=89.5 path=0.05 obs=0.0 prog=0.15 stk=19
+[MPPI] dist=3.85 best=61.4 path=0.03 obs=0.0 prog=0.15 stk=20
+[Planner] Path found: 42 pts, 5.75m
+[MPPI] dist=3.87 best=81.1 path=0.04 obs=0.0 prog=0.30 stk=21
+[MPPI] dist=3.88 best=70.2 path=0.04 obs=0.0 prog=0.30 stk=22
+[Planner] Path found: 42 pts, 5.74m
+[MPPI] dist=3.88 best=54.6 path=0.05 obs=0.0 prog=0.29 stk=23
+[MPPI] dist=3.89 best=45.1 path=0.03 obs=0.0 prog=0.43 stk=24
+[Planner] Path found: 43 pts, 5.85m
+[MPPI] dist=3.90 best=54.6 path=0.04 obs=0.0 prog=0.30 stk=25
+[MPPI] dist=3.90 best=44.6 path=0.04 obs=0.0 prog=0.45 stk=26
+[Planner] Path found: 42 pts, 5.82m
+[MPPI] dist=3.91 best=46.8 path=0.03 obs=0.0 prog=0.45 stk=27
+[MPPI] dist=3.90 best=42.8 path=0.06 obs=0.0 prog=0.45 stk=28
+[Planner] Path found: 42 pts, 5.80m
+[MPPI] dist=3.89 best=48.6 path=0.08 obs=0.0 prog=0.45 stk=29
+[MPPI] dist=3.88 best=41.3 path=0.07 obs=0.0 prog=0.45 stk=30
+[Planner] Path found: 43 pts, 5.89m
+[MPPI] dist=3.87 best=46.0 path=0.05 obs=0.0 prog=0.45 stk=30
+[MPPI] dist=3.86 best=37.2 path=0.05 obs=0.0 prog=0.45 stk=30
+[Planner] Path found: 42 pts, 5.79m
+[MPPI] dist=3.85 best=39.9 path=0.05 obs=0.0 prog=0.45 stk=30
+[MPPI] dist=3.84 best=33.9 path=0.05 obs=0.0 prog=0.45 stk=30
+[Planner] Path found: 43 pts, 5.89m
+[MPPI] dist=3.83 best=41.8 path=0.06 obs=0.0 prog=0.45 stk=30
+[MPPI] dist=3.83 best=33.6 path=0.05 obs=0.0 prog=0.60 stk=30
+[Planner] Path found: 42 pts, 5.78m
+[MPPI] dist=3.82 best=33.7 path=0.04 obs=0.0 prog=0.60 stk=30
+[MPPI] dist=3.81 best=31.1 path=0.04 obs=0.0 prog=0.60 stk=30
+[Planner] Path found: 43 pts, 5.84m
+[MPPI] dist=3.80 best=26.6 path=0.04 obs=0.0 prog=0.59 stk=30
+[MPPI] dist=3.80 best=26.1 path=0.04 obs=0.0 prog=0.59 stk=30
+[Planner] Path found: 42 pts, 5.75m
+[MPPI] dist=3.79 best=28.4 path=0.04 obs=1.1 prog=0.59 stk=30
+[MPPI] dist=3.78 best=27.4 path=0.04 obs=0.0 prog=0.59 stk=30
+[Planner] Path found: 41 pts, 5.67m
+[MPPI] dist=3.77 best=26.8 path=0.04 obs=1.1 prog=0.60 stk=30
+[MPPI] dist=3.77 best=24.8 path=0.05 obs=0.0 prog=0.75 stk=30
+[Planner] Path found: 42 pts, 5.77m
+[MPPI] dist=3.76 best=27.5 path=0.05 obs=1.5 prog=0.61 stk=30
+[MPPI] dist=3.75 best=25.3 path=0.06 obs=0.0 prog=0.76 stk=30
+[Planner] Path found: 42 pts, 5.73m
+[MPPI] dist=3.74 best=25.5 path=0.05 obs=0.0 prog=0.75 stk=30
+[MPPI] dist=3.74 best=24.2 path=0.06 obs=0.0 prog=0.75 stk=30
+[Planner] Path found: 40 pts, 5.56m
+[MPPI] dist=3.73 best=25.2 path=0.04 obs=1.5 prog=0.76 stk=30
+[MPPI] dist=3.72 best=24.3 path=0.05 obs=0.0 prog=0.76 stk=30
+[Planner] Path found: 42 pts, 5.67m
+[MPPI] dist=3.71 best=32.8 path=0.04 obs=10.0 prog=0.75 stk=30
+[MPPI] dist=3.70 best=27.2 path=0.06 obs=0.0 prog=0.75 stk=30
+[Planner] Path found: 40 pts, 5.52m
+[MPPI] dist=3.70 best=30.1 path=0.04 obs=8.0 prog=0.90 stk=30
+[MPPI] dist=3.69 best=31.8 path=0.04 obs=10.2 prog=0.90 stk=30
+[Planner] Path found: 38 pts, 5.30m
+[MPPI] dist=3.68 best=33.3 path=0.04 obs=10.5 prog=0.75 stk=30
+[MPPI] dist=3.67 best=32.2 path=0.04 obs=9.5 prog=0.90 stk=30
+[Planner] Path found: 41 pts, 5.51m
+[MPPI] dist=3.66 best=31.3 path=0.04 obs=9.6 prog=0.73 stk=30
+[MPPI] dist=3.65 best=32.6 path=0.04 obs=10.9 prog=0.87 stk=30
+[Planner] Path found: 39 pts, 5.38m
+[MPPI] dist=3.64 best=30.9 path=0.04 obs=7.8 prog=0.73 stk=30
+[MPPI] dist=3.64 best=31.5 path=0.06 obs=7.5 prog=0.73 stk=30
+[Planner] Path found: 38 pts, 5.18m
+[MPPI] dist=3.63 best=29.3 path=0.04 obs=4.9 prog=0.74 stk=30
+[MPPI] dist=3.63 best=27.7 path=0.04 obs=4.9 prog=0.74 stk=30
+[Planner] Path found: 38 pts, 5.25m
+[MPPI] dist=3.62 best=24.0 path=0.04 obs=1.5 prog=0.75 stk=30
+[MPPI] dist=3.62 best=24.4 path=0.04 obs=1.4 prog=0.75 stk=30
+[Planner] Path found: 38 pts, 5.25m
+[MPPI] dist=3.61 best=23.1 path=0.04 obs=1.4 prog=0.74 stk=30
+[MPPI] dist=3.60 best=22.8 path=0.04 obs=0.0 prog=0.74 stk=30
+[Planner] Path found: 38 pts, 5.20m
+[MPPI] dist=3.60 best=24.9 path=0.05 obs=0.0 prog=0.74 stk=30
+[MPPI] dist=3.60 best=21.9 path=0.04 obs=0.0 prog=0.74 stk=30
+[Planner] Path found: 36 pts, 5.02m
+[MPPI] dist=3.60 best=22.5 path=0.04 obs=0.0 prog=0.60 stk=30
+[MPPI] dist=3.59 best=23.0 path=0.05 obs=0.0 prog=0.75 stk=30
+[Planner] Path found: 37 pts, 5.10m
+[MPPI] dist=3.59 best=26.4 path=0.06 obs=0.0 prog=0.75 stk=30
+[MPPI] dist=3.59 best=23.6 path=0.04 obs=0.0 prog=0.75 stk=30
+[Planner] Path found: 37 pts, 5.06m
+[MPPI] dist=3.59 best=23.4 path=0.05 obs=0.0 prog=0.74 stk=30
+[MPPI] dist=3.59 best=23.0 path=0.05 obs=0.0 prog=0.74 stk=30
+[Planner] Path found: 37 pts, 5.06m
+[MPPI] dist=3.58 best=22.4 path=0.04 obs=0.0 prog=0.59 stk=30
+[MPPI] dist=3.58 best=22.5 path=0.04 obs=0.0 prog=0.74 stk=30
+[Planner] Path found: 36 pts, 5.02m
+[MPPI] dist=3.58 best=22.3 path=0.04 obs=0.0 prog=0.60 stk=30
+[MPPI] dist=3.57 best=24.7 path=0.05 obs=0.0 prog=0.75 stk=30
+[Planner] Path found: 35 pts, 4.81m
+[MPPI] dist=3.57 best=22.3 path=0.04 obs=0.0 prog=0.74 stk=30
+[MPPI] dist=3.57 best=23.4 path=0.05 obs=0.0 prog=0.59 stk=30
+[Planner] Path found: 36 pts, 4.96m
+[MPPI] dist=3.57 best=24.4 path=0.05 obs=0.0 prog=0.60 stk=30
+[MPPI] dist=3.57 best=24.3 path=0.05 obs=0.0 prog=0.74 stk=30
+[Planner] Path found: 36 pts, 4.93m
+[MPPI] dist=3.56 best=22.2 path=0.04 obs=0.0 prog=0.59 stk=30
+[MPPI] dist=3.56 best=23.4 path=0.05 obs=0.0 prog=0.73 stk=30
+[Planner] Path found: 36 pts, 4.92m
+[MPPI] dist=3.56 best=24.5 path=0.06 obs=0.0 prog=0.74 stk=30
+[MPPI] dist=3.56 best=24.1 path=0.06 obs=0.0 prog=0.59 stk=30
+[Planner] Path found: 36 pts, 4.87m
+[MPPI] dist=3.56 best=22.6 path=0.04 obs=0.0 prog=0.59 stk=30
+[MPPI] dist=3.56 best=23.2 path=0.04 obs=0.0 prog=0.73 stk=30
+[Planner] Path found: 34 pts, 4.68m
+[MPPI] dist=3.56 best=23.7 path=0.04 obs=0.0 prog=0.74 stk=30
+[MPPI] dist=3.56 best=24.1 path=0.05 obs=0.0 prog=0.74 stk=30
+[Planner] Path found: 35 pts, 4.82m
+[MPPI] dist=3.56 best=23.9 path=0.05 obs=0.0 prog=0.60 stk=30
+[MPPI] dist=3.56 best=24.9 path=0.07 obs=0.0 prog=0.75 stk=30
+[Planner] Path found: 35 pts, 4.79m
+[MPPI] dist=3.56 best=26.8 path=0.05 obs=0.0 prog=0.59 stk=30
+[MPPI] dist=3.56 best=23.9 path=0.05 obs=0.0 prog=0.74 stk=30
+[Planner] Path found: 35 pts, 4.74m
+[MPPI] dist=3.56 best=24.1 path=0.04 obs=0.0 prog=0.73 stk=30
+[MPPI] dist=3.55 best=22.9 path=0.04 obs=0.0 prog=0.73 stk=30
+[Planner] Path found: 34 pts, 4.63m
+[MPPI] dist=3.55 best=25.0 path=0.04 obs=0.0 prog=0.73 stk=30
+[MPPI] dist=3.55 best=24.0 path=0.05 obs=0.0 prog=0.73 stk=30
+[Planner] Path found: 33 pts, 4.54m
+[MPPI] dist=3.54 best=24.0 path=0.04 obs=0.0 prog=0.59 stk=30
+[MPPI] dist=3.54 best=27.7 path=0.04 obs=0.0 prog=0.73 stk=30
+[Planner] Path found: 34 pts, 4.64m
+[MPPI] dist=3.53 best=24.4 path=0.04 obs=0.0 prog=0.73 stk=30
+[MPPI] dist=3.53 best=24.6 path=0.04 obs=0.0 prog=0.45 stk=30
+[Planner] Path found: 33 pts, 4.55m
+[MPPI] dist=3.52 best=23.6 path=0.04 obs=0.0 prog=0.74 stk=30
+[MPPI] dist=3.52 best=23.8 path=0.04 obs=0.0 prog=0.74 stk=30
+[Planner] Path found: 33 pts, 4.47m
+[MPPI] dist=3.51 best=25.7 path=0.04 obs=0.0 prog=0.58 stk=30
+[MPPI] dist=3.50 best=26.2 path=0.04 obs=0.0 prog=0.58 stk=30
+[Planner] Path found: 34 pts, 4.59m
+[MPPI] dist=3.50 best=24.0 path=0.04 obs=0.0 prog=0.73 stk=30
+[MPPI] dist=3.50 best=23.9 path=0.04 obs=0.0 prog=0.59 stk=30
+[Planner] Path found: 32 pts, 4.44m
+[MPPI] dist=3.49 best=25.0 path=0.04 obs=0.0 prog=0.73 stk=30
+[MPPI] dist=3.49 best=26.0 path=0.05 obs=0.0 prog=0.59 stk=30
+[Planner] Path found: 33 pts, 4.40m
+[MPPI] dist=3.49 best=24.6 path=0.04 obs=0.0 prog=0.57 stk=30
+[MPPI] dist=3.49 best=24.3 path=0.04 obs=0.0 prog=0.57 stk=30
+[Planner] Path found: 32 pts, 4.39m
+[MPPI] dist=3.49 best=25.2 path=0.05 obs=0.0 prog=0.58 stk=30
+[MPPI] dist=3.48 best=25.1 path=0.04 obs=0.0 prog=0.58 stk=30
+[Planner] Path found: 32 pts, 4.35m
+[MPPI] dist=3.48 best=26.8 path=0.04 obs=0.0 prog=0.44 stk=30
+[MPPI] dist=3.47 best=26.9 path=0.04 obs=0.0 prog=0.44 stk=30
+[Planner] Path found: 32 pts, 4.34m
+[MPPI] dist=3.47 best=26.1 path=0.04 obs=0.0 prog=0.44 stk=30
+[MPPI] dist=3.46 best=24.8 path=0.04 obs=0.0 prog=0.44 stk=30
+[Planner] Path found: 32 pts, 4.32m
+[MPPI] dist=3.46 best=26.0 path=0.04 obs=0.0 prog=0.57 stk=30
+[MPPI] dist=3.46 best=25.0 path=0.04 obs=0.0 prog=0.57 stk=30
+[Planner] Path found: 32 pts, 4.33m
+[MPPI] dist=3.45 best=27.2 path=0.04 obs=0.0 prog=0.58 stk=30
+[MPPI] dist=3.45 best=26.5 path=0.04 obs=0.0 prog=0.58 stk=30
+[Planner] Path found: 32 pts, 4.28m
+[MPPI] dist=3.45 best=26.3 path=0.04 obs=0.0 prog=0.51 stk=30
+[MPPI] dist=3.45 best=26.6 path=0.04 obs=0.0 prog=0.63 stk=30
+[Planner] Path found: 31 pts, 4.23m
+[MPPI] dist=3.45 best=26.1 path=0.04 obs=0.0 prog=0.58 stk=30
+[MPPI] dist=3.45 best=26.2 path=0.05 obs=0.0 prog=0.58 stk=30
+[Planner] Path found: 31 pts, 4.21m
+[MPPI] dist=3.45 best=24.6 path=0.03 obs=0.0 prog=0.53 stk=30
+[MPPI] dist=3.45 best=25.7 path=0.04 obs=0.0 prog=0.53 stk=30
+[Planner] Path found: 32 pts, 4.22m
+[MPPI] dist=3.44 best=26.7 path=0.04 obs=0.0 prog=0.52 stk=30
+[MPPI] dist=3.44 best=29.9 path=0.04 obs=0.0 prog=0.52 stk=30
+[Planner] Path found: 31 pts, 4.18m
+[MPPI] dist=3.44 best=31.8 path=0.03 obs=1.5 prog=0.51 stk=30
+[MPPI] dist=3.43 best=30.5 path=0.05 obs=0.0 prog=0.38 stk=30
+[Planner] Path found: 30 pts, 4.11m
+[MPPI] dist=3.43 best=38.3 path=0.04 obs=7.6 prog=0.42 stk=30
+[MPPI] dist=3.42 best=28.1 path=0.04 obs=0.0 prog=0.42 stk=30
+[Planner] Path found: 31 pts, 4.16m
+[MPPI] dist=3.41 best=30.0 path=0.04 obs=0.0 prog=0.38 stk=30
+[MPPI] dist=3.40 best=34.2 path=0.05 obs=0.0 prog=0.38 stk=30
+[Planner] Path found: 30 pts, 4.06m
+[MPPI] dist=3.39 best=46.3 path=0.04 obs=11.4 prog=0.55 stk=30
+[MPPI] dist=3.38 best=41.7 path=0.04 obs=10.8 prog=0.55 stk=30
+[Planner] Path found: 30 pts, 4.06m
+[MPPI] dist=3.37 best=38.6 path=0.04 obs=5.9 prog=0.51 stk=30
+[MPPI] dist=3.36 best=33.1 path=0.04 obs=5.7 prog=0.51 stk=30
+[Planner] Path found: 30 pts, 4.04m
+[MPPI] dist=3.36 best=45.3 path=0.04 obs=6.3 prog=0.51 stk=30
+[MPPI] dist=3.35 best=33.0 path=0.04 obs=1.5 prog=0.38 stk=30
+[Planner] Path found: 30 pts, 4.00m
+[MPPI] dist=3.34 best=43.0 path=0.03 obs=6.5 prog=0.48 stk=30
+[MPPI] dist=3.34 best=30.7 path=0.04 obs=1.5 prog=0.36 stk=30
+[Planner] Path found: 30 pts, 3.99m
+[MPPI] dist=3.33 best=37.8 path=0.04 obs=1.5 prog=0.48 stk=30
+[MPPI] dist=3.33 best=35.3 path=0.04 obs=1.6 prog=0.48 stk=30
+[Planner] Path found: 30 pts, 3.94m
+[MPPI] dist=3.32 best=45.0 path=0.04 obs=1.5 prog=0.43 stk=30
+[MPPI] dist=3.32 best=32.9 path=0.05 obs=1.4 prog=0.43 stk=30
+[Planner] Path found: 30 pts, 3.93m
+[MPPI] dist=3.31 best=38.0 path=0.04 obs=8.1 prog=0.55 stk=30
+[MPPI] dist=3.31 best=33.0 path=0.05 obs=1.4 prog=0.43 stk=30
+[Planner] Path found: 29 pts, 3.88m
+[MPPI] dist=3.31 best=55.2 path=0.03 obs=18.3 prog=0.46 stk=30
+[MPPI] dist=3.31 best=31.5 path=0.05 obs=1.5 prog=0.34 stk=30
+[Planner] Path found: 30 pts, 3.90m
+[MPPI] dist=3.31 best=36.8 path=0.05 obs=5.6 prog=0.33 stk=30
+[MPPI] dist=3.31 best=33.8 path=0.06 obs=0.0 prog=0.33 stk=30
+[Planner] Path found: 29 pts, 3.88m
+[MPPI] dist=3.31 best=31.6 path=0.08 obs=0.0 prog=0.46 stk=30
+[MPPI] dist=3.32 best=32.2 path=0.10 obs=0.0 prog=0.34 stk=30
+[Planner] Path found: 30 pts, 3.90m
+[MPPI] dist=3.33 best=31.8 path=0.09 obs=0.0 prog=0.33 stk=30
+[MPPI] dist=3.34 best=31.4 path=0.08 obs=0.0 prog=0.33 stk=30
+[Planner] Path found: 29 pts, 3.91m
+[MPPI] dist=3.35 best=31.0 path=0.07 obs=0.0 prog=0.37 stk=30
+[MPPI] dist=3.36 best=31.4 path=0.09 obs=0.0 prog=0.37 stk=30
+[Planner] Path found: 29 pts, 3.89m
+[MPPI] dist=3.37 best=31.6 path=0.07 obs=0.8 prog=0.36 stk=30
+[MPPI] dist=3.37 best=31.8 path=0.06 obs=0.9 prog=0.48 stk=30
+[Planner] Path found: 28 pts, 3.86m
+[MPPI] dist=3.37 best=39.6 path=0.08 obs=1.4 prog=0.55 stk=30
+[MPPI] dist=3.37 best=37.4 path=0.08 obs=1.3 prog=0.42 stk=30
+  Sim finished in 537.7s  (ctrl ticks: 4000/4000)
+
+  Completed in 542.5s
+  Goal reached: False
+  Traversal time: None
+  Roll RMS: 0.2279 rad (10.38 deg mean)
+  Body contacts: 44 (208 steps)
+  Dist to goal: 3.356 m
+    Rendered 20/500 frames...
+    Rendered 40/500 frames...
+    Rendered 60/500 frames...
+    Rendered 80/500 frames...
+    Rendered 100/500 frames...
+    Rendered 120/500 frames...
+    Rendered 140/500 frames...
+    Rendered 160/500 frames...
+    Rendered 180/500 frames...
+    Rendered 200/500 frames...
+    Rendered 220/500 frames...
+    Rendered 240/500 frames...
+    Rendered 260/500 frames...
+    Rendered 280/500 frames...
+    Rendered 300/500 frames...
+    Rendered 320/500 frames...
+    Rendered 340/500 frames...
+    Rendered 360/500 frames...
+    Rendered 380/500 frames...
+    Rendered 400/500 frames...
+    Rendered 420/500 frames...
+    Rendered 440/500 frames...
+    Rendered 460/500 frames...
+    Rendered 480/500 frames...
+    Rendered 500/500 frames...
+  Video saved: environment_results_main_planner/bc_093p066_1_1_4_xli1m_utm10_20240610_20240621/mppi_debug.mp4
+
+======================================================================
+  ENVIRONMENT 3/5: bc_094a059_2_4_4_xli1m_utm10_20240628_20240628
+  Scene XML: /home/suleiman/dog/go2-convex-mpc/models/MJCF/go2/environments/bc_094a059_2_4_4_xli1m_utm10_20240628_20240628.xml
+======================================================================
+
+[QP Init] ===== MPC QP Structure =====
+  H:  384 x 384  | nnz =    384 | dens =  0.0026
+  A:  512 x 384  | nnz =   5616 | dens =  0.0286
+  vars: 384 | constr: 512 | horizon N = 16
+[QP Init] ✓ Initialization complete.
+
+[Planner] Path found: 34 pts, 5.00m
+[Planner] Path found: 34 pts, 5.05m
+[MPPI] dist=5.03 best=22.4 path=0.05 obs=0.0 prog=0.61 stk=0
+[MPPI] dist=5.02 best=22.1 path=0.05 obs=0.0 prog=0.77 stk=0
+[Planner] Path found: 34 pts, 5.00m
+[MPPI] dist=5.02 best=22.7 path=0.04 obs=0.0 prog=0.45 stk=0
+[MPPI] dist=5.01 best=22.3 path=0.04 obs=0.0 prog=0.61 stk=0
+[Planner] Path found: 34 pts, 5.00m
+[MPPI] dist=5.01 best=22.0 path=0.04 obs=0.0 prog=0.61 stk=0
+[MPPI] dist=5.00 best=22.0 path=0.04 obs=0.0 prog=0.61 stk=1
+[Planner] Path found: 34 pts, 5.00m
+[MPPI] dist=5.00 best=22.7 path=0.04 obs=0.0 prog=0.45 stk=2
+[MPPI] dist=5.00 best=21.7 path=0.04 obs=0.0 prog=0.61 stk=3
+[Planner] Path found: 34 pts, 5.00m
+[MPPI] dist=5.00 best=22.6 path=0.04 obs=0.0 prog=0.45 stk=4
+[MPPI] dist=5.00 best=22.1 path=0.04 obs=0.0 prog=0.61 stk=5
+[Planner] Path found: 34 pts, 5.00m
+[MPPI] dist=5.00 best=22.4 path=0.04 obs=0.0 prog=0.45 stk=6
+[MPPI] dist=5.00 best=22.8 path=0.04 obs=0.0 prog=0.61 stk=7
+[Planner] Path found: 34 pts, 5.00m
+[MPPI] dist=5.00 best=24.7 path=0.05 obs=0.0 prog=0.61 stk=8
+[MPPI] dist=5.00 best=24.2 path=0.05 obs=0.0 prog=0.61 stk=9
+[Planner] Path found: 34 pts, 5.00m
+[MPPI] dist=4.99 best=22.6 path=0.04 obs=0.0 prog=0.60 stk=10
+[MPPI] dist=4.99 best=28.1 path=0.04 obs=0.0 prog=0.60 stk=11
+[Planner] Path found: 34 pts, 5.00m
+[MPPI] dist=4.99 best=32.9 path=0.04 obs=0.0 prog=0.60 stk=12
+[MPPI] dist=4.99 best=23.4 path=0.04 obs=0.0 prog=0.45 stk=13
+[Planner] Path found: 34 pts, 5.00m
+[MPPI] dist=4.99 best=22.4 path=0.04 obs=0.0 prog=0.45 stk=14
+[MPPI] dist=4.99 best=24.1 path=0.04 obs=0.0 prog=0.45 stk=15
+[Planner] Path found: 34 pts, 5.00m
+[MPPI] dist=4.99 best=24.8 path=0.04 obs=0.0 prog=0.60 stk=16
+[MPPI] dist=4.99 best=22.3 path=0.04 obs=0.0 prog=0.60 stk=17
+[Planner] Path found: 34 pts, 5.00m
+[MPPI] dist=4.98 best=24.3 path=0.04 obs=0.0 prog=0.60 stk=18
+[MPPI] dist=4.97 best=22.5 path=0.04 obs=0.0 prog=0.60 stk=19
+[Planner] Path found: 34 pts, 4.95m
+[MPPI] dist=4.96 best=22.8 path=0.04 obs=0.0 prog=0.60 stk=20
+[MPPI] dist=4.95 best=21.9 path=0.04 obs=0.0 prog=0.60 stk=21
+[Planner] Path found: 34 pts, 4.95m
+[MPPI] dist=4.95 best=24.0 path=0.04 obs=0.0 prog=0.60 stk=22
+[MPPI] dist=4.94 best=24.9 path=0.04 obs=0.0 prog=0.60 stk=23
+[Planner] Path found: 34 pts, 4.95m
+[MPPI] dist=4.93 best=23.1 path=0.05 obs=0.0 prog=0.60 stk=24
+[MPPI] dist=4.92 best=24.2 path=0.05 obs=0.0 prog=0.75 stk=25
+[Planner] Path found: 33 pts, 4.90m
+[MPPI] dist=4.91 best=27.5 path=0.05 obs=0.0 prog=0.76 stk=26
+[MPPI] dist=4.89 best=23.4 path=0.07 obs=0.0 prog=0.76 stk=27
+[Planner] Path found: 33 pts, 4.90m
+[MPPI] dist=4.88 best=25.9 path=0.06 obs=0.0 prog=0.61 stk=28
+[MPPI] dist=4.86 best=24.0 path=0.05 obs=0.0 prog=0.76 stk=29
+[Planner] Path found: 33 pts, 4.85m
+[MPPI] dist=4.85 best=24.3 path=0.05 obs=0.0 prog=0.61 stk=27
+[MPPI] dist=4.84 best=27.4 path=0.04 obs=0.0 prog=0.61 stk=25
+[Planner] Path found: 33 pts, 4.85m
+[MPPI] dist=4.83 best=25.2 path=0.05 obs=0.0 prog=0.76 stk=23
+[MPPI] dist=4.81 best=23.6 path=0.04 obs=0.0 prog=0.61 stk=21
+[Planner] Path found: 33 pts, 4.80m
+[MPPI] dist=4.80 best=22.4 path=0.04 obs=0.0 prog=0.60 stk=19
+[MPPI] dist=4.78 best=34.9 path=0.06 obs=0.0 prog=0.75 stk=17
+[Planner] Path found: 32 pts, 4.75m
+[MPPI] dist=4.76 best=24.9 path=0.04 obs=0.0 prog=0.76 stk=15
+[MPPI] dist=4.74 best=24.7 path=0.06 obs=0.0 prog=0.76 stk=13
+[Planner] Path found: 33 pts, 4.84m
+[MPPI] dist=4.72 best=34.7 path=0.04 obs=0.0 prog=0.59 stk=11
+[MPPI] dist=4.71 best=36.6 path=0.05 obs=0.0 prog=0.59 stk=9
+[Planner] Path found: 33 pts, 4.84m
+[MPPI] dist=4.70 best=35.0 path=0.06 obs=0.0 prog=0.60 stk=7
+[MPPI] dist=4.69 best=35.8 path=0.06 obs=0.0 prog=0.60 stk=5
+[Planner] Path found: 33 pts, 4.79m
+[MPPI] dist=4.67 best=44.4 path=0.05 obs=0.0 prog=0.60 stk=3
+[MPPI] dist=4.66 best=32.1 path=0.04 obs=0.0 prog=0.60 stk=1
+[Planner] Path found: 33 pts, 4.74m
+[MPPI] dist=4.64 best=31.4 path=0.04 obs=0.0 prog=0.73 stk=0
+[MPPI] dist=4.62 best=29.1 path=0.04 obs=0.0 prog=0.73 stk=0
+[Planner] Path found: 33 pts, 4.65m
+[MPPI] dist=4.60 best=35.2 path=0.04 obs=0.0 prog=0.70 stk=0
+[MPPI] dist=4.59 best=32.4 path=0.04 obs=0.0 prog=0.56 stk=0
+[Planner] Path found: 33 pts, 4.60m
+[MPPI] dist=4.57 best=30.1 path=0.04 obs=0.0 prog=0.55 stk=0
+[MPPI] dist=4.56 best=34.1 path=0.05 obs=0.0 prog=0.55 stk=0
+[Planner] Path found: 33 pts, 4.59m
+[MPPI] dist=4.54 best=30.1 path=0.05 obs=0.0 prog=0.67 stk=0
+[MPPI] dist=4.52 best=31.4 path=0.05 obs=0.0 prog=0.54 stk=0
+[Planner] Path found: 32 pts, 4.53m
+[MPPI] dist=4.50 best=30.5 path=0.04 obs=0.0 prog=0.68 stk=0
+[MPPI] dist=4.47 best=34.9 path=0.06 obs=0.0 prog=0.68 stk=0
+[Planner] Path found: 31 pts, 4.47m
+[MPPI] dist=4.45 best=31.5 path=0.04 obs=0.0 prog=0.72 stk=0
+[MPPI] dist=4.42 best=28.1 path=0.05 obs=0.0 prog=0.87 stk=0
+[Planner] Path found: 34 pts, 4.71m
+[MPPI] dist=4.39 best=82.0 path=0.15 obs=0.0 prog=0.56 stk=0
+[MPPI] dist=4.36 best=88.6 path=0.17 obs=0.0 prog=0.56 stk=0
+[Planner] Path found: 33 pts, 4.60m
+[MPPI] dist=4.32 best=123.4 path=0.19 obs=0.0 prog=0.71 stk=0
+[MPPI] dist=4.29 best=86.5 path=0.14 obs=0.0 prog=0.71 stk=0
+[Planner] Path found: 30 pts, 4.27m
+[MPPI] dist=4.26 best=43.3 path=0.12 obs=0.0 prog=0.82 stk=0
+[MPPI] dist=4.22 best=33.8 path=0.09 obs=0.0 prog=0.96 stk=0
+[Planner] Path found: 30 pts, 4.22m
+[MPPI] dist=4.19 best=52.9 path=0.20 obs=0.0 prog=0.92 stk=0
+[MPPI] dist=4.15 best=53.2 path=0.20 obs=0.0 prog=0.92 stk=0
+[Planner] Path found: 29 pts, 4.16m
+[MPPI] dist=4.13 best=30.5 path=0.04 obs=0.0 prog=0.70 stk=0
+[MPPI] dist=4.11 best=31.0 path=0.04 obs=0.0 prog=0.83 stk=0
+[Planner] Path found: 29 pts, 4.11m
+[MPPI] dist=4.09 best=28.9 path=0.04 obs=0.0 prog=0.67 stk=0
+[MPPI] dist=4.08 best=28.5 path=0.04 obs=0.0 prog=0.80 stk=0
+[Planner] Path found: 34 pts, 4.53m
+[MPPI] dist=4.06 best=31.3 path=0.03 obs=0.0 prog=0.77 stk=0
+[MPPI] dist=4.04 best=31.6 path=0.06 obs=0.0 prog=0.77 stk=0
+[Planner] Path found: 34 pts, 4.51m
+[MPPI] dist=4.02 best=30.5 path=0.05 obs=0.0 prog=0.64 stk=0
+[MPPI] dist=4.01 best=29.9 path=0.05 obs=0.0 prog=0.77 stk=0
+[Planner] Path found: 35 pts, 4.67m
+[MPPI] dist=3.99 best=103.0 path=0.20 obs=0.0 prog=0.54 stk=0
+[MPPI] dist=3.97 best=85.9 path=0.16 obs=0.0 prog=0.27 stk=0
+[Planner] Path found: 34 pts, 4.61m
+[MPPI] dist=3.95 best=90.0 path=0.16 obs=0.0 prog=0.52 stk=0
+[MPPI] dist=3.94 best=62.5 path=0.10 obs=0.0 prog=0.39 stk=0
+[Planner] Path found: 34 pts, 4.64m
+[MPPI] dist=3.93 best=82.1 path=0.20 obs=0.0 prog=0.55 stk=0
+[MPPI] dist=3.91 best=73.3 path=0.18 obs=0.0 prog=0.55 stk=0
+[Planner] Path found: 35 pts, 4.67m
+[MPPI] dist=3.90 best=93.2 path=0.17 obs=0.0 prog=0.64 stk=0
+[MPPI] dist=3.88 best=86.9 path=0.18 obs=0.0 prog=0.51 stk=0
+[Planner] Path found: 33 pts, 4.40m
+[MPPI] dist=3.87 best=36.5 path=0.04 obs=0.0 prog=0.69 stk=0
+[MPPI] dist=3.86 best=43.6 path=0.04 obs=0.0 prog=0.42 stk=0
+[Planner] Path found: 32 pts, 4.42m
+[MPPI] dist=3.86 best=46.6 path=0.04 obs=0.0 prog=0.44 stk=0
+[MPPI] dist=3.85 best=43.1 path=0.06 obs=0.0 prog=0.58 stk=0
+[Planner] Path found: 32 pts, 4.42m
+[MPPI] dist=3.85 best=46.8 path=0.06 obs=0.0 prog=0.59 stk=1
+[MPPI] dist=3.84 best=46.3 path=0.05 obs=0.0 prog=0.74 stk=2
+[Planner] Path found: 35 pts, 4.60m
+[MPPI] dist=3.83 best=56.1 path=0.03 obs=0.0 prog=0.48 stk=3
+[MPPI] dist=3.82 best=52.2 path=0.03 obs=0.0 prog=0.61 stk=4
+[Planner] Path found: 35 pts, 4.71m
+[MPPI] dist=3.82 best=37.5 path=0.07 obs=0.0 prog=0.58 stk=5
+[MPPI] dist=3.82 best=33.7 path=0.04 obs=0.0 prog=0.43 stk=6
+[Planner] Path found: 41 pts, 5.33m
+[MPPI] dist=3.82 best=41.7 path=0.03 obs=0.0 prog=0.46 stk=7
+[MPPI] dist=3.82 best=43.5 path=0.03 obs=0.0 prog=0.46 stk=8
+[Planner] Path found: 40 pts, 5.30m
+[MPPI] dist=3.82 best=38.5 path=0.03 obs=0.0 prog=0.47 stk=9
+[MPPI] dist=3.82 best=40.4 path=0.04 obs=0.0 prog=0.60 stk=10
+[Planner] Path found: 40 pts, 5.29m
+[MPPI] dist=3.81 best=43.2 path=0.05 obs=0.0 prog=0.60 stk=11
+[MPPI] dist=3.81 best=46.2 path=0.07 obs=0.0 prog=0.60 stk=12
+[Planner] Path found: 34 pts, 4.67m
+[MPPI] dist=3.82 best=66.2 path=0.04 obs=0.0 prog=0.44 stk=13
+[MPPI] dist=3.82 best=58.8 path=0.04 obs=0.0 prog=0.59 stk=14
+[Planner] Path found: 33 pts, 4.64m
+[MPPI] dist=3.82 best=59.0 path=0.05 obs=0.0 prog=0.46 stk=15
+[MPPI] dist=3.82 best=52.8 path=0.05 obs=0.0 prog=0.61 stk=16
+[Planner] Path found: 33 pts, 4.62m
+[MPPI] dist=3.82 best=46.5 path=0.04 obs=0.0 prog=0.60 stk=17
+[MPPI] dist=3.81 best=47.4 path=0.04 obs=0.0 prog=0.60 stk=18
+[Planner] Path found: 33 pts, 4.60m
+[MPPI] dist=3.81 best=44.4 path=0.04 obs=0.0 prog=0.45 stk=19
+[MPPI] dist=3.80 best=38.4 path=0.05 obs=0.0 prog=0.60 stk=20
+[Planner] Path found: 33 pts, 4.61m
+[MPPI] dist=3.80 best=41.1 path=0.05 obs=0.0 prog=0.60 stk=21
+[MPPI] dist=3.80 best=33.9 path=0.04 obs=0.0 prog=0.75 stk=22
+[Planner] Path found: 33 pts, 4.58m
+[MPPI] dist=3.79 best=32.5 path=0.05 obs=0.0 prog=0.59 stk=23
+[MPPI] dist=3.79 best=36.0 path=0.05 obs=0.0 prog=0.74 stk=24
+[Planner] Path found: 33 pts, 4.55m
+[MPPI] dist=3.78 best=37.4 path=0.04 obs=0.0 prog=0.74 stk=25
+[MPPI] dist=3.77 best=28.8 path=0.04 obs=0.0 prog=0.74 stk=26
+[Planner] Path found: 33 pts, 4.53m
+[MPPI] dist=3.76 best=26.6 path=0.04 obs=0.0 prog=0.60 stk=27
+[MPPI] dist=3.75 best=26.8 path=0.05 obs=0.0 prog=0.74 stk=28
+[Planner] Path found: 33 pts, 4.52m
+[MPPI] dist=3.73 best=30.2 path=0.04 obs=0.0 prog=0.59 stk=29
+[MPPI] dist=3.72 best=25.7 path=0.04 obs=0.0 prog=0.59 stk=30
+[Planner] Path found: 32 pts, 4.47m
+[MPPI] dist=3.71 best=27.1 path=0.06 obs=0.0 prog=0.60 stk=30
+[MPPI] dist=3.70 best=30.5 path=0.08 obs=0.0 prog=0.60 stk=30
+[Planner] Path found: 32 pts, 4.44m
+[MPPI] dist=3.68 best=26.9 path=0.04 obs=0.0 prog=0.60 stk=28
+[MPPI] dist=3.68 best=25.4 path=0.04 obs=0.0 prog=0.60 stk=26
+[Planner] Path found: 32 pts, 4.44m
+[MPPI] dist=3.67 best=26.1 path=0.06 obs=0.0 prog=0.75 stk=24
+[MPPI] dist=3.65 best=27.0 path=0.06 obs=0.0 prog=0.75 stk=22
+[Planner] Path found: 32 pts, 4.41m
+[MPPI] dist=3.64 best=25.1 path=0.04 obs=0.0 prog=0.74 stk=20
+[MPPI] dist=3.63 best=25.6 path=0.05 obs=0.0 prog=0.59 stk=18
+[Planner] Path found: 32 pts, 4.37m
+[MPPI] dist=3.62 best=27.4 path=0.06 obs=0.0 prog=0.59 stk=16
+[MPPI] dist=3.61 best=25.7 path=0.06 obs=0.0 prog=0.59 stk=14
+[Planner] Path found: 32 pts, 4.30m
+[MPPI] dist=3.60 best=26.1 path=0.05 obs=0.0 prog=0.58 stk=15
+[MPPI] dist=3.59 best=25.1 path=0.05 obs=0.0 prog=0.72 stk=16
+[Planner] Path found: 31 pts, 4.24m
+[MPPI] dist=3.59 best=24.6 path=0.04 obs=0.0 prog=0.59 stk=17
+[MPPI] dist=3.58 best=24.3 path=0.04 obs=0.0 prog=0.59 stk=18
+[Planner] Path found: 31 pts, 4.16m
+[MPPI] dist=3.57 best=24.5 path=0.04 obs=0.0 prog=0.58 stk=19
+[MPPI] dist=3.56 best=25.7 path=0.04 obs=0.0 prog=0.58 stk=20
+[Planner] Path found: 32 pts, 4.44m
+[MPPI] dist=3.55 best=41.5 path=0.06 obs=0.0 prog=0.69 stk=21
+[MPPI] dist=3.54 best=34.5 path=0.06 obs=0.0 prog=0.69 stk=22
+[Planner] Path found: 31 pts, 4.26m
+[MPPI] dist=3.53 best=25.5 path=0.04 obs=0.0 prog=0.68 stk=23
+[MPPI] dist=3.53 best=26.8 path=0.04 obs=0.0 prog=0.55 stk=24
+[Planner] Path found: 31 pts, 4.23m
+[MPPI] dist=3.52 best=26.0 path=0.04 obs=0.0 prog=0.69 stk=25
+[MPPI] dist=3.51 best=26.6 path=0.04 obs=0.0 prog=0.56 stk=26
+[Planner] Path found: 31 pts, 4.24m
+[MPPI] dist=3.50 best=31.1 path=0.04 obs=0.0 prog=0.51 stk=27
+[MPPI] dist=3.50 best=29.2 path=0.03 obs=0.0 prog=0.63 stk=28
+[Planner] Path found: 30 pts, 4.04m
+[MPPI] dist=3.49 best=28.4 path=0.03 obs=1.2 prog=0.39 stk=29
+[MPPI] dist=3.48 best=27.6 path=0.04 obs=0.0 prog=0.39 stk=30
+[Planner] Path found: 30 pts, 4.21m
+[MPPI] dist=3.48 best=27.8 path=0.04 obs=0.0 prog=0.58 stk=30
+[MPPI] dist=3.47 best=25.0 path=0.04 obs=0.0 prog=0.44 stk=30
+[Planner] Path found: 30 pts, 4.13m
+[MPPI] dist=3.47 best=27.2 path=0.04 obs=0.7 prog=0.68 stk=30
+[MPPI] dist=3.47 best=27.6 path=0.04 obs=0.0 prog=0.55 stk=30
+[Planner] Path found: 29 pts, 4.07m
+[MPPI] dist=3.46 best=27.9 path=0.04 obs=0.0 prog=0.56 stk=30
+[MPPI] dist=3.46 best=28.0 path=0.05 obs=0.0 prog=0.56 stk=30
+[Planner] Path found: 29 pts, 4.08m
+[MPPI] dist=3.45 best=28.2 path=0.04 obs=1.1 prog=0.70 stk=30
+[MPPI] dist=3.45 best=27.8 path=0.05 obs=1.1 prog=0.70 stk=30
+[Planner] Path found: 29 pts, 4.05m
+[MPPI] dist=3.45 best=27.6 path=0.04 obs=1.1 prog=0.56 stk=30
+[MPPI] dist=3.44 best=28.2 path=0.06 obs=0.0 prog=0.70 stk=30
+[Planner] Path found: 29 pts, 4.04m
+[MPPI] dist=3.44 best=28.6 path=0.05 obs=1.0 prog=0.70 stk=30
+[MPPI] dist=3.44 best=29.0 path=0.07 obs=0.0 prog=0.70 stk=30
+[Planner] Path found: 29 pts, 3.98m
+[MPPI] dist=3.44 best=30.3 path=0.07 obs=0.0 prog=0.67 stk=30
+[MPPI] dist=3.44 best=30.8 path=0.08 obs=0.0 prog=0.67 stk=30
+[Planner] Path found: 28 pts, 3.94m
+[MPPI] dist=3.44 best=32.1 path=0.10 obs=0.0 prog=0.69 stk=30
+[MPPI] dist=3.44 best=31.0 path=0.08 obs=0.0 prog=0.69 stk=30
+[Planner] Path found: 28 pts, 3.92m
+[MPPI] dist=3.44 best=31.2 path=0.07 obs=0.0 prog=0.69 stk=30
+[MPPI] dist=3.45 best=31.8 path=0.09 obs=0.0 prog=0.69 stk=30
+[Planner] Path found: 28 pts, 3.90m
+[MPPI] dist=3.45 best=29.8 path=0.08 obs=0.0 prog=0.53 stk=30
+[MPPI] dist=3.45 best=29.7 path=0.08 obs=0.0 prog=0.53 stk=30
+[Planner] Path found: 28 pts, 3.92m
+[MPPI] dist=3.45 best=28.8 path=0.05 obs=0.0 prog=0.67 stk=30
+[MPPI] dist=3.45 best=28.6 path=0.06 obs=0.0 prog=0.67 stk=30
+[Planner] Path found: 28 pts, 3.89m
+[MPPI] dist=3.45 best=29.2 path=0.06 obs=0.0 prog=0.56 stk=30
+[MPPI] dist=3.45 best=28.6 path=0.07 obs=0.0 prog=0.56 stk=30
+[Planner] Path found: 27 pts, 3.82m
+[MPPI] dist=3.45 best=28.8 path=0.05 obs=0.0 prog=0.57 stk=30
+[MPPI] dist=3.45 best=28.5 path=0.06 obs=0.0 prog=0.57 stk=30
+[Planner] Path found: 27 pts, 3.83m
+[MPPI] dist=3.45 best=27.2 path=0.04 obs=0.0 prog=0.58 stk=30
+[MPPI] dist=3.46 best=26.6 path=0.05 obs=0.0 prog=0.58 stk=30
+[Planner] Path found: 27 pts, 3.83m
+[MPPI] dist=3.46 best=26.7 path=0.05 obs=0.0 prog=0.57 stk=30
+[MPPI] dist=3.46 best=29.3 path=0.07 obs=0.0 prog=0.57 stk=30
+[Planner] Path found: 27 pts, 3.83m
+[MPPI] dist=3.46 best=31.3 path=0.10 obs=0.0 prog=0.58 stk=30
+[MPPI] dist=3.47 best=30.8 path=0.11 obs=0.0 prog=0.58 stk=30
+[Planner] Path found: 27 pts, 3.81m
+[MPPI] dist=3.48 best=30.1 path=0.07 obs=0.0 prog=0.43 stk=30
+[MPPI] dist=3.49 best=29.2 path=0.08 obs=0.0 prog=0.43 stk=30
+[Planner] Path found: 27 pts, 3.81m
+[MPPI] dist=3.49 best=28.6 path=0.09 obs=0.0 prog=0.57 stk=30
+[MPPI] dist=3.50 best=29.7 path=0.10 obs=0.0 prog=0.57 stk=30
+[Planner] Path found: 29 pts, 3.92m
+[MPPI] dist=3.51 best=28.5 path=0.08 obs=0.0 prog=0.57 stk=30
+[MPPI] dist=3.51 best=28.3 path=0.07 obs=0.0 prog=0.57 stk=30
+[Planner] Path found: 29 pts, 3.94m
+[MPPI] dist=3.51 best=27.8 path=0.06 obs=0.0 prog=0.58 stk=30
+[MPPI] dist=3.51 best=28.0 path=0.06 obs=0.0 prog=0.72 stk=30
+[Planner] Path found: 29 pts, 3.89m
+[MPPI] dist=3.50 best=28.5 path=0.04 obs=0.0 prog=0.56 stk=30
+[MPPI] dist=3.50 best=26.6 path=0.04 obs=0.0 prog=0.56 stk=30
+[Planner] Path found: 29 pts, 3.84m
+[MPPI] dist=3.49 best=28.5 path=0.03 obs=0.0 prog=0.41 stk=30
+[MPPI] dist=3.48 best=27.3 path=0.04 obs=0.0 prog=0.54 stk=30
+[Planner] Path found: 28 pts, 3.84m
+[MPPI] dist=3.48 best=26.4 path=0.04 obs=0.0 prog=0.55 stk=30
+[MPPI] dist=3.47 best=26.9 path=0.04 obs=0.0 prog=0.69 stk=30
+[Planner] Path found: 28 pts, 3.83m
+[MPPI] dist=3.46 best=27.4 path=0.04 obs=0.0 prog=0.56 stk=30
+[MPPI] dist=3.44 best=26.1 path=0.05 obs=0.0 prog=0.84 stk=30
+[Planner] Path found: 28 pts, 3.78m
+[MPPI] dist=3.43 best=25.9 path=0.04 obs=0.0 prog=0.69 stk=30
+[MPPI] dist=3.42 best=25.9 path=0.04 obs=0.0 prog=0.69 stk=30
+[Planner] Path found: 28 pts, 3.72m
+[MPPI] dist=3.41 best=26.5 path=0.05 obs=0.0 prog=0.67 stk=30
+[MPPI] dist=3.40 best=29.9 path=0.10 obs=0.0 prog=0.67 stk=30
+[Planner] Path found: 27 pts, 3.72m
+[MPPI] dist=3.40 best=27.3 path=0.06 obs=0.0 prog=0.70 stk=30
+[MPPI] dist=3.39 best=27.3 path=0.07 obs=0.0 prog=0.70 stk=30
+[Planner] Path found: 27 pts, 3.68m
+[MPPI] dist=3.39 best=27.9 path=0.09 obs=0.0 prog=0.56 stk=30
+[MPPI] dist=3.40 best=27.3 path=0.08 obs=0.0 prog=0.56 stk=30
+[Planner] Path found: 27 pts, 3.67m
+[MPPI] dist=3.40 best=27.8 path=0.07 obs=0.0 prog=0.56 stk=30
+[MPPI] dist=3.40 best=27.1 path=0.05 obs=0.0 prog=0.56 stk=30
+[Planner] Path found: 27 pts, 3.67m
+[MPPI] dist=3.40 best=25.4 path=0.04 obs=0.0 prog=0.58 stk=30
+[MPPI] dist=3.40 best=26.0 path=0.05 obs=0.0 prog=0.58 stk=30
+[Planner] Path found: 27 pts, 3.67m
+[MPPI] dist=3.40 best=25.7 path=0.04 obs=0.0 prog=0.56 stk=30
+[MPPI] dist=3.39 best=24.7 path=0.04 obs=0.0 prog=0.56 stk=30
+[Planner] Path found: 27 pts, 3.67m
+[MPPI] dist=3.39 best=25.5 path=0.06 obs=0.0 prog=0.70 stk=30
+[MPPI] dist=3.39 best=28.3 path=0.09 obs=0.0 prog=0.56 stk=30
+[Planner] Path found: 27 pts, 3.68m
+[MPPI] dist=3.39 best=34.7 path=0.09 obs=0.0 prog=0.56 stk=30
+[MPPI] dist=3.40 best=31.4 path=0.09 obs=0.0 prog=0.56 stk=30
+[Planner] Path found: 27 pts, 3.68m
+[MPPI] dist=3.40 best=29.8 path=0.09 obs=0.0 prog=0.57 stk=30
+[MPPI] dist=3.41 best=31.0 path=0.11 obs=0.0 prog=0.57 stk=30
+[Planner] Path found: 27 pts, 3.70m
+[MPPI] dist=3.42 best=36.0 path=0.10 obs=0.0 prog=0.41 stk=30
+[MPPI] dist=3.42 best=30.5 path=0.08 obs=0.0 prog=0.56 stk=30
+[Planner] Path found: 27 pts, 3.70m
+[MPPI] dist=3.43 best=28.2 path=0.07 obs=0.0 prog=0.59 stk=30
+[MPPI] dist=3.43 best=33.5 path=0.13 obs=0.0 prog=0.59 stk=30
+[Planner] Path found: 27 pts, 3.70m
+[MPPI] dist=3.44 best=32.1 path=0.11 obs=0.0 prog=0.56 stk=30
+[MPPI] dist=3.44 best=33.5 path=0.11 obs=0.0 prog=0.56 stk=30
+[Planner] Path found: 26 pts, 3.65m
+[MPPI] dist=3.45 best=28.9 path=0.09 obs=0.0 prog=0.61 stk=30
+[MPPI] dist=3.45 best=30.9 path=0.11 obs=0.0 prog=0.61 stk=30
+[Planner] Path found: 27 pts, 3.72m
+[MPPI] dist=3.45 best=32.1 path=0.10 obs=0.0 prog=0.46 stk=30
+[MPPI] dist=3.45 best=29.7 path=0.07 obs=0.0 prog=0.61 stk=30
+[Planner] Path found: 27 pts, 3.74m
+[MPPI] dist=3.45 best=28.7 path=0.10 obs=0.0 prog=0.45 stk=30
+[MPPI] dist=3.45 best=28.0 path=0.11 obs=0.0 prog=0.60 stk=30
+[Planner] Path found: 28 pts, 3.79m
+[MPPI] dist=3.45 best=26.4 path=0.08 obs=0.0 prog=0.59 stk=30
+[MPPI] dist=3.45 best=25.8 path=0.07 obs=0.0 prog=0.73 stk=30
+[Planner] Path found: 27 pts, 3.73m
+[MPPI] dist=3.44 best=26.6 path=0.06 obs=0.0 prog=0.60 stk=30
+[MPPI] dist=3.43 best=24.8 path=0.04 obs=0.0 prog=0.60 stk=30
+[Planner] Path found: 27 pts, 3.73m
+[MPPI] dist=3.42 best=23.4 path=0.05 obs=0.0 prog=0.75 stk=30
+[MPPI] dist=3.41 best=25.1 path=0.06 obs=0.0 prog=0.75 stk=30
+[Planner] Path found: 27 pts, 3.68m
+[MPPI] dist=3.39 best=22.4 path=0.04 obs=0.0 prog=0.60 stk=30
+[MPPI] dist=3.37 best=21.9 path=0.04 obs=0.0 prog=0.74 stk=30
+[Planner] Path found: 27 pts, 3.64m
+[MPPI] dist=3.36 best=23.9 path=0.04 obs=0.0 prog=0.60 stk=30
+[MPPI] dist=3.34 best=21.7 path=0.04 obs=0.0 prog=0.74 stk=28
+[Planner] Path found: 26 pts, 3.63m
+[MPPI] dist=3.32 best=22.1 path=0.05 obs=0.0 prog=0.76 stk=26
+[MPPI] dist=3.31 best=24.9 path=0.05 obs=0.0 prog=0.76 stk=24
+[Planner] Path found: 26 pts, 3.58m
+[MPPI] dist=3.29 best=21.8 path=0.05 obs=0.0 prog=0.75 stk=22
+[MPPI] dist=3.28 best=24.9 path=0.06 obs=1.5 prog=0.75 stk=20
+[Planner] Path found: 26 pts, 3.53m
+[MPPI] dist=3.26 best=22.1 path=0.05 obs=0.0 prog=0.74 stk=18
+[MPPI] dist=3.25 best=26.9 path=0.04 obs=0.0 prog=0.74 stk=16
+[Planner] Path found: 26 pts, 3.52m
+[MPPI] dist=3.23 best=22.3 path=0.04 obs=0.0 prog=0.73 stk=14
+[MPPI] dist=3.21 best=24.4 path=0.04 obs=0.0 prog=0.73 stk=12
+[Planner] Path found: 25 pts, 3.46m
+[MPPI] dist=3.18 best=21.3 path=0.04 obs=0.0 prog=0.76 stk=10
+[MPPI] dist=3.16 best=22.1 path=0.05 obs=0.0 prog=0.76 stk=8
+[Planner] Path found: 25 pts, 3.43m
+[MPPI] dist=3.14 best=20.4 path=0.04 obs=0.0 prog=0.75 stk=6
+[MPPI] dist=3.12 best=21.5 path=0.05 obs=0.0 prog=0.75 stk=4
+[Planner] Path found: 25 pts, 3.38m
+[MPPI] dist=3.11 best=20.6 path=0.04 obs=0.0 prog=0.75 stk=2
+[MPPI] dist=3.09 best=22.7 path=0.05 obs=0.0 prog=0.75 stk=0
+[Planner] Path found: 24 pts, 3.33m
+[MPPI] dist=3.07 best=21.2 path=0.05 obs=0.0 prog=0.76 stk=0
+[MPPI] dist=3.04 best=25.8 path=0.05 obs=0.0 prog=0.76 stk=0
+[Planner] Path found: 24 pts, 3.27m
+[MPPI] dist=3.02 best=21.8 path=0.06 obs=0.0 prog=0.75 stk=0
+[MPPI] dist=3.00 best=25.6 path=0.08 obs=0.0 prog=0.75 stk=0
+[Planner] Path found: 24 pts, 3.26m
+[MPPI] dist=2.98 best=22.9 path=0.07 obs=0.0 prog=0.75 stk=0
+[MPPI] dist=2.96 best=21.9 path=0.06 obs=0.0 prog=0.75 stk=0
+[Planner] Path found: 24 pts, 3.21m
+[MPPI] dist=2.95 best=23.2 path=0.07 obs=0.0 prog=0.74 stk=0
+[MPPI] dist=2.93 best=23.0 path=0.07 obs=0.0 prog=0.74 stk=0
+[Planner] Path found: 24 pts, 3.22m
+[MPPI] dist=2.91 best=25.5 path=0.06 obs=0.0 prog=0.87 stk=0
+[MPPI] dist=2.89 best=23.5 path=0.06 obs=0.0 prog=0.73 stk=0
+[Planner] Path found: 24 pts, 3.18m
+[MPPI] dist=2.87 best=24.6 path=0.06 obs=0.0 prog=0.72 stk=0
+[MPPI] dist=2.84 best=23.6 path=0.05 obs=0.0 prog=0.72 stk=0
+[Planner] Path found: 23 pts, 3.12m
+[MPPI] dist=2.82 best=23.8 path=0.06 obs=0.0 prog=0.74 stk=0
+[MPPI] dist=2.80 best=22.9 path=0.06 obs=0.0 prog=0.74 stk=0
+[Planner] Path found: 22 pts, 3.06m
+[MPPI] dist=2.78 best=20.8 path=0.04 obs=0.0 prog=0.77 stk=0
+[MPPI] dist=2.75 best=22.6 path=0.05 obs=0.0 prog=0.77 stk=0
+[Planner] Path found: 22 pts, 3.00m
+[MPPI] dist=2.73 best=24.3 path=0.06 obs=0.0 prog=0.90 stk=0
+[MPPI] dist=2.71 best=24.9 path=0.06 obs=0.0 prog=0.75 stk=0
+[Planner] Path found: 22 pts, 2.97m
+[MPPI] dist=2.69 best=23.0 path=0.04 obs=0.0 prog=0.73 stk=0
+[MPPI] dist=2.66 best=23.0 path=0.05 obs=0.0 prog=0.73 stk=0
+[Planner] Path found: 22 pts, 2.92m
+[MPPI] dist=2.64 best=25.4 path=0.07 obs=0.0 prog=0.71 stk=0
+[MPPI] dist=2.62 best=22.0 path=0.04 obs=0.0 prog=0.71 stk=0
+[Planner] Path found: 22 pts, 2.91m
+[MPPI] dist=2.61 best=22.6 path=0.04 obs=0.0 prog=0.71 stk=0
+[MPPI] dist=2.59 best=23.3 path=0.05 obs=0.0 prog=0.71 stk=0
+[Planner] Path found: 21 pts, 2.82m
+[MPPI] dist=2.57 best=23.1 path=0.04 obs=0.0 prog=0.71 stk=0
+[MPPI] dist=2.55 best=23.4 path=0.06 obs=0.0 prog=0.71 stk=0
+[Planner] Path found: 20 pts, 2.75m
+[MPPI] dist=2.53 best=23.6 path=0.06 obs=0.0 prog=0.85 stk=0
+[MPPI] dist=2.51 best=23.0 path=0.05 obs=0.0 prog=0.71 stk=0
+[Planner] Path found: 20 pts, 2.72m
+[MPPI] dist=2.49 best=23.0 path=0.04 obs=0.0 prog=0.75 stk=0
+[MPPI] dist=2.47 best=21.9 path=0.04 obs=0.0 prog=0.75 stk=0
+[Planner] Path found: 19 pts, 2.62m
+[MPPI] dist=2.45 best=20.7 path=0.04 obs=0.0 prog=0.74 stk=0
+[MPPI] dist=2.44 best=22.6 path=0.05 obs=0.0 prog=0.74 stk=0
+[Planner] Path found: 19 pts, 2.61m
+[MPPI] dist=2.42 best=22.4 path=0.05 obs=0.0 prog=0.61 stk=0
+[MPPI] dist=2.41 best=22.7 path=0.04 obs=0.0 prog=0.76 stk=0
+[Planner] Path found: 20 pts, 2.62m
+[MPPI] dist=2.39 best=24.2 path=0.07 obs=0.0 prog=0.74 stk=0
+[MPPI] dist=2.38 best=27.9 path=0.09 obs=0.0 prog=0.74 stk=0
+[Planner] Path found: 20 pts, 2.58m
+[MPPI] dist=2.37 best=26.2 path=0.05 obs=0.0 prog=0.59 stk=0
+[MPPI] dist=2.36 best=26.2 path=0.04 obs=0.0 prog=0.73 stk=0
+[Planner] Path found: 19 pts, 2.53m
+[MPPI] dist=2.35 best=24.4 path=0.05 obs=0.0 prog=0.61 stk=0
+[MPPI] dist=2.35 best=32.8 path=0.09 obs=0.0 prog=0.61 stk=0
+[Planner] Path found: 19 pts, 2.54m
+[MPPI] dist=2.34 best=28.2 path=0.07 obs=0.0 prog=0.75 stk=1
+[MPPI] dist=2.33 best=27.2 path=0.08 obs=0.0 prog=0.60 stk=2
+[Planner] Path found: 19 pts, 2.49m
+[MPPI] dist=2.33 best=28.3 path=0.08 obs=0.0 prog=0.59 stk=3
+[MPPI] dist=2.33 best=31.8 path=0.11 obs=0.0 prog=0.59 stk=4
+[Planner] Path found: 19 pts, 2.51m
+[MPPI] dist=2.34 best=23.8 path=0.04 obs=0.0 prog=0.59 stk=5
+[MPPI] dist=2.34 best=23.2 path=0.03 obs=0.0 prog=0.44 stk=6
+[Planner] Path found: 19 pts, 2.50m
+[MPPI] dist=2.34 best=26.9 path=0.06 obs=0.0 prog=0.45 stk=7
+[MPPI] dist=2.35 best=25.7 path=0.05 obs=0.0 prog=0.45 stk=8
+[Planner] Path found: 19 pts, 2.51m
+[MPPI] dist=2.35 best=25.7 path=0.06 obs=0.0 prog=0.60 stk=9
+[MPPI] dist=2.36 best=27.7 path=0.07 obs=0.0 prog=0.60 stk=10
+[Planner] Path found: 19 pts, 2.52m
+[MPPI] dist=2.36 best=27.7 path=0.06 obs=0.0 prog=0.60 stk=11
+[MPPI] dist=2.37 best=28.4 path=0.07 obs=0.0 prog=0.60 stk=12
+[Planner] Path found: 19 pts, 2.52m
+[MPPI] dist=2.37 best=26.9 path=0.05 obs=0.0 prog=0.59 stk=13
+[MPPI] dist=2.36 best=25.1 path=0.05 obs=0.0 prog=0.59 stk=14
+[Planner] Path found: 19 pts, 2.52m
+[MPPI] dist=2.36 best=25.5 path=0.05 obs=0.0 prog=0.60 stk=15
+[MPPI] dist=2.35 best=24.9 path=0.05 obs=0.0 prog=0.74 stk=16
+[Planner] Path found: 19 pts, 2.48m
+[MPPI] dist=2.34 best=24.4 path=0.04 obs=0.0 prog=0.58 stk=17
+[MPPI] dist=2.33 best=24.6 path=0.05 obs=0.0 prog=0.72 stk=18
+[Planner] Path found: 18 pts, 2.43m
+[MPPI] dist=2.31 best=26.1 path=0.04 obs=0.0 prog=0.60 stk=19
+[MPPI] dist=2.30 best=29.0 path=0.04 obs=0.0 prog=0.75 stk=20
+[Planner] Path found: 18 pts, 2.43m
+[MPPI] dist=2.27 best=25.7 path=0.05 obs=0.0 prog=0.76 stk=21
+[MPPI] dist=2.25 best=24.6 path=0.04 obs=0.0 prog=0.91 stk=19
+[Planner] Path found: 18 pts, 2.37m
+[MPPI] dist=2.22 best=24.7 path=0.05 obs=0.0 prog=0.74 stk=17
+[MPPI] dist=2.20 best=24.4 path=0.04 obs=0.0 prog=0.74 stk=15
+[Planner] Path found: 18 pts, 2.34m
+[MPPI] dist=2.17 best=25.7 path=0.04 obs=0.0 prog=0.74 stk=13
+[MPPI] dist=2.15 best=30.3 path=0.04 obs=0.0 prog=0.89 stk=11
+[Planner] Path found: 18 pts, 2.27m
+[MPPI] dist=2.13 best=23.9 path=0.04 obs=0.0 prog=0.81 stk=9
+[MPPI] dist=2.10 best=22.6 path=0.04 obs=0.0 prog=0.94 stk=7
+[Planner] Path found: 17 pts, 2.23m
+[MPPI] dist=2.08 best=23.4 path=0.04 obs=0.0 prog=0.88 stk=5
+[MPPI] dist=2.05 best=22.6 path=0.04 obs=0.0 prog=0.88 stk=3
+[Planner] Path found: 17 pts, 2.17m
+[MPPI] dist=2.03 best=23.4 path=0.04 obs=0.0 prog=0.84 stk=1
+[MPPI] dist=2.01 best=25.0 path=0.05 obs=0.0 prog=0.84 stk=0
+[Planner] Path found: 17 pts, 2.13m
+[MPPI] dist=1.99 best=26.4 path=0.06 obs=0.0 prog=0.69 stk=0
+[MPPI] dist=1.97 best=24.1 path=0.05 obs=0.0 prog=0.83 stk=0
+[Planner] Path found: 16 pts, 2.07m
+[MPPI] dist=1.95 best=23.0 path=0.04 obs=0.0 prog=0.73 stk=0
+[MPPI] dist=1.94 best=27.7 path=0.07 obs=0.0 prog=0.73 stk=0
+[Planner] Path found: 16 pts, 2.03m
+[MPPI] dist=1.92 best=25.7 path=0.05 obs=0.0 prog=0.71 stk=0
+[MPPI] dist=1.90 best=23.1 path=0.04 obs=0.0 prog=0.71 stk=0
+[Planner] Path found: 15 pts, 1.99m
+[MPPI] dist=1.88 best=26.9 path=0.05 obs=0.0 prog=0.57 stk=0
+[MPPI] dist=1.86 best=26.0 path=0.04 obs=0.0 prog=0.57 stk=0
+[Planner] Path found: 15 pts, 1.96m
+[MPPI] dist=1.84 best=24.4 path=0.04 obs=0.0 prog=0.70 stk=0
+[MPPI] dist=1.83 best=24.8 path=0.05 obs=0.0 prog=0.70 stk=0
+[Planner] Path found: 15 pts, 1.92m
+[MPPI] dist=1.81 best=25.6 path=0.04 obs=0.0 prog=0.69 stk=0
+[MPPI] dist=1.80 best=25.5 path=0.04 obs=0.0 prog=0.69 stk=0
+[Planner] Path found: 14 pts, 1.86m
+[MPPI] dist=1.78 best=26.1 path=0.04 obs=0.0 prog=0.59 stk=0
+[MPPI] dist=1.76 best=26.6 path=0.04 obs=0.0 prog=0.59 stk=0
+[Planner] Path found: 14 pts, 1.85m
+[MPPI] dist=1.75 best=28.9 path=0.05 obs=0.0 prog=0.70 stk=0
+[MPPI] dist=1.73 best=25.6 path=0.04 obs=0.0 prog=0.70 stk=0
+[Planner] Path found: 13 pts, 1.78m
+[MPPI] dist=1.71 best=27.6 path=0.04 obs=0.0 prog=0.47 stk=0
+[MPPI] dist=1.70 best=25.2 path=0.04 obs=0.0 prog=0.62 stk=0
+[Planner] Path found: 13 pts, 1.75m
+[MPPI] dist=1.68 best=26.5 path=0.04 obs=0.0 prog=0.45 stk=0
+[MPPI] dist=1.67 best=26.2 path=0.04 obs=0.0 prog=0.45 stk=0
+[Planner] Path found: 13 pts, 1.72m
+[MPPI] dist=1.65 best=27.5 path=0.05 obs=0.0 prog=0.58 stk=0
+[MPPI] dist=1.64 best=28.7 path=0.07 obs=0.0 prog=0.58 stk=0
+[Planner] Path found: 13 pts, 1.68m
+[MPPI] dist=1.62 best=27.6 path=0.04 obs=1.5 prog=0.55 stk=0
+[MPPI] dist=1.61 best=24.4 path=0.04 obs=0.0 prog=0.42 stk=0
+[Planner] Path found: 13 pts, 1.68m
+[MPPI] dist=1.59 best=31.8 path=0.05 obs=0.0 prog=0.69 stk=0
+[MPPI] dist=1.58 best=29.9 path=0.05 obs=0.0 prog=0.69 stk=0
+[Planner] Path found: 13 pts, 1.64m
+[MPPI] dist=1.57 best=30.3 path=0.03 obs=1.5 prog=0.54 stk=0
+[MPPI] dist=1.57 best=27.9 path=0.03 obs=0.0 prog=0.41 stk=0
+[Planner] Path found: 13 pts, 1.64m
+[MPPI] dist=1.56 best=29.5 path=0.04 obs=1.4 prog=0.54 stk=0
+[MPPI] dist=1.55 best=28.7 path=0.04 obs=1.4 prog=0.54 stk=0
+[Planner] Path found: 12 pts, 1.57m
+[MPPI] dist=1.53 best=30.3 path=0.05 obs=1.4 prog=0.57 stk=0
+[MPPI] dist=1.52 best=29.2 path=0.05 obs=0.0 prog=0.57 stk=1
+[Planner] Path found: 12 pts, 1.56m
+[MPPI] dist=1.51 best=29.7 path=0.06 obs=1.0 prog=0.71 stk=2
+[MPPI] dist=1.50 best=32.1 path=0.04 obs=1.5 prog=0.43 stk=3
+[Planner] Path found: 12 pts, 1.53m
+[MPPI] dist=1.49 best=37.9 path=0.03 obs=9.1 prog=0.56 stk=4
+[MPPI] dist=1.48 best=37.4 path=0.04 obs=8.6 prog=0.69 stk=5
+[Planner] Path found: 13 pts, 1.54m
+[MPPI] dist=1.46 best=58.8 path=0.05 obs=22.6 prog=0.76 stk=3
+[MPPI] dist=1.44 best=55.7 path=0.04 obs=9.2 prog=0.76 stk=1
+[Planner] Path found: 17 pts, 1.95m
+[MPPI] dist=1.41 best=129.1 path=0.23 obs=16.8 prog=0.97 stk=0
+[MPPI] dist=1.39 best=97.7 path=0.19 obs=1.5 prog=0.84 stk=0
+[Planner] Path found: 17 pts, 1.94m
+[MPPI] dist=1.37 best=85.9 path=0.16 obs=1.5 prog=0.85 stk=0
+[MPPI] dist=1.35 best=96.5 path=0.19 obs=6.1 prog=0.85 stk=0
+[Planner] Path found: 16 pts, 1.88m
+[MPPI] dist=1.34 best=87.6 path=0.15 obs=1.5 prog=0.74 stk=0
+[MPPI] dist=1.32 best=88.4 path=0.17 obs=5.0 prog=0.86 stk=0
+[Planner] Path found: 13 pts, 1.44m
+[MPPI] dist=1.30 best=74.9 path=0.07 obs=25.7 prog=0.73 stk=0
+[MPPI] dist=1.27 best=69.0 path=0.09 obs=27.1 prog=0.73 stk=0
+[Planner] Path found: 11 pts, 1.36m
+[MPPI] dist=1.25 best=69.6 path=0.06 obs=12.6 prog=0.70 stk=0
+[MPPI] dist=1.23 best=65.7 path=0.04 obs=20.9 prog=0.70 stk=0
+[Planner] Path found: 10 pts, 1.26m
+[MPPI] dist=1.22 best=73.1 path=0.04 obs=36.6 prog=0.56 stk=0
+[MPPI] dist=1.20 best=84.8 path=0.04 obs=33.7 prog=0.56 stk=0
+[Planner] Path found: 11 pts, 1.31m
+[MPPI] dist=1.19 best=97.5 path=0.05 obs=24.6 prog=0.62 stk=0
+[MPPI] dist=1.17 best=86.0 path=0.06 obs=31.8 prog=0.62 stk=0
+[Planner] Path found: 9 pts, 1.16m
+[MPPI] dist=1.16 best=95.4 path=0.06 obs=32.3 prog=0.56 stk=0
+[MPPI] dist=1.14 best=93.7 path=0.07 obs=31.1 prog=0.70 stk=0
+[Planner] Path found: 9 pts, 1.16m
+[MPPI] dist=1.12 best=127.7 path=0.12 obs=28.0 prog=0.54 stk=0
+[MPPI] dist=1.10 best=105.5 path=0.07 obs=38.3 prog=0.69 stk=0
+[Planner] Path found: 9 pts, 1.10m
+[MPPI] dist=1.08 best=109.6 path=0.07 obs=39.7 prog=0.66 stk=0
+[MPPI] dist=1.06 best=88.1 path=0.04 obs=48.0 prog=0.66 stk=0
+[Planner] Path found: 9 pts, 1.06m
+[MPPI] dist=1.05 best=105.1 path=0.07 obs=41.2 prog=0.62 stk=0
+[MPPI] dist=1.03 best=95.1 path=0.08 obs=39.4 prog=0.62 stk=0
+[Planner] Path found: 9 pts, 1.03m
+[MPPI] dist=1.02 best=107.2 path=0.15 obs=22.1 prog=0.49 stk=0
+[MPPI] dist=1.02 best=64.9 path=0.12 obs=20.9 prog=0.62 stk=0
+[Planner] Path found: 9 pts, 1.03m
+[MPPI] dist=1.01 best=88.3 path=0.15 obs=20.2 prog=0.48 stk=0
+[MPPI] dist=1.00 best=87.3 path=0.19 obs=14.1 prog=0.61 stk=0
+[Planner] Path found: 8 pts, 0.99m
+[MPPI] dist=0.99 best=82.5 path=0.17 obs=13.7 prog=0.55 stk=0
+[MPPI] dist=0.99 best=64.1 path=0.13 obs=13.7 prog=0.55 stk=1
+[Planner] Path found: 8 pts, 0.97m
+[MPPI] dist=0.98 best=71.2 path=0.15 obs=7.6 prog=0.55 stk=2
+[MPPI] dist=0.97 best=104.4 path=0.19 obs=7.4 prog=0.55 stk=3
+[Planner] Path found: 8 pts, 0.97m
+[MPPI] dist=0.95 best=185.4 path=0.30 obs=7.2 prog=0.55 stk=4
+[MPPI] dist=0.92 best=143.6 path=0.27 obs=7.2 prog=0.69 stk=5
+[Planner] Path found: 7 pts, 0.89m
+[MPPI] dist=0.89 best=120.9 path=0.23 obs=0.9 prog=0.74 stk=3
+[MPPI] dist=0.86 best=256.4 path=0.36 obs=7.1 prog=0.44 stk=1
+[Planner] Path found: 6 pts, 0.82m
+[MPPI] dist=0.83 best=191.8 path=0.24 obs=0.0 prog=0.33 stk=0
+[MPPI] dist=0.81 best=108.8 path=0.20 obs=0.0 prog=0.50 stk=0
+[Planner] Path found: 6 pts, 0.76m
+[MPPI] dist=0.78 best=196.4 path=0.34 obs=0.0 prog=0.61 stk=0
+[MPPI] dist=0.75 best=114.9 path=0.22 obs=0.0 prog=0.46 stk=0
+[Planner] Path found: 6 pts, 0.76m
+[MPPI] dist=0.74 best=114.7 path=0.25 obs=0.0 prog=0.76 stk=0
+[MPPI] dist=0.72 best=99.5 path=0.27 obs=0.0 prog=0.76 stk=0
+[Planner] Path found: 6 pts, 0.70m
+[MPPI] dist=0.70 best=115.8 path=0.30 obs=0.0 prog=0.70 stk=0
+[MPPI] dist=0.68 best=154.6 path=0.37 obs=0.0 prog=0.70 stk=0
+[Planner] Path found: 6 pts, 0.65m
+[MPPI] dist=0.67 best=83.2 path=0.13 obs=0.0 prog=0.52 stk=0
+[MPPI] dist=0.66 best=63.1 path=0.10 obs=0.0 prog=0.52 stk=0
+[Planner] Path found: 5 pts, 0.65m
+[MPPI] dist=0.65 best=121.1 path=0.16 obs=0.0 prog=0.49 stk=0
+[MPPI] dist=0.65 best=86.1 path=0.10 obs=0.0 prog=0.49 stk=0
+[Planner] Path found: 5 pts, 0.65m
+[MPPI] dist=0.66 best=136.2 path=0.20 obs=0.0 prog=0.33 stk=1
+[MPPI] dist=0.66 best=127.3 path=0.18 obs=0.0 prog=0.33 stk=2
+[Planner] Path found: 6 pts, 0.65m
+[MPPI] dist=0.66 best=169.8 path=0.21 obs=0.0 prog=0.27 stk=3
+[MPPI] dist=0.66 best=117.5 path=0.22 obs=0.0 prog=0.52 stk=4
+[Planner] Path found: 6 pts, 0.66m
+[MPPI] dist=0.66 best=120.6 path=0.19 obs=0.0 prog=0.53 stk=5
+[MPPI] dist=0.65 best=77.9 path=0.18 obs=0.0 prog=0.66 stk=6
+[Planner] Path found: 6 pts, 0.66m
+[MPPI] dist=0.64 best=123.1 path=0.22 obs=0.0 prog=0.53 stk=7
+[MPPI] dist=0.64 best=87.4 path=0.22 obs=0.0 prog=0.66 stk=8
+[Planner] Path found: 6 pts, 0.62m
+[MPPI] dist=0.64 best=68.4 path=0.16 obs=0.0 prog=0.50 stk=9
+[MPPI] dist=0.64 best=100.8 path=0.24 obs=0.0 prog=0.50 stk=10
+[Planner] Path found: 6 pts, 0.62m
+[MPPI] dist=0.64 best=97.6 path=0.23 obs=0.0 prog=0.50 stk=11
+[MPPI] dist=0.64 best=89.5 path=0.24 obs=0.0 prog=0.50 stk=12
+[Planner] Path found: 6 pts, 0.63m
+[MPPI] dist=0.64 best=90.2 path=0.24 obs=0.0 prog=0.63 stk=13
+[MPPI] dist=0.63 best=88.6 path=0.22 obs=0.0 prog=0.63 stk=14
+[Planner] Path found: 5 pts, 0.65m
+[MPPI] dist=0.63 best=130.1 path=0.22 obs=0.0 prog=0.49 stk=15
+[MPPI] dist=0.62 best=105.7 path=0.24 obs=0.0 prog=0.49 stk=16
+[Planner] Path found: 5 pts, 0.60m
+[MPPI] dist=0.62 best=140.8 path=0.24 obs=0.0 prog=0.45 stk=17
+[MPPI] dist=0.62 best=80.3 path=0.20 obs=0.0 prog=0.60 stk=18
+[Planner] Path found: 5 pts, 0.63m
+[MPPI] dist=0.62 best=96.0 path=0.20 obs=0.0 prog=0.63 stk=19
+[MPPI] dist=0.61 best=86.1 path=0.21 obs=0.0 prog=0.63 stk=20
+[Planner] Path found: 4 pts, 0.58m
+[MPPI] dist=0.61 best=98.1 path=0.21 obs=0.0 prog=0.58 stk=21
+[MPPI] dist=0.60 best=95.0 path=0.22 obs=0.0 prog=0.58 stk=22
+[Planner] Path found: 5 pts, 0.61m
+[MPPI] dist=0.60 best=131.3 path=0.22 obs=0.0 prog=0.46 stk=23
+[MPPI] dist=0.60 best=104.9 path=0.20 obs=0.0 prog=0.46 stk=24
+[Planner] Path found: 5 pts, 0.61m
+[MPPI] dist=0.59 best=115.0 path=0.21 obs=0.0 prog=0.46 stk=25
+[MPPI] dist=0.59 best=110.6 path=0.21 obs=0.0 prog=0.46 stk=26
+[Planner] Path found: 4 pts, 0.57m
+[MPPI] dist=0.59 best=107.7 path=0.19 obs=0.0 prog=0.57 stk=27
+[MPPI] dist=0.59 best=100.4 path=0.19 obs=0.0 prog=0.57 stk=28
+[Planner] Path found: 5 pts, 0.60m
+[MPPI] dist=0.58 best=124.4 path=0.21 obs=0.0 prog=0.45 stk=29
+[MPPI] dist=0.58 best=136.2 path=0.23 obs=0.0 prog=0.45 stk=30
+[Planner] Path found: 7 pts, 0.58m
+[MPPI] dist=0.58 best=179.8 path=0.26 obs=0.0 prog=0.58 stk=30
+[MPPI] dist=0.58 best=143.3 path=0.23 obs=0.0 prog=0.58 stk=30
+[Planner] Path found: 5 pts, 0.57m
+[MPPI] dist=0.58 best=139.7 path=0.26 obs=0.0 prog=0.42 stk=30
+[MPPI] dist=0.57 best=133.9 path=0.27 obs=0.0 prog=0.42 stk=30
+[Planner] Path found: 6 pts, 0.57m
+[MPPI] dist=0.57 best=132.4 path=0.23 obs=0.0 prog=0.57 stk=30
+[MPPI] dist=0.56 best=125.7 path=0.23 obs=0.0 prog=0.57 stk=30
+[Planner] Path found: 6 pts, 0.57m
+[MPPI] dist=0.55 best=120.1 path=0.25 obs=0.0 prog=0.57 stk=30
+[MPPI] dist=0.55 best=117.5 path=0.28 obs=0.0 prog=0.57 stk=30
+[Planner] Path found: 6 pts, 0.54m
+[MPPI] dist=0.54 best=126.3 path=0.26 obs=0.0 prog=0.54 stk=30
+[MPPI] dist=0.54 best=108.7 path=0.26 obs=0.0 prog=0.54 stk=30
+[Planner] Path found: 4 pts, 0.51m
+[MPPI] dist=0.53 best=94.0 path=0.23 obs=0.0 prog=0.51 stk=30
+[MPPI] dist=0.52 best=139.2 path=0.31 obs=0.0 prog=0.51 stk=30
+[Planner] Path found: 4 pts, 0.49m
+[MPPI] dist=0.52 best=64.6 path=0.15 obs=0.0 prog=0.49 stk=30
+[MPPI] dist=0.51 best=59.8 path=0.13 obs=0.0 prog=0.49 stk=30
+[Planner] Path found: 4 pts, 0.47m
+[MPPI] dist=0.50 best=67.8 path=0.16 obs=0.0 prog=0.47 stk=30
+[MPPI] dist=0.48 best=73.3 path=0.18 obs=0.0 prog=0.47 stk=30
+[Planner] Path found: 4 pts, 0.47m
+[MPPI] dist=0.47 best=109.9 path=0.25 obs=0.0 prog=0.47 stk=30
+[MPPI] dist=0.46 best=95.8 path=0.19 obs=0.0 prog=0.47 stk=30
+[Planner] Path found: 4 pts, 0.46m
+[MPPI] dist=0.44 best=177.5 path=0.30 obs=0.0 prog=0.46 stk=30
+[MPPI] dist=0.43 best=93.8 path=0.22 obs=0.0 prog=0.46 stk=28
+[Planner] Path found: 3 pts, 0.40m
+[MPPI] dist=0.41 best=117.3 path=0.29 obs=0.0 prog=0.40 stk=26
+[MPPI] dist=0.40 best=116.6 path=0.31 obs=0.0 prog=0.40 stk=24
+[Planner] Path found: 4 pts, 0.40m
+[MPPI] dist=0.38 best=102.9 path=0.22 obs=0.0 prog=0.40 stk=22
+[MPPI] dist=0.37 best=99.4 path=0.26 obs=0.0 prog=0.40 stk=20
+[Planner] Path found: 3 pts, 0.35m
+[MPPI] dist=0.36 best=147.2 path=0.35 obs=0.0 prog=0.35 stk=18
+[MPPI] dist=0.36 best=72.5 path=0.22 obs=0.0 prog=0.35 stk=16
+[Planner] Path found: 3 pts, 0.36m
+[MPPI] dist=0.36 best=101.1 path=0.29 obs=0.0 prog=0.36 stk=14
+[MPPI] dist=0.36 best=92.4 path=0.30 obs=0.0 prog=0.36 stk=15
+[Planner] Path found: 3 pts, 0.34m
+[MPPI] dist=0.36 best=150.6 path=0.31 obs=0.0 prog=0.34 stk=16
+[MPPI] dist=0.37 best=68.0 path=0.21 obs=0.0 prog=0.34 stk=17
+[Planner] Path found: 3 pts, 0.36m
+[MPPI] dist=0.38 best=114.8 path=0.22 obs=0.0 prog=0.36 stk=18
+[MPPI] dist=0.38 best=141.4 path=0.26 obs=0.0 prog=0.36 stk=19
+[Planner] Path found: 3 pts, 0.39m
+[MPPI] dist=0.38 best=162.1 path=0.26 obs=0.0 prog=0.39 stk=20
+[MPPI] dist=0.38 best=158.3 path=0.27 obs=0.0 prog=0.39 stk=21
+[Planner] Path found: 3 pts, 0.39m
+[MPPI] dist=0.38 best=153.6 path=0.28 obs=0.0 prog=0.39 stk=22
+[MPPI] dist=0.38 best=155.3 path=0.30 obs=0.0 prog=0.39 stk=23
+[Planner] Path found: 3 pts, 0.39m
+[MPPI] dist=0.39 best=238.2 path=0.26 obs=0.0 prog=0.20 stk=24
+[MPPI] dist=0.39 best=157.9 path=0.26 obs=0.0 prog=0.39 stk=25
+[Planner] Path found: 3 pts, 0.39m
+[MPPI] dist=0.40 best=233.8 path=0.28 obs=0.0 prog=0.20 stk=26
+[MPPI] dist=0.40 best=136.1 path=0.27 obs=0.0 prog=0.39 stk=27
+[Planner] Path found: 3 pts, 0.43m
+[MPPI] dist=0.41 best=232.2 path=0.32 obs=0.0 prog=0.22 stk=28
+[MPPI] dist=0.41 best=113.3 path=0.25 obs=0.0 prog=0.43 stk=29
+[Planner] Path found: 3 pts, 0.40m
+[MPPI] dist=0.42 best=137.7 path=0.26 obs=0.0 prog=0.40 stk=30
+[MPPI] dist=0.42 best=140.2 path=0.25 obs=0.0 prog=0.40 stk=30
+[Planner] Path found: 3 pts, 0.45m
+[MPPI] dist=0.42 best=212.2 path=0.28 obs=0.0 prog=0.22 stk=30
+[MPPI] dist=0.42 best=175.5 path=0.29 obs=0.0 prog=0.45 stk=30
+[Planner] Path found: 3 pts, 0.43m
+[MPPI] dist=0.43 best=157.9 path=0.25 obs=0.0 prog=0.43 stk=30
+[MPPI] dist=0.43 best=148.1 path=0.24 obs=0.0 prog=0.43 stk=30
+[Planner] Path found: 3 pts, 0.43m
+[MPPI] dist=0.43 best=182.1 path=0.28 obs=0.0 prog=0.43 stk=30
+[MPPI] dist=0.43 best=162.7 path=0.31 obs=0.0 prog=0.43 stk=30
+[Planner] Path found: 3 pts, 0.41m
+[MPPI] dist=0.43 best=83.2 path=0.18 obs=0.0 prog=0.41 stk=30
+[MPPI] dist=0.44 best=85.5 path=0.18 obs=0.0 prog=0.41 stk=30
+[Planner] Path found: 4 pts, 0.46m
+[MPPI] dist=0.45 best=125.1 path=0.26 obs=0.0 prog=0.46 stk=30
+[MPPI] dist=0.45 best=112.3 path=0.22 obs=0.0 prog=0.31 stk=30
+[Planner] Path found: 4 pts, 0.45m
+[MPPI] dist=0.46 best=129.3 path=0.23 obs=0.0 prog=0.45 stk=30
+[MPPI] dist=0.47 best=120.8 path=0.23 obs=0.0 prog=0.45 stk=30
+[Planner] Path found: 4 pts, 0.45m
+[MPPI] dist=0.47 best=158.2 path=0.26 obs=0.0 prog=0.30 stk=30
+[MPPI] dist=0.47 best=150.6 path=0.29 obs=0.0 prog=0.30 stk=30
+[Planner] Path found: 4 pts, 0.50m
+[MPPI] dist=0.48 best=151.6 path=0.25 obs=1.2 prog=0.33 stk=30
+[MPPI] dist=0.48 best=169.1 path=0.26 obs=0.0 prog=0.33 stk=30
+[Planner] Path found: 4 pts, 0.50m
+[MPPI] dist=0.49 best=118.7 path=0.25 obs=4.4 prog=0.50 stk=30
+[MPPI] dist=0.49 best=139.8 path=0.26 obs=1.1 prog=0.33 stk=30
+[Planner] Path found: 4 pts, 0.50m
+[MPPI] dist=0.49 best=161.7 path=0.25 obs=1.2 prog=0.33 stk=30
+[MPPI] dist=0.49 best=141.8 path=0.23 obs=4.4 prog=0.33 stk=30
+[Planner] Path found: 4 pts, 0.50m
+[MPPI] dist=0.49 best=95.4 path=0.20 obs=0.8 prog=0.50 stk=30
+[MPPI] dist=0.49 best=104.2 path=0.23 obs=0.0 prog=0.50 stk=30
+  Sim finished in 524.7s  (ctrl ticks: 4000/4000)
+
+  Completed in 528.6s
+  Goal reached: True
+  Traversal time: 15.864999999996646
+  Roll RMS: 0.1445 rad (6.53 deg mean)
+  Body contacts: 0 (0 steps)
+  Dist to goal: 0.461 m
+    Rendered 20/500 frames...
+    Rendered 40/500 frames...
+    Rendered 60/500 frames...
+    Rendered 80/500 frames...
+    Rendered 100/500 frames...
+    Rendered 120/500 frames...
+    Rendered 140/500 frames...
+    Rendered 160/500 frames...
+    Rendered 180/500 frames...
+    Rendered 200/500 frames...
+    Rendered 220/500 frames...
+    Rendered 240/500 frames...
+    Rendered 260/500 frames...
+    Rendered 280/500 frames...
+    Rendered 300/500 frames...
+    Rendered 320/500 frames...
+    Rendered 340/500 frames...
+    Rendered 360/500 frames...
+    Rendered 380/500 frames...
+    Rendered 400/500 frames...
+    Rendered 420/500 frames...
+    Rendered 440/500 frames...
+    Rendered 460/500 frames...
+    Rendered 480/500 frames...
+    Rendered 500/500 frames...
+  Video saved: environment_results_main_planner/bc_094a059_2_4_4_xli1m_utm10_20240628_20240628/mppi_debug.mp4
+
+======================================================================
+  ENVIRONMENT 4/5: bc_094a059_xli1m_utm10_20240611_20240620
+  Scene XML: /home/suleiman/dog/go2-convex-mpc/models/MJCF/go2/environments/bc_094a059_xli1m_utm10_20240611_20240620.xml
+======================================================================
+
+[QP Init] ===== MPC QP Structure =====
+  H:  384 x 384  | nnz =    384 | dens =  0.0026
+  A:  512 x 384  | nnz =   5616 | dens =  0.0286
+  vars: 384 | constr: 512 | horizon N = 16
+[QP Init] ✓ Initialization complete.
+
+[Planner] Path found: 34 pts, 5.00m
+[Planner] Path found: 34 pts, 5.05m
+[MPPI] dist=5.03 best=36.7 path=0.05 obs=13.9 prog=0.60 stk=0
+[MPPI] dist=5.03 best=36.6 path=0.04 obs=14.4 prog=0.60 stk=0
+[Planner] Path found: 56 pts, 7.77m
+[MPPI] dist=5.03 best=309.1 path=0.06 obs=21.0 prog=0.00 stk=0
+[MPPI] dist=5.03 best=261.0 path=0.02 obs=19.8 prog=0.00 stk=0
+[Planner] Path found: 57 pts, 7.93m
+[MPPI] dist=5.03 best=313.6 path=0.05 obs=20.9 prog=0.00 stk=0
+[MPPI] dist=5.03 best=257.4 path=0.03 obs=20.5 prog=0.00 stk=1
+[Planner] Path found: 34 pts, 5.00m
+[MPPI] dist=5.03 best=36.9 path=0.04 obs=14.4 prog=0.61 stk=2
+[MPPI] dist=5.02 best=36.3 path=0.04 obs=14.6 prog=0.61 stk=3
+[Planner] Path found: 34 pts, 5.00m
+[MPPI] dist=5.02 best=35.9 path=0.04 obs=14.1 prog=0.61 stk=4
+[MPPI] dist=5.02 best=35.6 path=0.04 obs=13.3 prog=0.61 stk=5
+[Planner] Path found: 34 pts, 5.00m
+[MPPI] dist=5.01 best=39.9 path=0.04 obs=18.1 prog=0.61 stk=6
+[MPPI] dist=5.00 best=39.9 path=0.04 obs=17.8 prog=0.61 stk=7
+[Planner] Path found: 34 pts, 5.00m
+[MPPI] dist=4.99 best=40.4 path=0.04 obs=17.4 prog=0.61 stk=8
+[MPPI] dist=4.99 best=40.7 path=0.04 obs=17.7 prog=0.61 stk=9
+[Planner] Path found: 34 pts, 5.00m
+[MPPI] dist=4.98 best=40.0 path=0.04 obs=18.0 prog=0.61 stk=10
+[MPPI] dist=4.98 best=36.5 path=0.04 obs=14.3 prog=0.61 stk=11
+[Planner] Path found: 34 pts, 4.95m
+[MPPI] dist=4.97 best=40.8 path=0.04 obs=17.8 prog=0.74 stk=12
+[MPPI] dist=4.97 best=40.9 path=0.04 obs=18.5 prog=0.60 stk=13
+[Planner] Path found: 34 pts, 4.95m
+[MPPI] dist=4.97 best=41.8 path=0.04 obs=18.1 prog=0.59 stk=14
+[MPPI] dist=4.96 best=41.5 path=0.04 obs=18.5 prog=0.59 stk=15
+[Planner] Path found: 34 pts, 4.95m
+[MPPI] dist=4.96 best=41.8 path=0.04 obs=17.9 prog=0.59 stk=16
+[MPPI] dist=4.96 best=40.3 path=0.04 obs=17.8 prog=0.59 stk=17
+[Planner] Path found: 34 pts, 4.95m
+[MPPI] dist=4.96 best=41.4 path=0.04 obs=18.0 prog=0.59 stk=18
+[MPPI] dist=4.96 best=41.4 path=0.04 obs=18.3 prog=0.59 stk=19
+[Planner] Path found: 34 pts, 4.95m
+[MPPI] dist=4.96 best=42.0 path=0.04 obs=19.0 prog=0.59 stk=20
+[MPPI] dist=4.96 best=42.1 path=0.04 obs=18.0 prog=0.59 stk=21
+[Planner] Path found: 34 pts, 4.95m
+[MPPI] dist=4.96 best=41.9 path=0.04 obs=18.3 prog=0.59 stk=22
+[MPPI] dist=4.96 best=41.5 path=0.04 obs=18.1 prog=0.59 stk=23
+[Planner] Path found: 34 pts, 4.95m
+[MPPI] dist=4.96 best=41.6 path=0.04 obs=18.1 prog=0.59 stk=24
+[MPPI] dist=4.96 best=41.6 path=0.04 obs=18.4 prog=0.59 stk=25
+[Planner] Path found: 34 pts, 4.95m
+[MPPI] dist=4.96 best=41.8 path=0.04 obs=18.5 prog=0.59 stk=26
+[MPPI] dist=4.96 best=41.8 path=0.04 obs=17.7 prog=0.59 stk=27
+[Planner] Path found: 34 pts, 4.95m
+[MPPI] dist=4.95 best=41.1 path=0.04 obs=18.4 prog=0.59 stk=28
+[MPPI] dist=4.95 best=41.3 path=0.04 obs=18.3 prog=0.59 stk=29
+[Planner] Path found: 34 pts, 4.95m
+[MPPI] dist=4.95 best=41.9 path=0.04 obs=18.7 prog=0.59 stk=30
+[MPPI] dist=4.95 best=42.0 path=0.04 obs=18.8 prog=0.59 stk=30
+[Planner] Path found: 34 pts, 4.95m
+[MPPI] dist=4.95 best=41.6 path=0.04 obs=18.1 prog=0.59 stk=30
+[MPPI] dist=4.96 best=41.5 path=0.04 obs=18.1 prog=0.59 stk=30
+[Planner] Path found: 34 pts, 4.95m
+[MPPI] dist=4.96 best=41.4 path=0.04 obs=18.0 prog=0.59 stk=30
+[MPPI] dist=4.96 best=41.5 path=0.04 obs=18.1 prog=0.59 stk=30
+[Planner] Path found: 34 pts, 4.95m
+[MPPI] dist=4.96 best=42.0 path=0.04 obs=18.5 prog=0.59 stk=30
+[MPPI] dist=4.96 best=41.8 path=0.04 obs=18.5 prog=0.59 stk=30
+[Planner] Path found: 34 pts, 4.95m
+[MPPI] dist=4.96 best=41.3 path=0.04 obs=18.1 prog=0.59 stk=30
+[MPPI] dist=4.96 best=41.5 path=0.04 obs=18.4 prog=0.59 stk=30
+[Planner] Path found: 34 pts, 4.95m
+[MPPI] dist=4.96 best=41.4 path=0.04 obs=18.5 prog=0.59 stk=30
+[MPPI] dist=4.96 best=41.6 path=0.04 obs=17.9 prog=0.59 stk=30
+[Planner] Path found: 34 pts, 4.95m
+[MPPI] dist=4.96 best=41.4 path=0.04 obs=17.9 prog=0.59 stk=30
+[MPPI] dist=4.96 best=41.7 path=0.04 obs=18.0 prog=0.59 stk=30
+[Planner] Path found: 34 pts, 4.95m
+[MPPI] dist=4.96 best=40.9 path=0.04 obs=18.1 prog=0.59 stk=30
+[MPPI] dist=4.96 best=41.4 path=0.04 obs=17.9 prog=0.59 stk=30
+[Planner] Path found: 34 pts, 4.95m
+[MPPI] dist=4.96 best=41.5 path=0.04 obs=18.1 prog=0.59 stk=30
+[MPPI] dist=4.96 best=41.3 path=0.04 obs=18.6 prog=0.59 stk=30
+[Planner] Path found: 34 pts, 4.95m
+[MPPI] dist=4.96 best=41.7 path=0.04 obs=18.5 prog=0.45 stk=30
+[MPPI] dist=4.96 best=41.3 path=0.04 obs=18.2 prog=0.59 stk=30
+[Planner] Path found: 34 pts, 4.95m
+[MPPI] dist=4.96 best=42.0 path=0.04 obs=18.4 prog=0.59 stk=30
+[MPPI] dist=4.96 best=41.2 path=0.04 obs=17.9 prog=0.59 stk=30
+[Planner] Path found: 34 pts, 4.95m
+[MPPI] dist=4.96 best=42.0 path=0.04 obs=18.3 prog=0.45 stk=30
+[MPPI] dist=4.96 best=41.8 path=0.04 obs=18.8 prog=0.59 stk=30
+[Planner] Path found: 34 pts, 4.95m
+[MPPI] dist=4.96 best=41.6 path=0.04 obs=18.3 prog=0.59 stk=30
+[MPPI] dist=4.96 best=41.4 path=0.04 obs=18.5 prog=0.59 stk=30
+[Planner] Path found: 34 pts, 4.95m
+[MPPI] dist=4.96 best=41.9 path=0.03 obs=18.7 prog=0.45 stk=30
+[MPPI] dist=4.96 best=41.9 path=0.04 obs=18.1 prog=0.59 stk=30
+[Planner] Path found: 34 pts, 4.95m
+[MPPI] dist=4.96 best=41.3 path=0.04 obs=18.6 prog=0.59 stk=30
+[MPPI] dist=4.96 best=41.9 path=0.04 obs=18.4 prog=0.59 stk=30
+[Planner] Path found: 34 pts, 4.95m
+[MPPI] dist=4.96 best=42.7 path=0.04 obs=18.7 prog=0.59 stk=30
+[MPPI] dist=4.96 best=41.5 path=0.04 obs=18.0 prog=0.59 stk=30
+[Planner] Path found: 34 pts, 4.95m
+[MPPI] dist=4.96 best=42.3 path=0.04 obs=18.2 prog=0.45 stk=30
+[MPPI] dist=4.96 best=41.5 path=0.04 obs=18.3 prog=0.59 stk=30
+[Planner] Path found: 34 pts, 4.95m
+[MPPI] dist=4.96 best=42.2 path=0.04 obs=18.4 prog=0.59 stk=30
+[MPPI] dist=4.96 best=41.9 path=0.04 obs=18.1 prog=0.59 stk=30
+[Planner] Path found: 34 pts, 4.95m
+[MPPI] dist=4.96 best=42.7 path=0.04 obs=19.0 prog=0.45 stk=30
+[MPPI] dist=4.96 best=41.8 path=0.04 obs=18.6 prog=0.59 stk=30
+[Planner] Path found: 34 pts, 4.95m
+[MPPI] dist=4.96 best=42.7 path=0.04 obs=18.3 prog=0.59 stk=30
+[MPPI] dist=4.96 best=41.8 path=0.04 obs=18.2 prog=0.59 stk=30
+[Planner] Path found: 34 pts, 4.95m
+[MPPI] dist=4.96 best=42.9 path=0.03 obs=18.4 prog=0.59 stk=30
+[MPPI] dist=4.97 best=42.5 path=0.04 obs=18.3 prog=0.59 stk=30
+[Planner] Path found: 34 pts, 4.95m
+[MPPI] dist=4.97 best=42.5 path=0.04 obs=18.9 prog=0.59 stk=30
+[MPPI] dist=4.97 best=42.5 path=0.04 obs=18.6 prog=0.59 stk=30
+[Planner] Path found: 34 pts, 4.95m
+[MPPI] dist=4.97 best=42.7 path=0.04 obs=18.5 prog=0.59 stk=30
+[MPPI] dist=4.97 best=42.6 path=0.04 obs=18.4 prog=0.45 stk=30
+[Planner] Path found: 34 pts, 4.95m
+[MPPI] dist=4.97 best=43.2 path=0.03 obs=19.1 prog=0.45 stk=30
+[MPPI] dist=4.97 best=43.2 path=0.04 obs=18.7 prog=0.59 stk=30
+[Planner] Path found: 34 pts, 5.00m
+[MPPI] dist=4.98 best=46.7 path=0.04 obs=22.1 prog=0.60 stk=30
+[MPPI] dist=4.98 best=47.2 path=0.03 obs=24.3 prog=0.60 stk=30
+[Planner] Path found: 34 pts, 5.00m
+[MPPI] dist=5.00 best=49.7 path=0.03 obs=25.6 prog=0.45 stk=30
+[MPPI] dist=5.01 best=48.6 path=0.03 obs=24.5 prog=0.45 stk=30
+[Planner] Path found: 34 pts, 5.00m
+[MPPI] dist=5.02 best=48.4 path=0.04 obs=23.8 prog=0.60 stk=30
+[MPPI] dist=5.02 best=47.8 path=0.03 obs=23.7 prog=0.60 stk=30
+[Planner] Path found: 34 pts, 5.00m
+[MPPI] dist=5.02 best=48.8 path=0.04 obs=23.6 prog=0.60 stk=30
+[MPPI] dist=5.02 best=47.5 path=0.04 obs=23.5 prog=0.60 stk=30
+[Planner] Path found: 34 pts, 5.05m
+[MPPI] dist=5.03 best=49.8 path=0.04 obs=25.3 prog=0.61 stk=30
+[MPPI] dist=5.03 best=50.4 path=0.04 obs=26.0 prog=0.61 stk=30
+[Planner] Path found: 34 pts, 5.05m
+[MPPI] dist=5.03 best=50.3 path=0.04 obs=26.9 prog=0.61 stk=30
+[MPPI] dist=5.03 best=50.1 path=0.04 obs=25.1 prog=0.61 stk=30
+[Planner] Path found: 34 pts, 5.05m
+[MPPI] dist=5.03 best=50.6 path=0.04 obs=26.4 prog=0.61 stk=30
+[MPPI] dist=5.03 best=50.4 path=0.05 obs=24.8 prog=0.61 stk=30
+[Planner] Path found: 34 pts, 5.05m
+[MPPI] dist=5.03 best=50.9 path=0.04 obs=26.5 prog=0.61 stk=30
+[MPPI] dist=5.03 best=50.2 path=0.04 obs=25.2 prog=0.61 stk=30
+[Planner] Path found: 34 pts, 5.05m
+[MPPI] dist=5.04 best=51.0 path=0.04 obs=25.8 prog=0.61 stk=30
+[MPPI] dist=5.04 best=50.7 path=0.04 obs=26.5 prog=0.61 stk=30
+[Planner] Path found: 34 pts, 5.05m
+[MPPI] dist=5.04 best=51.0 path=0.04 obs=26.2 prog=0.61 stk=30
+[MPPI] dist=5.05 best=66.8 path=0.04 obs=42.7 prog=0.45 stk=30
+[Planner] Path found: 35 pts, 5.10m
+[MPPI] dist=5.11 best=1537.0 path=0.32 obs=1461.8 prog=0.00 stk=30
+[MPPI] dist=5.16 best=618.8 path=0.15 obs=563.2 prog=0.30 stk=30
+[Planner] Path found: 36 pts, 5.21m
+[MPPI] dist=5.20 best=588.8 path=0.07 obs=544.6 prog=0.43 stk=30
+[MPPI] dist=5.24 best=682.3 path=0.09 obs=618.9 prog=0.43 stk=30
+[Planner] Path found: 36 pts, 5.31m
+[MPPI] dist=5.28 best=802.6 path=0.07 obs=741.2 prog=0.45 stk=30
+[MPPI] dist=5.32 best=1678.7 path=0.19 obs=1594.1 prog=0.45 stk=30
+[Planner] Path found: 37 pts, 5.37m
+[MPPI] dist=5.36 best=1678.1 path=0.20 obs=1614.1 prog=0.14 stk=30
+[MPPI] dist=5.40 best=1689.8 path=0.25 obs=1597.1 prog=0.14 stk=30
+[Planner] No path found!
+[MPPI] dist=5.44 best=1670.7 path=0.25 obs=1586.8 prog=0.14 stk=30
+[MPPI] dist=5.48 best=1581.1 path=0.36 obs=1452.8 prog=0.00 stk=30
+[Planner] No path found!
+[MPPI] dist=5.52 best=1613.6 path=0.42 obs=1521.6 prog=0.00 stk=30
+[MPPI] dist=5.56 best=1619.9 path=0.43 obs=1513.3 prog=0.00 stk=30
+[Planner] No path found!
+[MPPI] dist=5.60 best=1601.2 path=0.41 obs=1505.4 prog=0.00 stk=30
+[MPPI] dist=5.64 best=1599.6 path=0.42 obs=1506.0 prog=0.00 stk=30
+[Planner] No path found!
+[MPPI] dist=5.68 best=1764.8 path=0.45 obs=1671.0 prog=0.00 stk=30
+[MPPI] dist=5.71 best=1625.9 path=0.41 obs=1539.0 prog=0.00 stk=30
+[Planner] No path found!
+[MPPI] dist=5.73 best=1657.1 path=0.42 obs=1572.0 prog=0.00 stk=30
+[MPPI] dist=5.75 best=1695.1 path=0.43 obs=1613.2 prog=0.00 stk=30
+[Planner] No path found!
+[MPPI] dist=5.77 best=1707.0 path=0.43 obs=1621.5 prog=0.00 stk=30
+[MPPI] dist=5.78 best=1675.0 path=0.42 obs=1596.7 prog=0.00 stk=30
+[Planner] No path found!
+[MPPI] dist=5.80 best=1664.4 path=0.43 obs=1588.5 prog=0.00 stk=30
+[MPPI] dist=5.81 best=1681.7 path=0.44 obs=1605.0 prog=0.00 stk=30
+[Planner] No path found!
+[MPPI] dist=5.82 best=1672.4 path=0.42 obs=1596.7 prog=0.00 stk=30
+[MPPI] dist=5.83 best=1668.1 path=0.43 obs=1596.7 prog=0.00 stk=30
+[Planner] No path found!
+[MPPI] dist=5.85 best=1603.9 path=0.56 obs=1521.4 prog=0.00 stk=30
+[MPPI] dist=5.86 best=1618.9 path=0.56 obs=1537.3 prog=0.00 stk=30
+[Planner] No path found!
+[MPPI] dist=5.88 best=1645.0 path=0.57 obs=1562.4 prog=0.00 stk=30
+[MPPI] dist=5.89 best=1651.8 path=0.56 obs=1570.6 prog=0.00 stk=30
+[Planner] No path found!
+[MPPI] dist=5.91 best=1524.9 path=0.61 obs=1435.2 prog=0.00 stk=30
+[MPPI] dist=5.93 best=1053.6 path=0.69 obs=944.1 prog=0.00 stk=30
+[Planner] No path found!
+[MPPI] dist=5.94 best=1050.2 path=0.66 obs=935.4 prog=0.00 stk=30
+[MPPI] dist=5.96 best=1031.1 path=0.72 obs=922.3 prog=0.00 stk=30
+[Planner] No path found!
+[MPPI] dist=5.97 best=1037.5 path=0.70 obs=943.4 prog=0.00 stk=30
+[MPPI] dist=5.99 best=1040.7 path=0.69 obs=944.4 prog=0.00 stk=30
+[Planner] No path found!
+[MPPI] dist=6.01 best=1038.1 path=0.68 obs=939.4 prog=0.00 stk=30
+[MPPI] dist=6.02 best=1540.9 path=0.88 obs=1438.5 prog=0.00 stk=30
+[Planner] No path found!
+[MPPI] dist=6.04 best=1578.5 path=0.76 obs=1481.2 prog=0.00 stk=30
+[MPPI] dist=6.05 best=1567.3 path=0.76 obs=1473.0 prog=0.00 stk=30
+[Planner] No path found!
+[MPPI] dist=6.06 best=1575.3 path=0.71 obs=1471.1 prog=0.00 stk=30
+[MPPI] dist=6.07 best=1548.8 path=0.69 obs=1448.2 prog=0.00 stk=30
+[Planner] No path found!
+[MPPI] dist=6.08 best=1049.8 path=0.76 obs=943.4 prog=0.00 stk=30
+[MPPI] dist=6.10 best=1048.7 path=0.90 obs=930.9 prog=0.00 stk=30
+[Planner] No path found!
+[MPPI] dist=6.14 best=1034.0 path=0.82 obs=931.2 prog=0.00 stk=30
+[MPPI] dist=6.17 best=969.2 path=1.14 obs=802.3 prog=0.00 stk=30
+[Planner] No path found!
+[MPPI] dist=6.21 best=1448.0 path=1.18 obs=1290.1 prog=0.00 stk=30
+[MPPI] dist=6.25 best=1437.6 path=1.23 obs=1296.1 prog=0.00 stk=30
+[Planner] No path found!
+[MPPI] dist=6.29 best=1488.9 path=1.14 obs=1359.6 prog=0.00 stk=30
+[MPPI] dist=6.33 best=899.5 path=1.28 obs=745.1 prog=0.00 stk=30
+[Planner] No path found!
+[MPPI] dist=6.37 best=840.1 path=1.36 obs=695.0 prog=0.00 stk=30
+[MPPI] dist=6.41 best=863.9 path=1.42 obs=695.6 prog=0.00 stk=30
+[Planner] Path found: 101 pts, 14.42m
+[MPPI] dist=6.45 best=1042.8 path=0.14 obs=707.8 prog=0.29 stk=30
+[MPPI] dist=6.48 best=868.0 path=0.09 obs=581.7 prog=0.43 stk=30
+[Planner] Path found: 102 pts, 14.36m
+[MPPI] dist=6.51 best=1031.9 path=0.13 obs=733.6 prog=0.29 stk=30
+[MPPI] dist=6.55 best=762.8 path=0.08 obs=525.6 prog=0.43 stk=30
+[Planner] Path found: 100 pts, 14.25m
+[MPPI] dist=6.58 best=1236.7 path=0.19 obs=890.1 prog=0.00 stk=30
+[MPPI] dist=6.62 best=904.0 path=0.05 obs=592.6 prog=0.28 stk=30
+[Planner] Path found: 101 pts, 14.22m
+[MPPI] dist=6.66 best=1164.5 path=0.08 obs=793.8 prog=0.00 stk=30
+[MPPI] dist=6.68 best=1108.3 path=0.07 obs=788.3 prog=0.00 stk=30
+[Planner] Path found: 100 pts, 14.15m
+[MPPI] dist=6.69 best=2101.3 path=0.28 obs=1474.4 prog=0.00 stk=30
+[MPPI] dist=6.70 best=1356.9 path=0.23 obs=914.1 prog=0.00 stk=30
+[Planner] Path found: 101 pts, 14.24m
+[MPPI] dist=6.72 best=1313.3 path=0.26 obs=906.4 prog=0.00 stk=30
+[MPPI] dist=6.73 best=1605.0 path=0.19 obs=1409.3 prog=0.00 stk=30
+[Planner] No path found!
+[MPPI] dist=6.76 best=1628.0 path=0.21 obs=1430.8 prog=0.00 stk=30
+[MPPI] dist=6.80 best=1693.6 path=0.08 obs=1406.8 prog=0.00 stk=30
+[Planner] Path found: 100 pts, 14.14m
+[MPPI] dist=6.84 best=954.9 path=0.21 obs=634.2 prog=0.28 stk=30
+[MPPI] dist=6.88 best=909.5 path=0.19 obs=531.4 prog=0.28 stk=30
+[Planner] Path found: 100 pts, 14.12m
+[MPPI] dist=6.92 best=842.0 path=0.08 obs=508.8 prog=0.28 stk=30
+[MPPI] dist=6.94 best=718.5 path=0.09 obs=413.8 prog=0.28 stk=30
+[Planner] Path found: 100 pts, 14.08m
+[MPPI] dist=6.96 best=810.6 path=0.08 obs=483.3 prog=0.27 stk=30
+[MPPI] dist=6.97 best=778.7 path=0.07 obs=513.2 prog=0.27 stk=30
+[Planner] Path found: 100 pts, 14.06m
+[MPPI] dist=6.98 best=952.0 path=0.07 obs=600.9 prog=0.13 stk=30
+[MPPI] dist=6.98 best=851.0 path=0.06 obs=614.8 prog=0.13 stk=30
+[Planner] Path found: 101 pts, 14.18m
+[MPPI] dist=6.98 best=945.2 path=0.10 obs=623.3 prog=0.13 stk=30
+[MPPI] dist=6.99 best=868.7 path=0.07 obs=596.4 prog=0.13 stk=30
+[Planner] Path found: 101 pts, 14.16m
+[MPPI] dist=6.99 best=996.6 path=0.05 obs=660.2 prog=0.00 stk=30
+[MPPI] dist=7.00 best=866.4 path=0.07 obs=581.0 prog=0.13 stk=30
+[Planner] Path found: 102 pts, 14.17m
+[MPPI] dist=7.01 best=939.4 path=0.06 obs=620.6 prog=0.00 stk=30
+[MPPI] dist=7.02 best=900.8 path=0.07 obs=544.1 prog=0.26 stk=30
+[Planner] Path found: 103 pts, 14.22m
+[MPPI] dist=7.03 best=1037.5 path=0.04 obs=692.0 prog=0.00 stk=30
+[MPPI] dist=7.04 best=1068.8 path=0.06 obs=701.2 prog=0.00 stk=30
+[Planner] Path found: 103 pts, 14.22m
+[MPPI] dist=7.05 best=1327.4 path=0.13 obs=839.9 prog=0.00 stk=30
+[MPPI] dist=7.06 best=1966.9 path=0.16 obs=1460.6 prog=0.00 stk=30
+[Planner] Path found: 104 pts, 14.28m
+[MPPI] dist=7.07 best=1312.6 path=0.30 obs=876.1 prog=0.00 stk=30
+[MPPI] dist=7.09 best=1274.1 path=0.39 obs=826.1 prog=0.00 stk=30
+[Planner] Path found: 104 pts, 14.31m
+[MPPI] dist=7.12 best=1319.5 path=0.28 obs=863.3 prog=0.00 stk=30
+[MPPI] dist=7.14 best=1758.9 path=0.19 obs=1463.6 prog=0.00 stk=30
+[Planner] No path found!
+[MPPI] dist=7.15 best=1756.4 path=0.19 obs=1462.1 prog=0.00 stk=30
+[MPPI] dist=7.16 best=1291.8 path=0.12 obs=945.0 prog=0.00 stk=30
+[Planner] No path found!
+[MPPI] dist=7.17 best=1235.1 path=0.14 obs=932.6 prog=0.00 stk=30
+[MPPI] dist=7.17 best=1222.7 path=0.05 obs=910.2 prog=0.00 stk=30
+[Planner] No path found!
+[MPPI] dist=7.16 best=1215.3 path=0.06 obs=945.0 prog=0.00 stk=30
+[MPPI] dist=7.16 best=1145.0 path=0.08 obs=858.1 prog=0.13 stk=30
+[Planner] No path found!
+[MPPI] dist=7.15 best=1134.1 path=0.07 obs=832.8 prog=0.13 stk=30
+[MPPI] dist=7.14 best=1161.7 path=0.06 obs=864.0 prog=0.13 stk=30
+[Planner] No path found!
+[MPPI] dist=7.13 best=1758.6 path=0.06 obs=1448.2 prog=0.13 stk=30
+[MPPI] dist=7.13 best=1802.8 path=0.06 obs=1474.7 prog=0.13 stk=30
+[Planner] No path found!
+[MPPI] dist=7.12 best=1788.0 path=0.07 obs=1454.9 prog=0.13 stk=30
+[MPPI] dist=7.12 best=1777.6 path=0.10 obs=1440.7 prog=0.13 stk=30
+[Planner] No path found!
+[MPPI] dist=7.11 best=1740.6 path=0.06 obs=1418.8 prog=0.13 stk=30
+[MPPI] dist=7.11 best=1701.2 path=0.07 obs=1389.0 prog=0.13 stk=30
+[Planner] No path found!
+[MPPI] dist=7.10 best=1683.1 path=0.07 obs=1377.1 prog=0.13 stk=30
+[MPPI] dist=7.10 best=1784.6 path=0.04 obs=1464.2 prog=0.13 stk=30
+[Planner] No path found!
+[MPPI] dist=7.11 best=1822.9 path=0.09 obs=1481.4 prog=0.00 stk=30
+[MPPI] dist=7.11 best=1836.6 path=0.12 obs=1457.3 prog=0.00 stk=30
+[Planner] No path found!
+[MPPI] dist=7.11 best=1801.6 path=0.14 obs=1436.3 prog=0.00 stk=30
+[MPPI] dist=7.11 best=1786.0 path=0.14 obs=1403.9 prog=0.00 stk=30
+[Planner] No path found!
+[MPPI] dist=7.11 best=1818.3 path=0.05 obs=1496.6 prog=0.00 stk=30
+[MPPI] dist=7.11 best=1797.2 path=0.05 obs=1471.6 prog=0.13 stk=30
+[Planner] No path found!
+[MPPI] dist=7.11 best=1703.9 path=0.05 obs=1439.4 prog=0.00 stk=30
+[MPPI] dist=7.10 best=1695.9 path=0.05 obs=1425.0 prog=0.13 stk=30
+[Planner] No path found!
+[MPPI] dist=7.10 best=1686.5 path=0.06 obs=1454.1 prog=0.13 stk=30
+[MPPI] dist=7.09 best=1616.2 path=0.12 obs=1380.4 prog=0.00 stk=30
+[Planner] No path found!
+[MPPI] dist=7.08 best=1087.5 path=0.12 obs=851.4 prog=0.00 stk=30
+[MPPI] dist=7.06 best=1056.9 path=0.13 obs=844.8 prog=0.00 stk=30
+[Planner] Path found: 103 pts, 14.35m
+[MPPI] dist=7.03 best=1185.8 path=0.09 obs=839.0 prog=0.00 stk=30
+[MPPI] dist=7.00 best=1007.1 path=0.10 obs=774.1 prog=0.00 stk=28
+[Planner] Path found: 102 pts, 14.24m
+[MPPI] dist=6.97 best=1113.8 path=0.02 obs=735.0 prog=0.00 stk=26
+[MPPI] dist=6.93 best=996.6 path=0.06 obs=751.4 prog=0.15 stk=24
+[Planner] Path found: 103 pts, 14.37m
+[MPPI] dist=6.90 best=1274.3 path=0.15 obs=938.1 prog=0.00 stk=22
+[MPPI] dist=6.87 best=1226.8 path=0.16 obs=942.8 prog=0.00 stk=20
+[Planner] Path found: 102 pts, 14.25m
+[MPPI] dist=6.84 best=1303.4 path=0.18 obs=910.0 prog=0.00 stk=18
+[MPPI] dist=6.80 best=1299.1 path=0.20 obs=908.2 prog=0.00 stk=16
+[Planner] No path found!
+[MPPI] dist=6.77 best=1712.7 path=0.23 obs=1457.3 prog=0.00 stk=14
+[MPPI] dist=6.73 best=1603.0 path=0.25 obs=1383.9 prog=0.00 stk=12
+[Planner] Path found: 103 pts, 14.38m
+[MPPI] dist=6.68 best=1228.6 path=0.16 obs=889.3 prog=0.00 stk=10
+[MPPI] dist=6.67 best=1033.0 path=0.08 obs=839.9 prog=0.10 stk=8
+[Planner] Path found: 104 pts, 14.40m
+[MPPI] dist=6.66 best=1133.4 path=0.07 obs=862.8 prog=0.00 stk=6
+[MPPI] dist=6.66 best=1132.2 path=0.05 obs=856.5 prog=0.00 stk=4
+[Planner] Path found: 104 pts, 14.45m
+[MPPI] dist=6.65 best=1225.9 path=0.05 obs=876.6 prog=0.00 stk=2
+[MPPI] dist=6.65 best=1147.9 path=0.08 obs=859.4 prog=0.13 stk=0
+[Planner] Path found: 104 pts, 14.38m
+[MPPI] dist=6.63 best=1363.8 path=0.15 obs=938.2 prog=0.00 stk=0
+[MPPI] dist=6.63 best=1075.3 path=0.11 obs=865.0 prog=0.00 stk=0
+[Planner] Path found: 103 pts, 14.40m
+[MPPI] dist=6.63 best=1468.1 path=0.17 obs=924.9 prog=0.00 stk=0
+[MPPI] dist=6.63 best=1066.9 path=0.12 obs=823.2 prog=0.00 stk=1
+[Planner] Path found: 104 pts, 14.39m
+[MPPI] dist=6.63 best=1085.0 path=0.09 obs=872.2 prog=0.00 stk=2
+[MPPI] dist=6.63 best=1001.8 path=0.13 obs=825.1 prog=0.00 stk=3
+[Planner] Path found: 104 pts, 14.49m
+[MPPI] dist=6.62 best=1138.4 path=0.05 obs=833.8 prog=0.00 stk=4
+[MPPI] dist=6.62 best=1100.8 path=0.05 obs=867.1 prog=0.00 stk=5
+[Planner] Path found: 103 pts, 14.38m
+[MPPI] dist=6.61 best=1186.9 path=0.06 obs=862.4 prog=0.00 stk=6
+[MPPI] dist=6.59 best=1082.1 path=0.12 obs=853.2 prog=0.00 stk=7
+[Planner] No path found!
+[MPPI] dist=6.57 best=1627.3 path=0.05 obs=1395.0 prog=0.00 stk=8
+[MPPI] dist=6.55 best=1778.7 path=0.08 obs=1415.3 prog=0.00 stk=9
+[Planner] No path found!
+[MPPI] dist=6.53 best=1654.9 path=0.05 obs=1409.5 prog=0.15 stk=10
+[MPPI] dist=6.52 best=1732.4 path=0.05 obs=1431.2 prog=0.15 stk=8
+[Planner] No path found!
+[MPPI] dist=6.51 best=1236.6 path=0.06 obs=901.2 prog=0.00 stk=6
+[MPPI] dist=6.50 best=1261.3 path=0.06 obs=940.0 prog=0.00 stk=4
+[Planner] No path found!
+[MPPI] dist=6.51 best=1170.0 path=0.18 obs=873.1 prog=0.00 stk=2
+[MPPI] dist=6.51 best=1112.4 path=0.17 obs=877.5 prog=0.00 stk=3
+[Planner] No path found!
+[MPPI] dist=6.51 best=1076.3 path=0.18 obs=879.3 prog=0.00 stk=4
+[MPPI] dist=6.52 best=998.2 path=0.21 obs=865.1 prog=0.00 stk=5
+[Planner] No path found!
+[MPPI] dist=6.53 best=1014.8 path=0.22 obs=883.8 prog=0.00 stk=6
+[MPPI] dist=6.54 best=1062.1 path=0.17 obs=894.5 prog=0.00 stk=7
+[Planner] No path found!
+[MPPI] dist=6.56 best=1651.7 path=0.07 obs=1481.2 prog=0.00 stk=8
+[MPPI] dist=6.55 best=1629.4 path=0.06 obs=1435.5 prog=0.00 stk=9
+[Planner] No path found!
+[MPPI] dist=6.55 best=1593.1 path=0.04 obs=1426.3 prog=0.00 stk=10
+[MPPI] dist=6.55 best=1064.8 path=0.03 obs=896.7 prog=0.00 stk=11
+[Planner] No path found!
+[MPPI] dist=6.56 best=1060.4 path=0.05 obs=897.3 prog=0.00 stk=12
+[MPPI] dist=6.56 best=1042.2 path=0.05 obs=870.2 prog=0.15 stk=13
+[Planner] No path found!
+[MPPI] dist=6.57 best=1042.7 path=0.05 obs=826.8 prog=0.15 stk=14
+[MPPI] dist=6.58 best=1054.2 path=0.06 obs=819.4 prog=0.15 stk=15
+[Planner] No path found!
+[MPPI] dist=6.60 best=1040.0 path=0.06 obs=824.2 prog=0.15 stk=16
+[MPPI] dist=6.62 best=1066.4 path=0.07 obs=873.3 prog=0.15 stk=17
+[Planner] No path found!
+[MPPI] dist=6.64 best=1647.1 path=0.12 obs=1446.4 prog=0.15 stk=18
+[MPPI] dist=6.65 best=1687.4 path=0.13 obs=1454.8 prog=0.15 stk=19
+[Planner] No path found!
+[MPPI] dist=6.67 best=1600.0 path=0.09 obs=1434.9 prog=0.15 stk=20
+[MPPI] dist=6.70 best=1694.7 path=0.11 obs=1435.1 prog=0.15 stk=21
+[Planner] No path found!
+[MPPI] dist=6.72 best=1762.2 path=0.20 obs=1394.4 prog=0.44 stk=22
+[MPPI] dist=6.75 best=1064.6 path=0.08 obs=869.8 prog=0.29 stk=23
+[Planner] No path found!
+[MPPI] dist=6.77 best=1113.1 path=0.09 obs=888.8 prog=0.29 stk=24
+[MPPI] dist=6.80 best=1067.4 path=0.21 obs=916.9 prog=0.15 stk=25
+[Planner] No path found!
+[MPPI] dist=6.81 best=1686.3 path=0.25 obs=1475.7 prog=0.15 stk=26
+[MPPI] dist=6.82 best=1564.8 path=0.38 obs=1355.4 prog=0.15 stk=27
+[Planner] No path found!
+[MPPI] dist=6.84 best=1624.6 path=0.32 obs=1357.6 prog=0.15 stk=28
+[MPPI] dist=6.85 best=1040.8 path=0.33 obs=848.1 prog=0.15 stk=29
+[Planner] Path found: 104 pts, 14.52m
+[MPPI] dist=6.86 best=1090.9 path=0.14 obs=900.6 prog=0.28 stk=30
+[MPPI] dist=6.87 best=1064.9 path=0.07 obs=886.6 prog=0.00 stk=30
+[Planner] Path found: 105 pts, 14.55m
+[MPPI] dist=6.87 best=1062.8 path=0.09 obs=852.9 prog=0.00 stk=30
+[MPPI] dist=6.87 best=1059.8 path=0.08 obs=855.4 prog=0.00 stk=30
+[Planner] Path found: 105 pts, 14.63m
+[MPPI] dist=6.87 best=1063.8 path=0.05 obs=896.7 prog=0.29 stk=30
+[MPPI] dist=6.88 best=993.7 path=0.05 obs=861.2 prog=0.29 stk=30
+[Planner] Path found: 105 pts, 14.49m
+[MPPI] dist=6.90 best=1107.7 path=0.10 obs=901.2 prog=0.14 stk=30
+[MPPI] dist=6.91 best=980.6 path=0.05 obs=855.3 prog=0.14 stk=30
+[Planner] Path found: 104 pts, 14.53m
+[MPPI] dist=6.93 best=1079.5 path=0.12 obs=899.0 prog=0.15 stk=30
+[MPPI] dist=6.95 best=1060.2 path=0.10 obs=895.7 prog=0.15 stk=30
+[Planner] Path found: 104 pts, 14.45m
+[MPPI] dist=6.96 best=1160.6 path=0.21 obs=893.2 prog=0.15 stk=30
+[MPPI] dist=6.98 best=1151.6 path=0.23 obs=875.6 prog=0.15 stk=30
+[Planner] Path found: 104 pts, 14.50m
+[MPPI] dist=6.99 best=1170.9 path=0.24 obs=894.3 prog=0.15 stk=30
+[MPPI] dist=7.00 best=1154.1 path=0.27 obs=868.2 prog=0.15 stk=30
+[Planner] Path found: 104 pts, 14.48m
+[MPPI] dist=7.01 best=1174.0 path=0.28 obs=860.9 prog=0.15 stk=30
+[MPPI] dist=7.02 best=1670.8 path=0.27 obs=1362.4 prog=0.00 stk=30
+[Planner] Path found: 104 pts, 14.53m
+[MPPI] dist=7.03 best=1141.4 path=0.24 obs=881.3 prog=0.15 stk=30
+[MPPI] dist=7.02 best=1044.7 path=0.11 obs=909.9 prog=0.15 stk=30
+[Planner] Path found: 105 pts, 14.51m
+[MPPI] dist=7.02 best=1038.4 path=0.12 obs=923.6 prog=0.30 stk=30
+[MPPI] dist=7.02 best=1034.9 path=0.13 obs=912.1 prog=0.15 stk=30
+[Planner] Path found: 105 pts, 14.58m
+[MPPI] dist=7.02 best=1057.3 path=0.13 obs=912.1 prog=0.30 stk=30
+[MPPI] dist=7.02 best=906.6 path=0.04 obs=814.8 prog=0.15 stk=30
+[Planner] Path found: 106 pts, 14.53m
+[MPPI] dist=7.02 best=1090.1 path=0.28 obs=880.0 prog=0.15 stk=30
+[MPPI] dist=7.02 best=1039.7 path=0.32 obs=853.2 prog=0.30 stk=30
+[Planner] Path found: 106 pts, 14.63m
+[MPPI] dist=7.02 best=1016.9 path=0.35 obs=856.2 prog=0.58 stk=30
+[MPPI] dist=7.03 best=1550.4 path=0.33 obs=1373.4 prog=0.43 stk=30
+[Planner] Path found: 106 pts, 14.68m
+[MPPI] dist=7.03 best=1233.3 path=0.16 obs=930.4 prog=0.00 stk=30
+[MPPI] dist=7.03 best=1195.8 path=0.14 obs=928.5 prog=0.00 stk=30
+[Planner] Path found: 105 pts, 14.64m
+[MPPI] dist=7.03 best=1088.5 path=0.09 obs=923.6 prog=0.44 stk=30
+[MPPI] dist=7.03 best=1054.1 path=0.07 obs=899.1 prog=0.44 stk=30
+[Planner] Path found: 106 pts, 14.62m
+[MPPI] dist=7.03 best=1106.9 path=0.18 obs=928.3 prog=0.59 stk=30
+[MPPI] dist=7.04 best=1091.5 path=0.20 obs=920.8 prog=0.73 stk=30
+[Planner] Path found: 105 pts, 14.60m
+[MPPI] dist=7.04 best=1039.2 path=0.08 obs=896.7 prog=0.59 stk=30
+[MPPI] dist=7.05 best=1041.3 path=0.07 obs=893.7 prog=0.59 stk=30
+[Planner] Path found: 105 pts, 14.54m
+[MPPI] dist=7.06 best=1761.9 path=0.32 obs=1441.7 prog=0.59 stk=30
+[MPPI] dist=7.07 best=1068.4 path=0.24 obs=908.1 prog=0.88 stk=30
+[Planner] Path found: 105 pts, 14.61m
+[MPPI] dist=7.08 best=1093.8 path=0.22 obs=921.3 prog=0.59 stk=30
+[MPPI] dist=7.09 best=1066.8 path=0.18 obs=930.9 prog=0.88 stk=30
+[Planner] No path found!
+[MPPI] dist=7.11 best=1019.1 path=0.11 obs=883.5 prog=0.88 stk=30
+[MPPI] dist=7.13 best=1015.0 path=0.26 obs=890.7 prog=0.88 stk=30
+[Planner] No path found!
+[MPPI] dist=7.15 best=988.4 path=0.27 obs=879.7 prog=0.88 stk=30
+[MPPI] dist=7.17 best=956.6 path=0.29 obs=868.8 prog=0.88 stk=30
+[Planner] No path found!
+[MPPI] dist=7.18 best=935.4 path=0.29 obs=871.8 prog=0.73 stk=30
+[MPPI] dist=7.19 best=1483.2 path=0.10 obs=1394.5 prog=0.59 stk=30
+[Planner] No path found!
+[MPPI] dist=7.20 best=1427.1 path=0.28 obs=1375.8 prog=0.73 stk=30
+[MPPI] dist=7.21 best=1417.8 path=0.30 obs=1366.8 prog=0.59 stk=30
+[Planner] No path found!
+[MPPI] dist=7.23 best=1411.5 path=0.30 obs=1355.3 prog=0.59 stk=30
+[MPPI] dist=7.24 best=888.5 path=0.33 obs=806.6 prog=1.27 stk=30
+[Planner] No path found!
+[MPPI] dist=7.26 best=889.9 path=0.45 obs=795.8 prog=1.27 stk=30
+[MPPI] dist=7.25 best=1499.2 path=0.09 obs=1410.0 prog=0.73 stk=30
+[Planner] No path found!
+[MPPI] dist=7.25 best=1505.7 path=0.08 obs=1410.4 prog=0.59 stk=30
+[MPPI] dist=7.24 best=1528.2 path=0.20 obs=1465.5 prog=0.44 stk=30
+[Planner] No path found!
+[MPPI] dist=7.23 best=1481.7 path=0.07 obs=1401.9 prog=0.29 stk=30
+[MPPI] dist=7.22 best=1475.8 path=0.08 obs=1369.4 prog=0.29 stk=30
+[Planner] Path found: 102 pts, 14.05m
+[MPPI] dist=7.20 best=929.3 path=0.05 obs=853.8 prog=0.42 stk=30
+[MPPI] dist=7.18 best=964.5 path=0.15 obs=908.3 prog=0.42 stk=30
+[Planner] Path found: 101 pts, 14.07m
+[MPPI] dist=7.16 best=908.9 path=0.05 obs=856.0 prog=0.43 stk=30
+[MPPI] dist=7.13 best=897.2 path=0.05 obs=854.8 prog=0.29 stk=28
+[Planner] Path found: 101 pts, 14.02m
+[MPPI] dist=7.10 best=973.5 path=0.17 obs=914.7 prog=0.30 stk=26
+[MPPI] dist=7.07 best=1030.0 path=0.13 obs=887.4 prog=0.30 stk=24
+[Planner] Path found: 102 pts, 14.13m
+[MPPI] dist=7.04 best=1041.5 path=0.07 obs=852.8 prog=0.15 stk=22
+[MPPI] dist=7.00 best=810.0 path=0.12 obs=772.6 prog=0.00 stk=20
+[Planner] Path found: 102 pts, 14.18m
+[MPPI] dist=6.97 best=1015.7 path=0.05 obs=900.3 prog=0.28 stk=18
+[MPPI] dist=6.94 best=940.9 path=0.08 obs=883.3 prog=0.00 stk=16
+[Planner] No path found!
+[MPPI] dist=6.90 best=918.2 path=0.15 obs=848.5 prog=0.00 stk=14
+[MPPI] dist=6.86 best=875.6 path=0.24 obs=805.1 prog=0.00 stk=12
+[Planner] No path found!
+[MPPI] dist=6.82 best=860.4 path=0.26 obs=793.9 prog=0.00 stk=10
+[MPPI] dist=6.77 best=919.6 path=0.27 obs=857.9 prog=0.00 stk=8
+[Planner] No path found!
+[MPPI] dist=6.73 best=922.4 path=0.27 obs=861.3 prog=0.00 stk=6
+[MPPI] dist=6.68 best=956.7 path=0.33 obs=888.8 prog=0.00 stk=4
+[Planner] No path found!
+[MPPI] dist=6.63 best=942.6 path=0.29 obs=876.3 prog=0.00 stk=2
+[MPPI] dist=6.57 best=1022.7 path=0.48 obs=884.0 prog=0.00 stk=0
+[Planner] No path found!
+[MPPI] dist=6.50 best=1466.2 path=0.20 obs=1391.1 prog=0.14 stk=0
+[MPPI] dist=6.44 best=1433.7 path=0.11 obs=1357.0 prog=0.28 stk=0
+[Planner] No path found!
+[MPPI] dist=6.38 best=1561.4 path=0.31 obs=1418.7 prog=0.43 stk=0
+[MPPI] dist=6.32 best=1099.1 path=0.41 obs=916.7 prog=0.57 stk=0
+[Planner] No path found!
+[MPPI] dist=6.26 best=1778.1 path=0.75 obs=1485.2 prog=0.43 stk=0
+[MPPI] dist=6.22 best=1878.8 path=0.91 obs=1520.0 prog=0.43 stk=0
+[Planner] No path found!
+[MPPI] dist=6.19 best=1839.8 path=1.00 obs=1469.8 prog=0.43 stk=0
+[MPPI] dist=6.15 best=1857.1 path=1.04 obs=1474.2 prog=0.00 stk=0
+[Planner] No path found!
+[MPPI] dist=6.11 best=1994.5 path=1.11 obs=1563.7 prog=0.00 stk=0
+[MPPI] dist=6.08 best=1835.5 path=1.05 obs=1481.3 prog=0.00 stk=0
+[Planner] No path found!
+[MPPI] dist=6.05 best=1784.2 path=1.06 obs=1503.5 prog=0.00 stk=0
+[MPPI] dist=6.03 best=1866.6 path=1.05 obs=1517.1 prog=0.00 stk=0
+[Planner] No path found!
+[MPPI] dist=6.00 best=1845.1 path=1.05 obs=1485.8 prog=0.00 stk=0
+[MPPI] dist=5.97 best=1772.1 path=1.13 obs=1456.5 prog=0.00 stk=0
+[Planner] No path found!
+[MPPI] dist=5.94 best=1763.5 path=1.13 obs=1448.2 prog=0.00 stk=0
+[MPPI] dist=5.92 best=1777.4 path=1.13 obs=1489.5 prog=0.00 stk=0
+[Planner] No path found!
+[MPPI] dist=5.90 best=1758.5 path=1.14 obs=1456.5 prog=0.00 stk=0
+[MPPI] dist=5.88 best=1749.5 path=1.22 obs=1481.2 prog=0.00 stk=0
+[Planner] No path found!
+[MPPI] dist=5.86 best=1864.0 path=1.27 obs=1547.2 prog=0.00 stk=0
+[MPPI] dist=5.83 best=1791.2 path=1.28 obs=1547.2 prog=0.00 stk=0
+[Planner] No path found!
+[MPPI] dist=5.80 best=1744.2 path=1.37 obs=1539.0 prog=0.00 stk=0
+[MPPI] dist=5.77 best=1813.3 path=1.51 obs=1556.9 prog=0.00 stk=0
+[Planner] No path found!
+[MPPI] dist=5.74 best=1983.4 path=1.36 obs=1679.2 prog=0.00 stk=0
+[MPPI] dist=5.72 best=1912.8 path=1.30 obs=1704.0 prog=0.00 stk=0
+[Planner] No path found!
+[MPPI] dist=5.71 best=1941.0 path=1.43 obs=1728.7 prog=0.00 stk=0
+[MPPI] dist=5.69 best=1915.7 path=1.44 obs=1695.7 prog=0.00 stk=0
+[Planner] No path found!
+[MPPI] dist=5.68 best=1853.0 path=1.47 obs=1629.9 prog=0.00 stk=0
+[MPPI] dist=5.66 best=1779.2 path=1.41 obs=1563.7 prog=0.00 stk=0
+[Planner] No path found!
+[MPPI] dist=5.65 best=1734.0 path=1.42 obs=1522.5 prog=0.00 stk=0
+[MPPI] dist=5.63 best=1698.0 path=1.58 obs=1469.5 prog=0.00 stk=0
+[Planner] No path found!
+[MPPI] dist=5.61 best=1725.0 path=1.56 obs=1483.7 prog=0.00 stk=0
+[MPPI] dist=5.59 best=1744.1 path=1.53 obs=1493.6 prog=0.00 stk=0
+[Planner] No path found!
+[MPPI] dist=5.58 best=1645.5 path=1.60 obs=1421.9 prog=0.00 stk=0
+[MPPI] dist=5.56 best=1615.0 path=1.64 obs=1394.2 prog=0.00 stk=0
+[Planner] No path found!
+[MPPI] dist=5.55 best=1582.7 path=1.66 obs=1363.5 prog=0.00 stk=0
+[MPPI] dist=5.54 best=1561.0 path=1.69 obs=1336.7 prog=0.00 stk=0
+[Planner] No path found!
+[MPPI] dist=5.53 best=1563.9 path=1.68 obs=1338.1 prog=0.00 stk=0
+[MPPI] dist=5.52 best=1540.0 path=1.69 obs=1330.3 prog=0.00 stk=0
+[Planner] No path found!
+[MPPI] dist=5.51 best=1523.1 path=1.69 obs=1312.7 prog=0.00 stk=0
+[MPPI] dist=5.50 best=1531.1 path=1.70 obs=1308.8 prog=0.00 stk=0
+[Planner] No path found!
+[MPPI] dist=5.49 best=1488.8 path=1.71 obs=1282.8 prog=0.00 stk=0
+[MPPI] dist=5.47 best=1412.3 path=1.75 obs=1221.4 prog=0.00 stk=0
+[Planner] No path found!
+[MPPI] dist=5.44 best=909.3 path=1.77 obs=679.9 prog=0.00 stk=0
+[MPPI] dist=5.42 best=1003.9 path=1.71 obs=764.5 prog=0.00 stk=0
+[Planner] Path found: 45 pts, 6.23m
+[MPPI] dist=5.39 best=764.1 path=0.04 obs=674.2 prog=0.53 stk=0
+[MPPI] dist=5.37 best=670.0 path=0.05 obs=582.2 prog=0.53 stk=0
+[Planner] Path found: 44 pts, 6.19m
+[MPPI] dist=5.35 best=731.2 path=0.05 obs=660.9 prog=0.44 stk=0
+[MPPI] dist=5.33 best=602.1 path=0.06 obs=545.9 prog=0.58 stk=0
+[Planner] Path found: 44 pts, 6.13m
+[MPPI] dist=5.32 best=682.5 path=0.03 obs=595.3 prog=0.29 stk=0
+[MPPI] dist=5.30 best=565.1 path=0.05 obs=492.8 prog=0.43 stk=0
+[Planner] Path found: 44 pts, 6.13m
+[MPPI] dist=5.29 best=506.5 path=0.06 obs=458.9 prog=0.42 stk=0
+[MPPI] dist=5.28 best=442.2 path=0.07 obs=392.7 prog=0.42 stk=0
+[Planner] Path found: 43 pts, 6.09m
+[MPPI] dist=5.26 best=435.6 path=0.08 obs=380.0 prog=0.44 stk=0
+[MPPI] dist=5.24 best=413.2 path=0.08 obs=361.8 prog=0.29 stk=0
+[Planner] Path found: 43 pts, 6.06m
+[MPPI] dist=5.22 best=377.5 path=0.05 obs=338.2 prog=0.44 stk=0
+[MPPI] dist=5.22 best=363.1 path=0.06 obs=318.2 prog=0.29 stk=0
+[Planner] Path found: 43 pts, 6.05m
+[MPPI] dist=5.22 best=390.3 path=0.05 obs=334.6 prog=0.45 stk=0
+[MPPI] dist=5.21 best=351.6 path=0.05 obs=314.9 prog=0.30 stk=0
+[Planner] Path found: 43 pts, 6.06m
+[MPPI] dist=5.21 best=541.3 path=0.08 obs=488.7 prog=0.15 stk=1
+[MPPI] dist=5.22 best=403.3 path=0.05 obs=349.7 prog=0.30 stk=2
+[Planner] Path found: 43 pts, 6.02m
+[MPPI] dist=5.22 best=495.8 path=0.05 obs=435.4 prog=0.29 stk=3
+[MPPI] dist=5.23 best=402.0 path=0.06 obs=346.8 prog=0.29 stk=4
+[Planner] Path found: 43 pts, 6.02m
+[MPPI] dist=5.23 best=515.6 path=0.05 obs=451.1 prog=0.14 stk=5
+[MPPI] dist=5.22 best=386.3 path=0.06 obs=331.0 prog=0.29 stk=6
+[Planner] Path found: 43 pts, 6.02m
+[MPPI] dist=5.22 best=423.9 path=0.06 obs=359.1 prog=0.29 stk=7
+[MPPI] dist=5.22 best=360.6 path=0.06 obs=321.9 prog=0.29 stk=8
+[Planner] Path found: 42 pts, 5.99m
+[MPPI] dist=5.21 best=362.5 path=0.07 obs=309.7 prog=0.29 stk=9
+[MPPI] dist=5.19 best=328.7 path=0.08 obs=292.6 prog=0.29 stk=10
+[Planner] Path found: 43 pts, 5.99m
+[MPPI] dist=5.18 best=277.1 path=0.06 obs=239.7 prog=0.27 stk=11
+[MPPI] dist=5.16 best=266.2 path=0.06 obs=226.4 prog=0.14 stk=12
+[Planner] Path found: 42 pts, 5.95m
+[MPPI] dist=5.15 best=263.5 path=0.05 obs=229.3 prog=0.29 stk=13
+[MPPI] dist=5.14 best=260.2 path=0.06 obs=216.8 prog=0.29 stk=14
+[Planner] Path found: 42 pts, 5.96m
+[MPPI] dist=5.13 best=259.1 path=0.06 obs=219.6 prog=0.14 stk=15
+[MPPI] dist=5.12 best=201.1 path=0.05 obs=166.1 prog=0.14 stk=16
+[Planner] Path found: 42 pts, 5.92m
+[MPPI] dist=5.12 best=195.8 path=0.05 obs=169.0 prog=0.29 stk=14
+[MPPI] dist=5.11 best=206.2 path=0.05 obs=164.0 prog=0.15 stk=12
+[Planner] Path found: 42 pts, 5.92m
+[MPPI] dist=5.10 best=208.1 path=0.06 obs=170.4 prog=0.30 stk=13
+[MPPI] dist=5.09 best=194.0 path=0.06 obs=161.9 prog=0.15 stk=14
+[Planner] Path found: 42 pts, 5.92m
+[MPPI] dist=5.08 best=194.4 path=0.05 obs=161.6 prog=0.30 stk=15
+[MPPI] dist=5.07 best=67.1 path=0.06 obs=38.6 prog=0.15 stk=16
+[Planner] Path found: 42 pts, 5.88m
+[MPPI] dist=5.06 best=72.2 path=0.05 obs=38.0 prog=0.15 stk=17
+[MPPI] dist=5.06 best=70.3 path=0.04 obs=39.0 prog=0.15 stk=18
+[Planner] Path found: 42 pts, 5.89m
+[MPPI] dist=5.06 best=75.5 path=0.03 obs=39.8 prog=0.15 stk=19
+[MPPI] dist=5.06 best=74.7 path=0.03 obs=40.2 prog=0.15 stk=20
+[Planner] Path found: 42 pts, 5.88m
+[MPPI] dist=5.06 best=78.8 path=0.03 obs=39.3 prog=0.15 stk=21
+[MPPI] dist=5.06 best=81.3 path=0.04 obs=40.8 prog=0.15 stk=22
+[Planner] Path found: 42 pts, 5.89m
+[MPPI] dist=5.06 best=72.0 path=0.04 obs=41.6 prog=0.15 stk=23
+[MPPI] dist=5.05 best=66.5 path=0.04 obs=37.2 prog=0.15 stk=24
+[Planner] Path found: 42 pts, 5.88m
+[MPPI] dist=5.05 best=70.1 path=0.03 obs=42.0 prog=0.15 stk=25
+[MPPI] dist=5.05 best=77.2 path=0.03 obs=40.9 prog=0.15 stk=26
+[Planner] Path found: 42 pts, 5.89m
+[MPPI] dist=5.05 best=71.7 path=0.03 obs=40.5 prog=0.15 stk=27
+[MPPI] dist=5.06 best=65.5 path=0.04 obs=39.2 prog=0.15 stk=28
+[Planner] Path found: 42 pts, 5.88m
+[MPPI] dist=5.06 best=80.6 path=0.03 obs=41.2 prog=0.15 stk=29
+[MPPI] dist=5.06 best=77.4 path=0.03 obs=39.0 prog=0.15 stk=30
+[Planner] Path found: 42 pts, 5.89m
+[MPPI] dist=5.06 best=71.5 path=0.03 obs=38.7 prog=0.15 stk=30
+[MPPI] dist=5.05 best=69.9 path=0.04 obs=38.5 prog=0.15 stk=30
+[Planner] Path found: 42 pts, 5.88m
+[MPPI] dist=5.05 best=71.7 path=0.03 obs=39.5 prog=0.15 stk=30
+[MPPI] dist=5.05 best=71.2 path=0.03 obs=41.3 prog=0.15 stk=30
+[Planner] Path found: 42 pts, 5.89m
+[MPPI] dist=5.06 best=66.0 path=0.03 obs=39.6 prog=0.15 stk=30
+[MPPI] dist=5.06 best=67.1 path=0.04 obs=37.7 prog=0.15 stk=30
+[Planner] Path found: 42 pts, 5.88m
+[MPPI] dist=5.06 best=74.7 path=0.03 obs=39.0 prog=0.15 stk=30
+[MPPI] dist=5.07 best=68.3 path=0.04 obs=38.6 prog=0.15 stk=30
+[Planner] Path found: 42 pts, 5.89m
+[MPPI] dist=5.07 best=64.4 path=0.05 obs=35.8 prog=0.15 stk=30
+[MPPI] dist=5.07 best=73.9 path=0.04 obs=36.7 prog=0.15 stk=30
+[Planner] Path found: 42 pts, 5.88m
+[MPPI] dist=5.06 best=70.8 path=0.04 obs=37.7 prog=0.15 stk=30
+[MPPI] dist=5.06 best=74.6 path=0.04 obs=45.3 prog=0.15 stk=30
+[Planner] Path found: 42 pts, 5.93m
+[MPPI] dist=5.06 best=81.3 path=0.04 obs=47.7 prog=0.29 stk=30
+[MPPI] dist=5.06 best=75.7 path=0.04 obs=45.0 prog=0.15 stk=30
+[Planner] Path found: 42 pts, 5.93m
+[MPPI] dist=5.06 best=83.0 path=0.04 obs=48.0 prog=0.29 stk=30
+[MPPI] dist=5.05 best=77.6 path=0.04 obs=44.6 prog=0.14 stk=30
+[Planner] Path found: 42 pts, 5.92m
+[MPPI] dist=5.05 best=76.3 path=0.04 obs=44.6 prog=0.29 stk=30
+[MPPI] dist=5.05 best=73.7 path=0.04 obs=43.3 prog=0.29 stk=30
+[Planner] Path found: 42 pts, 5.93m
+[MPPI] dist=5.04 best=77.7 path=0.05 obs=38.7 prog=0.29 stk=30
+[MPPI] dist=5.04 best=70.3 path=0.04 obs=33.0 prog=0.14 stk=30
+[Planner] Path found: 42 pts, 5.88m
+[MPPI] dist=5.04 best=70.1 path=0.04 obs=36.0 prog=0.15 stk=30
+[MPPI] dist=5.04 best=69.3 path=0.04 obs=34.4 prog=0.15 stk=30
+[Planner] Path found: 42 pts, 5.89m
+[MPPI] dist=5.03 best=69.7 path=0.04 obs=35.7 prog=0.14 stk=30
+[MPPI] dist=5.03 best=64.8 path=0.03 obs=37.3 prog=0.14 stk=30
+[Planner] Path found: 42 pts, 5.89m
+[MPPI] dist=5.03 best=64.8 path=0.04 obs=35.8 prog=0.15 stk=30
+[MPPI] dist=5.03 best=63.6 path=0.04 obs=35.1 prog=0.15 stk=30
+[Planner] Path found: 42 pts, 5.89m
+[MPPI] dist=5.03 best=65.1 path=0.03 obs=38.7 prog=0.15 stk=30
+[MPPI] dist=5.03 best=64.8 path=0.03 obs=37.7 prog=0.15 stk=30
+[Planner] Path found: 42 pts, 5.89m
+[MPPI] dist=5.03 best=71.8 path=0.04 obs=36.8 prog=0.15 stk=30
+[MPPI] dist=5.02 best=66.6 path=0.06 obs=32.9 prog=0.15 stk=30
+[Planner] Path found: 42 pts, 5.86m
+[MPPI] dist=5.01 best=78.1 path=0.04 obs=39.7 prog=0.29 stk=30
+[MPPI] dist=4.99 best=66.9 path=0.04 obs=36.8 prog=0.00 stk=30
+[Planner] Path found: 42 pts, 5.83m
+[MPPI] dist=4.97 best=95.9 path=0.06 obs=44.2 prog=0.14 stk=30
+[MPPI] dist=4.96 best=68.7 path=0.04 obs=35.0 prog=0.14 stk=30
+[Planner] Path found: 42 pts, 5.83m
+[MPPI] dist=4.94 best=118.0 path=0.06 obs=47.8 prog=0.14 stk=30
+[MPPI] dist=4.94 best=78.8 path=0.06 obs=33.8 prog=0.14 stk=30
+[Planner] Path found: 42 pts, 5.83m
+[MPPI] dist=4.94 best=71.9 path=0.05 obs=32.8 prog=0.14 stk=30
+[MPPI] dist=4.95 best=67.4 path=0.06 obs=33.3 prog=0.14 stk=30
+[Planner] Path found: 42 pts, 5.83m
+[MPPI] dist=4.95 best=74.9 path=0.04 obs=36.2 prog=0.14 stk=30
+[MPPI] dist=4.96 best=68.7 path=0.04 obs=36.5 prog=0.14 stk=30
+[Planner] Path found: 42 pts, 5.83m
+[MPPI] dist=4.96 best=72.7 path=0.04 obs=37.8 prog=0.14 stk=30
+[MPPI] dist=4.96 best=75.4 path=0.05 obs=37.0 prog=0.14 stk=30
+[Planner] Path found: 42 pts, 5.83m
+[MPPI] dist=4.96 best=71.9 path=0.05 obs=37.3 prog=0.14 stk=30
+[MPPI] dist=4.97 best=71.5 path=0.09 obs=35.8 prog=0.14 stk=30
+[Planner] Path found: 42 pts, 5.86m
+[MPPI] dist=4.98 best=72.4 path=0.06 obs=34.7 prog=0.14 stk=30
+[MPPI] dist=5.00 best=66.4 path=0.04 obs=32.4 prog=0.14 stk=30
+[Planner] Path found: 42 pts, 5.86m
+[MPPI] dist=5.01 best=73.5 path=0.05 obs=36.7 prog=0.14 stk=30
+[MPPI] dist=5.02 best=60.1 path=0.06 obs=30.1 prog=0.14 stk=30
+[Planner] Path found: 42 pts, 5.86m
+[MPPI] dist=5.02 best=71.4 path=0.07 obs=37.4 prog=0.14 stk=30
+[MPPI] dist=5.03 best=70.6 path=0.07 obs=34.7 prog=0.14 stk=30
+[Planner] Path found: 42 pts, 5.85m
+[MPPI] dist=5.03 best=63.2 path=0.03 obs=36.8 prog=0.14 stk=30
+[MPPI] dist=5.03 best=56.5 path=0.03 obs=31.6 prog=0.14 stk=30
+[Planner] Path found: 41 pts, 5.85m
+[MPPI] dist=5.03 best=64.9 path=0.04 obs=33.9 prog=0.15 stk=30
+[MPPI] dist=5.03 best=58.7 path=0.04 obs=32.2 prog=0.15 stk=30
+[Planner] Path found: 41 pts, 5.85m
+[MPPI] dist=5.04 best=65.7 path=0.03 obs=37.5 prog=0.14 stk=30
+[MPPI] dist=5.04 best=58.2 path=0.04 obs=32.4 prog=0.14 stk=30
+[Planner] Path found: 42 pts, 5.86m
+[MPPI] dist=5.04 best=65.1 path=0.04 obs=33.5 prog=0.14 stk=30
+[MPPI] dist=5.03 best=57.3 path=0.04 obs=30.6 prog=0.14 stk=30
+  Sim finished in 892.3s  (ctrl ticks: 4000/4000)
+
+  Completed in 896.7s
+  Goal reached: False
+  Traversal time: None
+  Roll RMS: 1.1326 rad (50.01 deg mean)
+  Body contacts: 33 (995 steps)
+  Dist to goal: 5.003 m
+    Rendered 20/500 frames...
+    Rendered 40/500 frames...
+    Rendered 60/500 frames...
+    Rendered 80/500 frames...
+    Rendered 100/500 frames...
+    Rendered 120/500 frames...
+    Rendered 140/500 frames...
+    Rendered 160/500 frames...
+    Rendered 180/500 frames...
+    Rendered 200/500 frames...
+    Rendered 220/500 frames...
+    Rendered 240/500 frames...
+    Rendered 260/500 frames...
+    Rendered 280/500 frames...
+    Rendered 300/500 frames...
+    Rendered 320/500 frames...
+    Rendered 340/500 frames...
+    Rendered 360/500 frames...
+    Rendered 380/500 frames...
+    Rendered 400/500 frames...
+    Rendered 420/500 frames...
+    Rendered 440/500 frames...
+    Rendered 460/500 frames...
+    Rendered 480/500 frames...
+    Rendered 500/500 frames...
+  Video saved: environment_results_main_planner/bc_094a059_xli1m_utm10_20240611_20240620/mppi_debug.mp4
+
+======================================================================
+  ENVIRONMENT 5/5: bc_094a060_xli1m_utm10_20240610_20240611
+  Scene XML: /home/suleiman/dog/go2-convex-mpc/models/MJCF/go2/environments/bc_094a060_xli1m_utm10_20240610_20240611.xml
+======================================================================
+
+[QP Init] ===== MPC QP Structure =====
+  H:  384 x 384  | nnz =    384 | dens =  0.0026
+  A:  512 x 384  | nnz =   5616 | dens =  0.0286
+  vars: 384 | constr: 512 | horizon N = 16
+[QP Init] ✓ Initialization complete.
+
+[Planner] Path found: 34 pts, 5.00m
+[Planner] Path found: 34 pts, 5.05m
+[MPPI] dist=5.03 best=22.4 path=0.05 obs=0.0 prog=0.61 stk=0
+[MPPI] dist=5.02 best=21.9 path=0.04 obs=0.0 prog=0.77 stk=0
+[Planner] Path found: 34 pts, 5.00m
+[MPPI] dist=5.01 best=23.5 path=0.05 obs=0.0 prog=0.45 stk=0
+[MPPI] dist=5.01 best=22.6 path=0.05 obs=0.0 prog=0.76 stk=0
+[Planner] Path found: 34 pts, 5.00m
+[MPPI] dist=5.01 best=23.2 path=0.04 obs=0.0 prog=0.60 stk=0
+[MPPI] dist=5.01 best=23.4 path=0.04 obs=0.0 prog=0.60 stk=1
+[Planner] Path found: 34 pts, 5.00m
+[MPPI] dist=5.00 best=23.3 path=0.05 obs=0.0 prog=0.60 stk=2
+[MPPI] dist=5.01 best=23.3 path=0.05 obs=0.0 prog=0.60 stk=3
+[Planner] Path found: 34 pts, 5.00m
+[MPPI] dist=5.00 best=23.4 path=0.04 obs=0.0 prog=0.45 stk=4
+[MPPI] dist=5.01 best=23.0 path=0.04 obs=0.0 prog=0.45 stk=5
+[Planner] Path found: 34 pts, 5.00m
+[MPPI] dist=5.01 best=22.4 path=0.04 obs=0.0 prog=0.45 stk=6
+[MPPI] dist=5.02 best=22.9 path=0.04 obs=0.0 prog=0.45 stk=7
+[Planner] Path found: 34 pts, 5.00m
+[MPPI] dist=5.02 best=22.6 path=0.04 obs=0.0 prog=0.45 stk=8
+[MPPI] dist=5.02 best=22.4 path=0.03 obs=0.0 prog=0.45 stk=9
+[Planner] Path found: 34 pts, 5.00m
+[MPPI] dist=5.02 best=22.0 path=0.04 obs=0.0 prog=0.61 stk=10
+[MPPI] dist=5.02 best=21.8 path=0.04 obs=0.0 prog=0.61 stk=11
+[Planner] Path found: 34 pts, 5.00m
+[MPPI] dist=5.02 best=21.7 path=0.04 obs=0.0 prog=0.61 stk=12
+[MPPI] dist=5.02 best=21.9 path=0.04 obs=0.0 prog=0.45 stk=13
+[Planner] Path found: 34 pts, 5.00m
+[MPPI] dist=5.02 best=22.1 path=0.04 obs=0.0 prog=0.45 stk=14
+[MPPI] dist=5.02 best=22.6 path=0.04 obs=0.0 prog=0.45 stk=15
+[Planner] Path found: 34 pts, 5.00m
+[MPPI] dist=5.02 best=21.8 path=0.04 obs=0.0 prog=0.61 stk=16
+[MPPI] dist=5.03 best=22.6 path=0.04 obs=0.0 prog=0.30 stk=17
+[Planner] Path found: 34 pts, 5.05m
+[MPPI] dist=5.04 best=22.5 path=0.04 obs=0.0 prog=0.46 stk=18
+[MPPI] dist=5.04 best=22.3 path=0.04 obs=0.0 prog=0.46 stk=19
+[Planner] Path found: 34 pts, 5.05m
+[MPPI] dist=5.04 best=22.1 path=0.04 obs=0.0 prog=0.61 stk=20
+[MPPI] dist=5.04 best=22.4 path=0.04 obs=0.0 prog=0.46 stk=21
+[Planner] Path found: 34 pts, 5.05m
+[MPPI] dist=5.04 best=21.8 path=0.04 obs=0.0 prog=0.61 stk=22
+[MPPI] dist=5.04 best=23.3 path=0.05 obs=0.0 prog=0.61 stk=23
+[Planner] Path found: 34 pts, 5.05m
+[MPPI] dist=5.04 best=22.0 path=0.04 obs=0.0 prog=0.61 stk=24
+[MPPI] dist=5.03 best=23.7 path=0.04 obs=0.0 prog=0.61 stk=25
+[Planner] Path found: 34 pts, 5.05m
+[MPPI] dist=5.03 best=22.6 path=0.04 obs=0.0 prog=0.61 stk=26
+[MPPI] dist=5.01 best=22.8 path=0.05 obs=0.0 prog=0.77 stk=27
+[Planner] Path found: 34 pts, 5.00m
+[MPPI] dist=5.00 best=22.2 path=0.04 obs=0.0 prog=0.61 stk=28
+[MPPI] dist=4.99 best=22.2 path=0.04 obs=0.0 prog=0.61 stk=29
+[Planner] Path found: 35 pts, 5.01m
+[MPPI] dist=4.99 best=22.2 path=0.04 obs=0.0 prog=0.60 stk=30
+[MPPI] dist=4.98 best=21.8 path=0.04 obs=0.0 prog=0.60 stk=30
+[Planner] Path found: 35 pts, 5.01m
+[MPPI] dist=4.98 best=22.3 path=0.04 obs=0.0 prog=0.60 stk=30
+[MPPI] dist=4.97 best=22.2 path=0.04 obs=0.0 prog=0.60 stk=30
+[Planner] Path found: 34 pts, 4.96m
+[MPPI] dist=4.97 best=22.1 path=0.04 obs=0.0 prog=0.60 stk=30
+[MPPI] dist=4.96 best=21.3 path=0.04 obs=0.0 prog=0.75 stk=30
+[Planner] Path found: 34 pts, 4.96m
+[MPPI] dist=4.96 best=22.4 path=0.04 obs=0.0 prog=0.60 stk=30
+[MPPI] dist=4.95 best=22.1 path=0.04 obs=0.0 prog=0.60 stk=30
+[Planner] Path found: 34 pts, 4.96m
+[MPPI] dist=4.95 best=22.1 path=0.04 obs=0.0 prog=0.45 stk=30
+[MPPI] dist=4.95 best=22.2 path=0.04 obs=0.0 prog=0.60 stk=30
+[Planner] Path found: 34 pts, 4.96m
+[MPPI] dist=4.95 best=22.4 path=0.04 obs=0.0 prog=0.45 stk=30
+[MPPI] dist=4.95 best=22.7 path=0.04 obs=0.0 prog=0.60 stk=30
+[Planner] Path found: 34 pts, 4.96m
+[MPPI] dist=4.95 best=22.6 path=0.04 obs=0.0 prog=0.60 stk=30
+[MPPI] dist=4.95 best=22.6 path=0.04 obs=0.0 prog=0.60 stk=30
+[Planner] Path found: 34 pts, 4.96m
+[MPPI] dist=4.94 best=21.6 path=0.04 obs=0.0 prog=0.60 stk=30
+[MPPI] dist=4.94 best=21.8 path=0.04 obs=0.0 prog=0.60 stk=30
+[Planner] Path found: 34 pts, 4.96m
+[MPPI] dist=4.94 best=23.6 path=0.05 obs=0.0 prog=0.60 stk=30
+[MPPI] dist=4.94 best=23.9 path=0.06 obs=0.0 prog=0.60 stk=30
+[Planner] Path found: 34 pts, 4.96m
+[MPPI] dist=4.94 best=27.4 path=0.04 obs=0.0 prog=0.45 stk=30
+[MPPI] dist=4.93 best=23.2 path=0.04 obs=0.0 prog=0.60 stk=30
+[Planner] Path found: 34 pts, 4.96m
+[MPPI] dist=4.93 best=22.8 path=0.05 obs=0.0 prog=0.60 stk=30
+[MPPI] dist=4.93 best=23.8 path=0.06 obs=0.0 prog=0.60 stk=30
+[Planner] Path found: 34 pts, 4.91m
+[MPPI] dist=4.92 best=24.6 path=0.06 obs=0.0 prog=0.59 stk=30
+[MPPI] dist=4.91 best=23.8 path=0.06 obs=0.0 prog=0.59 stk=30
+[Planner] Path found: 34 pts, 4.91m
+[MPPI] dist=4.90 best=24.1 path=0.06 obs=0.0 prog=0.59 stk=30
+[MPPI] dist=4.90 best=26.6 path=0.09 obs=0.0 prog=0.45 stk=30
+[Planner] Path found: 34 pts, 4.91m
+[MPPI] dist=4.89 best=27.3 path=0.09 obs=0.0 prog=0.59 stk=30
+[MPPI] dist=4.90 best=27.6 path=0.10 obs=0.0 prog=0.59 stk=30
+[Planner] Path found: 35 pts, 4.93m
+[MPPI] dist=4.89 best=26.3 path=0.09 obs=0.0 prog=0.59 stk=30
+[MPPI] dist=4.89 best=28.1 path=0.10 obs=0.0 prog=0.59 stk=30
+[Planner] Path found: 34 pts, 4.93m
+[MPPI] dist=4.88 best=29.2 path=0.10 obs=0.0 prog=0.61 stk=30
+[MPPI] dist=4.88 best=30.6 path=0.11 obs=0.0 prog=0.61 stk=30
+[Planner] Path found: 34 pts, 4.89m
+[MPPI] dist=4.87 best=27.4 path=0.09 obs=0.0 prog=0.60 stk=30
+[MPPI] dist=4.86 best=37.2 path=0.16 obs=0.0 prog=0.60 stk=30
+[Planner] Path found: 35 pts, 4.89m
+[MPPI] dist=4.86 best=36.2 path=0.16 obs=0.0 prog=0.44 stk=30
+[MPPI] dist=4.86 best=41.7 path=0.19 obs=0.0 prog=0.44 stk=30
+[Planner] Path found: 34 pts, 4.91m
+[MPPI] dist=4.86 best=35.6 path=0.15 obs=0.0 prog=0.45 stk=30
+[MPPI] dist=4.87 best=47.2 path=0.22 obs=0.0 prog=0.45 stk=30
+[Planner] Path found: 34 pts, 4.91m
+[MPPI] dist=4.87 best=41.8 path=0.24 obs=0.0 prog=0.45 stk=30
+[MPPI] dist=4.86 best=43.7 path=0.28 obs=0.0 prog=0.60 stk=30
+[Planner] Path found: 35 pts, 4.93m
+[MPPI] dist=4.85 best=44.1 path=0.25 obs=0.0 prog=0.43 stk=30
+[MPPI] dist=4.84 best=47.8 path=0.32 obs=0.0 prog=0.43 stk=30
+[Planner] Path found: 36 pts, 4.93m
+[MPPI] dist=4.84 best=46.2 path=0.19 obs=0.0 prog=0.52 stk=30
+[MPPI] dist=4.84 best=43.1 path=0.18 obs=0.0 prog=0.38 stk=30
+[Planner] Path found: 35 pts, 4.94m
+[MPPI] dist=4.83 best=39.8 path=0.12 obs=0.0 prog=0.44 stk=30
+[MPPI] dist=4.83 best=36.9 path=0.12 obs=0.0 prog=0.58 stk=30
+[Planner] Path found: 35 pts, 4.94m
+[MPPI] dist=4.82 best=36.6 path=0.12 obs=0.0 prog=0.55 stk=30
+[MPPI] dist=4.81 best=36.5 path=0.16 obs=0.0 prog=0.69 stk=30
+[Planner] Path found: 45 pts, 5.86m
+[MPPI] dist=4.80 best=37.7 path=0.12 obs=0.0 prog=0.64 stk=30
+[MPPI] dist=4.78 best=38.8 path=0.13 obs=0.0 prog=0.64 stk=30
+[Planner] Path found: 44 pts, 5.80m
+[MPPI] dist=4.77 best=40.9 path=0.13 obs=0.0 prog=0.74 stk=30
+[MPPI] dist=4.75 best=37.6 path=0.11 obs=0.0 prog=0.61 stk=30
+[Planner] Path found: 45 pts, 5.82m
+[MPPI] dist=4.74 best=45.3 path=0.12 obs=0.0 prog=0.70 stk=28
+[MPPI] dist=4.72 best=44.7 path=0.09 obs=0.0 prog=0.70 stk=26
+[Planner] Path found: 44 pts, 5.87m
+[MPPI] dist=4.70 best=44.3 path=0.07 obs=0.0 prog=0.67 stk=24
+[MPPI] dist=4.69 best=42.0 path=0.08 obs=0.0 prog=0.67 stk=22
+[Planner] Path found: 42 pts, 5.87m
+[MPPI] dist=4.67 best=33.7 path=0.08 obs=0.0 prog=0.74 stk=20
+[MPPI] dist=4.65 best=31.3 path=0.06 obs=0.0 prog=0.74 stk=18
+[Planner] Path found: 42 pts, 5.79m
+[MPPI] dist=4.63 best=31.1 path=0.08 obs=0.0 prog=0.71 stk=16
+[MPPI] dist=4.61 best=34.5 path=0.12 obs=0.0 prog=0.71 stk=14
+[Planner] Path found: 43 pts, 5.76m
+[MPPI] dist=4.59 best=33.6 path=0.09 obs=0.0 prog=0.70 stk=12
+[MPPI] dist=4.57 best=34.5 path=0.09 obs=0.0 prog=0.56 stk=10
+[Planner] Path found: 43 pts, 5.72m
+[MPPI] dist=4.55 best=30.8 path=0.06 obs=0.0 prog=0.81 stk=8
+[MPPI] dist=4.53 best=31.0 path=0.05 obs=0.0 prog=0.81 stk=6
+[Planner] Path found: 43 pts, 5.71m
+[MPPI] dist=4.51 best=32.1 path=0.08 obs=0.0 prog=0.81 stk=4
+[MPPI] dist=4.49 best=28.4 path=0.05 obs=0.0 prog=0.81 stk=2
+[Planner] Path found: 41 pts, 5.65m
+[MPPI] dist=4.47 best=36.9 path=0.10 obs=0.0 prog=0.71 stk=0
+[MPPI] dist=4.45 best=38.2 path=0.11 obs=0.0 prog=0.71 stk=0
+[Planner] Path found: 41 pts, 5.62m
+[MPPI] dist=4.43 best=36.2 path=0.11 obs=0.0 prog=0.65 stk=0
+[MPPI] dist=4.41 best=35.9 path=0.11 obs=0.0 prog=0.65 stk=0
+[Planner] Path found: 42 pts, 5.58m
+[MPPI] dist=4.39 best=30.6 path=0.07 obs=0.0 prog=0.70 stk=0
+[MPPI] dist=4.37 best=30.1 path=0.06 obs=0.0 prog=0.70 stk=0
+[Planner] Path found: 40 pts, 5.54m
+[MPPI] dist=4.35 best=31.2 path=0.09 obs=0.0 prog=0.73 stk=0
+[MPPI] dist=4.33 best=30.3 path=0.08 obs=0.0 prog=0.73 stk=0
+[Planner] Path found: 41 pts, 5.57m
+[MPPI] dist=4.32 best=28.0 path=0.06 obs=0.0 prog=0.65 stk=0
+[MPPI] dist=4.30 best=30.5 path=0.07 obs=0.0 prog=0.78 stk=0
+[Planner] Path found: 40 pts, 5.55m
+[MPPI] dist=4.28 best=30.8 path=0.05 obs=0.0 prog=0.70 stk=0
+[MPPI] dist=4.26 best=30.9 path=0.05 obs=0.0 prog=0.84 stk=0
+[Planner] Path found: 39 pts, 5.49m
+[MPPI] dist=4.25 best=28.7 path=0.06 obs=0.0 prog=0.59 stk=0
+[MPPI] dist=4.23 best=28.8 path=0.08 obs=0.0 prog=0.73 stk=0
+[Planner] Path found: 40 pts, 5.48m
+[MPPI] dist=4.21 best=27.8 path=0.06 obs=0.0 prog=0.72 stk=0
+[MPPI] dist=4.19 best=27.8 path=0.06 obs=0.0 prog=0.72 stk=0
+[Planner] Path found: 38 pts, 5.40m
+[MPPI] dist=4.18 best=29.2 path=0.04 obs=0.0 prog=0.60 stk=0
+[MPPI] dist=4.16 best=32.6 path=0.08 obs=0.0 prog=0.60 stk=0
+[Planner] Path found: 38 pts, 5.39m
+[MPPI] dist=4.14 best=33.9 path=0.11 obs=0.0 prog=0.60 stk=0
+[MPPI] dist=4.13 best=31.6 path=0.09 obs=0.0 prog=0.75 stk=0
+[Planner] Path found: 39 pts, 5.40m
+[MPPI] dist=4.11 best=29.1 path=0.06 obs=0.0 prog=0.72 stk=0
+[MPPI] dist=4.10 best=30.7 path=0.06 obs=0.0 prog=0.72 stk=0
+[Planner] Path found: 38 pts, 5.28m
+[MPPI] dist=4.08 best=28.7 path=0.05 obs=0.0 prog=0.73 stk=0
+[MPPI] dist=4.06 best=29.0 path=0.06 obs=0.0 prog=0.73 stk=0
+[Planner] Path found: 38 pts, 5.27m
+[MPPI] dist=4.04 best=29.7 path=0.03 obs=0.0 prog=0.67 stk=0
+[MPPI] dist=4.02 best=24.3 path=0.04 obs=0.0 prog=0.81 stk=0
+[Planner] Path found: 37 pts, 5.20m
+[MPPI] dist=4.01 best=23.8 path=0.04 obs=0.0 prog=0.75 stk=0
+[MPPI] dist=4.00 best=26.6 path=0.05 obs=0.0 prog=0.75 stk=0
+[Planner] Path found: 37 pts, 5.16m
+[MPPI] dist=3.99 best=26.9 path=0.04 obs=0.0 prog=0.75 stk=0
+[MPPI] dist=3.99 best=26.2 path=0.04 obs=0.0 prog=0.75 stk=0
+[Planner] Path found: 37 pts, 5.16m
+[MPPI] dist=3.98 best=24.8 path=0.04 obs=0.0 prog=0.75 stk=0
+[MPPI] dist=3.97 best=24.5 path=0.04 obs=0.0 prog=0.75 stk=0
+[Planner] Path found: 36 pts, 5.08m
+[MPPI] dist=3.96 best=24.7 path=0.04 obs=0.0 prog=0.76 stk=1
+[MPPI] dist=3.95 best=25.2 path=0.05 obs=0.0 prog=0.76 stk=2
+[Planner] Path found: 36 pts, 5.04m
+[MPPI] dist=3.95 best=23.9 path=0.04 obs=0.0 prog=0.60 stk=3
+[MPPI] dist=3.94 best=24.0 path=0.04 obs=0.0 prog=0.75 stk=4
+[Planner] Path found: 36 pts, 5.05m
+[MPPI] dist=3.93 best=24.9 path=0.04 obs=0.0 prog=0.75 stk=5
+[MPPI] dist=3.92 best=24.3 path=0.04 obs=0.0 prog=0.75 stk=6
+[Planner] Path found: 36 pts, 4.98m
+[MPPI] dist=3.92 best=24.2 path=0.05 obs=0.0 prog=0.59 stk=7
+[MPPI] dist=3.91 best=23.9 path=0.04 obs=0.0 prog=0.73 stk=8
+[Planner] Path found: 35 pts, 4.94m
+[MPPI] dist=3.89 best=24.0 path=0.04 obs=0.0 prog=0.75 stk=9
+[MPPI] dist=3.88 best=28.6 path=0.06 obs=0.0 prog=0.75 stk=10
+[Planner] Path found: 35 pts, 4.89m
+[MPPI] dist=3.88 best=27.6 path=0.05 obs=0.0 prog=0.75 stk=11
+[MPPI] dist=3.87 best=28.0 path=0.05 obs=0.0 prog=0.60 stk=12
+[Planner] Path found: 35 pts, 4.86m
+[MPPI] dist=3.86 best=28.8 path=0.04 obs=0.0 prog=0.74 stk=13
+[MPPI] dist=3.86 best=24.9 path=0.05 obs=0.0 prog=0.74 stk=14
+[Planner] Path found: 35 pts, 4.83m
+[MPPI] dist=3.85 best=25.1 path=0.04 obs=0.0 prog=0.74 stk=15
+[MPPI] dist=3.84 best=24.6 path=0.04 obs=0.0 prog=0.74 stk=16
+[Planner] Path found: 34 pts, 4.75m
+[MPPI] dist=3.83 best=26.1 path=0.05 obs=0.0 prog=0.74 stk=17
+[MPPI] dist=3.82 best=25.2 path=0.04 obs=0.0 prog=0.74 stk=18
+[Planner] Path found: 34 pts, 4.72m
+[MPPI] dist=3.81 best=24.9 path=0.04 obs=0.0 prog=0.74 stk=19
+[MPPI] dist=3.80 best=25.6 path=0.04 obs=0.0 prog=0.59 stk=20
+[Planner] Path found: 34 pts, 4.73m
+[MPPI] dist=3.78 best=27.5 path=0.04 obs=0.0 prog=0.74 stk=21
+[MPPI] dist=3.77 best=27.2 path=0.04 obs=0.0 prog=0.74 stk=22
+[Planner] Path found: 33 pts, 4.65m
+[MPPI] dist=3.76 best=25.7 path=0.04 obs=0.0 prog=0.75 stk=23
+[MPPI] dist=3.75 best=27.4 path=0.04 obs=0.0 prog=0.75 stk=24
+[Planner] Path found: 33 pts, 4.61m
+[MPPI] dist=3.74 best=27.3 path=0.04 obs=0.0 prog=0.74 stk=25
+[MPPI] dist=3.73 best=29.3 path=0.05 obs=0.0 prog=0.74 stk=26
+[Planner] Path found: 33 pts, 4.54m
+[MPPI] dist=3.73 best=32.9 path=0.10 obs=0.0 prog=0.72 stk=27
+[MPPI] dist=3.72 best=33.5 path=0.10 obs=0.0 prog=0.72 stk=28
+[Planner] Path found: 32 pts, 4.51m
+[MPPI] dist=3.72 best=34.1 path=0.07 obs=0.0 prog=0.75 stk=29
+[MPPI] dist=3.71 best=30.3 path=0.05 obs=0.0 prog=0.75 stk=30
+[Planner] Path found: 33 pts, 4.45m
+[MPPI] dist=3.70 best=34.8 path=0.08 obs=0.0 prog=0.68 stk=30
+[MPPI] dist=3.70 best=31.4 path=0.07 obs=0.0 prog=0.82 stk=30
+[Planner] Path found: 33 pts, 4.48m
+[MPPI] dist=3.69 best=27.3 path=0.03 obs=0.0 prog=0.81 stk=30
+[MPPI] dist=3.68 best=27.8 path=0.04 obs=0.0 prog=0.81 stk=30
+[Planner] Path found: 33 pts, 4.53m
+[MPPI] dist=3.67 best=30.7 path=0.05 obs=0.0 prog=0.86 stk=30
+[MPPI] dist=3.67 best=34.1 path=0.05 obs=0.0 prog=0.72 stk=30
+[Planner] Path found: 31 pts, 4.36m
+[MPPI] dist=3.66 best=34.0 path=0.04 obs=0.0 prog=0.57 stk=30
+[MPPI] dist=3.65 best=28.9 path=0.04 obs=0.0 prog=0.72 stk=30
+[Planner] Path found: 31 pts, 4.30m
+[MPPI] dist=3.64 best=27.6 path=0.04 obs=0.0 prog=0.73 stk=30
+[MPPI] dist=3.64 best=29.7 path=0.05 obs=0.0 prog=0.59 stk=30
+[Planner] Path found: 32 pts, 4.33m
+[MPPI] dist=3.63 best=30.6 path=0.04 obs=0.0 prog=0.56 stk=30
+[MPPI] dist=3.62 best=29.6 path=0.04 obs=0.0 prog=0.69 stk=30
+[Planner] Path found: 31 pts, 4.25m
+[MPPI] dist=3.61 best=29.3 path=0.04 obs=0.0 prog=0.58 stk=30
+[MPPI] dist=3.60 best=35.5 path=0.05 obs=0.0 prog=0.58 stk=30
+[Planner] Path found: 30 pts, 4.18m
+[MPPI] dist=3.59 best=29.8 path=0.04 obs=0.0 prog=0.44 stk=30
+[MPPI] dist=3.59 best=30.1 path=0.05 obs=0.0 prog=0.44 stk=30
+[Planner] Path found: 34 pts, 4.35m
+[MPPI] dist=3.58 best=32.8 path=0.04 obs=0.0 prog=0.44 stk=30
+[MPPI] dist=3.58 best=32.5 path=0.04 obs=0.0 prog=0.55 stk=30
+[Planner] Path found: 30 pts, 4.18m
+[MPPI] dist=3.57 best=31.3 path=0.04 obs=0.0 prog=0.58 stk=30
+[MPPI] dist=3.57 best=29.7 path=0.04 obs=0.0 prog=0.58 stk=30
+[Planner] Path found: 31 pts, 4.24m
+[MPPI] dist=3.56 best=29.0 path=0.04 obs=0.0 prog=0.58 stk=30
+[MPPI] dist=3.56 best=30.3 path=0.06 obs=0.0 prog=0.72 stk=30
+[Planner] Path found: 30 pts, 4.17m
+[MPPI] dist=3.56 best=27.3 path=0.04 obs=0.0 prog=0.70 stk=30
+[MPPI] dist=3.56 best=27.3 path=0.04 obs=0.0 prog=0.57 stk=30
+[Planner] Path found: 30 pts, 4.11m
+[MPPI] dist=3.56 best=27.6 path=0.04 obs=0.0 prog=0.68 stk=30
+[MPPI] dist=3.55 best=30.2 path=0.04 obs=0.0 prog=0.68 stk=30
+[Planner] Path found: 29 pts, 4.01m
+[MPPI] dist=3.54 best=30.6 path=0.06 obs=0.9 prog=0.58 stk=30
+[MPPI] dist=3.54 best=31.5 path=0.06 obs=0.0 prog=0.58 stk=30
+[Planner] Path found: 30 pts, 4.07m
+[MPPI] dist=3.53 best=27.1 path=0.06 obs=0.0 prog=0.72 stk=30
+[MPPI] dist=3.53 best=33.2 path=0.09 obs=0.0 prog=0.72 stk=30
+[Planner] Path found: 28 pts, 3.94m
+[MPPI] dist=3.52 best=42.6 path=0.10 obs=0.0 prog=0.59 stk=30
+[MPPI] dist=3.52 best=34.5 path=0.10 obs=0.0 prog=0.74 stk=30
+[Planner] Path found: 29 pts, 4.01m
+[MPPI] dist=3.53 best=26.0 path=0.06 obs=0.0 prog=0.72 stk=30
+[MPPI] dist=3.53 best=29.6 path=0.06 obs=0.0 prog=0.72 stk=30
+[Planner] Path found: 28 pts, 3.93m
+[MPPI] dist=3.53 best=29.8 path=0.10 obs=0.0 prog=0.72 stk=30
+[MPPI] dist=3.53 best=30.3 path=0.09 obs=0.0 prog=0.72 stk=30
+[Planner] Path found: 31 pts, 4.32m
+[MPPI] dist=3.53 best=28.2 path=0.11 obs=0.0 prog=0.74 stk=30
+[MPPI] dist=3.53 best=27.5 path=0.10 obs=0.0 prog=0.74 stk=30
+[Planner] Path found: 31 pts, 4.29m
+[MPPI] dist=3.53 best=26.6 path=0.07 obs=0.0 prog=0.60 stk=30
+[MPPI] dist=3.53 best=27.2 path=0.07 obs=0.0 prog=0.75 stk=30
+[Planner] Path found: 31 pts, 4.26m
+[MPPI] dist=3.52 best=27.6 path=0.06 obs=0.0 prog=0.75 stk=30
+[MPPI] dist=3.51 best=25.2 path=0.06 obs=0.0 prog=0.75 stk=30
+[Planner] Path found: 31 pts, 4.22m
+[MPPI] dist=3.51 best=24.1 path=0.05 obs=0.0 prog=0.60 stk=30
+[MPPI] dist=3.50 best=23.9 path=0.06 obs=0.0 prog=0.75 stk=30
+[Planner] Path found: 31 pts, 4.20m
+[MPPI] dist=3.49 best=25.4 path=0.04 obs=1.4 prog=0.73 stk=30
+[MPPI] dist=3.48 best=27.9 path=0.05 obs=0.0 prog=0.73 stk=30
+[Planner] Path found: 30 pts, 4.16m
+[MPPI] dist=3.46 best=25.9 path=0.04 obs=1.5 prog=0.75 stk=30
+[MPPI] dist=3.45 best=24.0 path=0.05 obs=0.0 prog=0.75 stk=30
+[Planner] Path found: 30 pts, 4.11m
+[MPPI] dist=3.44 best=25.2 path=0.05 obs=0.0 prog=0.60 stk=30
+[MPPI] dist=3.43 best=25.6 path=0.06 obs=0.0 prog=0.60 stk=30
+[Planner] Path found: 30 pts, 4.10m
+[MPPI] dist=3.42 best=31.9 path=0.06 obs=0.0 prog=0.73 stk=30
+[MPPI] dist=3.41 best=25.7 path=0.06 obs=0.0 prog=0.73 stk=30
+[Planner] Path found: 29 pts, 4.01m
+[MPPI] dist=3.41 best=26.9 path=0.07 obs=0.0 prog=0.60 stk=30
+[MPPI] dist=3.40 best=27.9 path=0.08 obs=0.0 prog=0.60 stk=30
+[Planner] Path found: 29 pts, 3.99m
+[MPPI] dist=3.40 best=27.5 path=0.06 obs=0.0 prog=0.74 stk=30
+[MPPI] dist=3.39 best=25.6 path=0.05 obs=0.0 prog=0.59 stk=30
+[Planner] Path found: 29 pts, 3.96m
+[MPPI] dist=3.38 best=24.1 path=0.05 obs=0.0 prog=0.60 stk=30
+[MPPI] dist=3.37 best=26.4 path=0.07 obs=0.0 prog=0.60 stk=30
+[Planner] Path found: 29 pts, 3.95m
+[MPPI] dist=3.36 best=25.6 path=0.06 obs=0.0 prog=0.59 stk=30
+[MPPI] dist=3.36 best=32.7 path=0.05 obs=0.0 prog=0.74 stk=30
+[Planner] Path found: 28 pts, 3.89m
+[MPPI] dist=3.35 best=26.9 path=0.05 obs=0.0 prog=0.61 stk=30
+[MPPI] dist=3.34 best=25.2 path=0.05 obs=0.0 prog=0.61 stk=30
+[Planner] Path found: 29 pts, 3.85m
+[MPPI] dist=3.33 best=26.0 path=0.04 obs=0.0 prog=0.58 stk=30
+[MPPI] dist=3.32 best=25.9 path=0.04 obs=0.0 prog=0.58 stk=30
+[Planner] Path found: 28 pts, 3.80m
+[MPPI] dist=3.31 best=25.1 path=0.04 obs=0.0 prog=0.76 stk=30
+[MPPI] dist=3.30 best=25.3 path=0.04 obs=0.0 prog=0.76 stk=30
+[Planner] Path found: 28 pts, 3.76m
+[MPPI] dist=3.29 best=25.0 path=0.04 obs=0.0 prog=0.60 stk=30
+[MPPI] dist=3.29 best=28.9 path=0.04 obs=0.0 prog=0.60 stk=30
+[Planner] Path found: 28 pts, 3.74m
+[MPPI] dist=3.28 best=24.7 path=0.04 obs=0.0 prog=0.60 stk=30
+[MPPI] dist=3.27 best=25.6 path=0.04 obs=0.0 prog=0.60 stk=30
+[Planner] Path found: 28 pts, 3.70m
+[MPPI] dist=3.26 best=24.7 path=0.04 obs=0.0 prog=0.59 stk=30
+[MPPI] dist=3.25 best=25.5 path=0.04 obs=0.0 prog=0.73 stk=30
+[Planner] Path found: 27 pts, 3.69m
+[MPPI] dist=3.24 best=27.1 path=0.04 obs=0.0 prog=0.76 stk=30
+[MPPI] dist=3.22 best=25.9 path=0.04 obs=0.0 prog=0.76 stk=30
+[Planner] Path found: 27 pts, 3.64m
+[MPPI] dist=3.21 best=25.6 path=0.05 obs=0.0 prog=0.75 stk=30
+[MPPI] dist=3.20 best=26.2 path=0.04 obs=0.0 prog=0.60 stk=30
+[Planner] Path found: 27 pts, 3.64m
+[MPPI] dist=3.19 best=26.8 path=0.04 obs=0.0 prog=0.74 stk=28
+[MPPI] dist=3.17 best=27.6 path=0.04 obs=0.0 prog=0.74 stk=26
+[Planner] Path found: 27 pts, 3.58m
+[MPPI] dist=3.15 best=30.5 path=0.07 obs=0.0 prog=0.87 stk=24
+[MPPI] dist=3.13 best=27.9 path=0.04 obs=0.0 prog=0.87 stk=22
+[Planner] Path found: 27 pts, 3.72m
+[MPPI] dist=3.12 best=29.9 path=0.05 obs=0.0 prog=0.74 stk=20
+[MPPI] dist=3.10 best=30.2 path=0.05 obs=0.0 prog=0.59 stk=18
+[Planner] Path found: 27 pts, 3.67m
+[MPPI] dist=3.09 best=28.6 path=0.05 obs=0.0 prog=0.73 stk=16
+[MPPI] dist=3.08 best=28.3 path=0.04 obs=0.0 prog=0.73 stk=14
+[Planner] Path found: 26 pts, 3.60m
+[MPPI] dist=3.07 best=28.8 path=0.04 obs=0.0 prog=0.60 stk=12
+[MPPI] dist=3.06 best=29.2 path=0.04 obs=0.0 prog=0.60 stk=10
+[Planner] Path found: 26 pts, 3.62m
+[MPPI] dist=3.04 best=30.9 path=0.05 obs=0.0 prog=0.74 stk=8
+[MPPI] dist=3.02 best=30.4 path=0.04 obs=0.0 prog=0.74 stk=6
+[Planner] Path found: 26 pts, 3.55m
+[MPPI] dist=3.01 best=30.1 path=0.05 obs=0.0 prog=0.73 stk=4
+[MPPI] dist=2.99 best=30.3 path=0.05 obs=0.0 prog=0.73 stk=2
+[Planner] Path found: 26 pts, 3.49m
+[MPPI] dist=2.98 best=30.0 path=0.04 obs=0.0 prog=0.71 stk=0
+[MPPI] dist=2.96 best=29.8 path=0.04 obs=0.0 prog=0.71 stk=0
+[Planner] Path found: 26 pts, 3.48m
+[MPPI] dist=2.95 best=28.5 path=0.04 obs=0.0 prog=0.69 stk=0
+[MPPI] dist=2.94 best=29.0 path=0.04 obs=0.0 prog=0.69 stk=0
+[Planner] Path found: 26 pts, 3.43m
+[MPPI] dist=2.92 best=30.1 path=0.04 obs=0.0 prog=0.84 stk=0
+[MPPI] dist=2.90 best=30.1 path=0.04 obs=0.0 prog=0.84 stk=0
+[Planner] Path found: 25 pts, 3.39m
+[MPPI] dist=2.88 best=29.0 path=0.06 obs=0.0 prog=0.86 stk=0
+[MPPI] dist=2.86 best=27.5 path=0.04 obs=0.0 prog=0.86 stk=0
+[Planner] Path found: 25 pts, 3.34m
+[MPPI] dist=2.84 best=27.7 path=0.04 obs=0.0 prog=0.69 stk=0
+[MPPI] dist=2.82 best=28.4 path=0.05 obs=0.0 prog=0.69 stk=0
+[Planner] Path found: 25 pts, 3.25m
+[MPPI] dist=2.80 best=42.7 path=0.09 obs=0.0 prog=0.81 stk=0
+[MPPI] dist=2.78 best=38.6 path=0.06 obs=0.0 prog=0.81 stk=0
+[Planner] Path found: 24 pts, 3.23m
+[MPPI] dist=2.76 best=32.0 path=0.04 obs=0.0 prog=0.87 stk=0
+[MPPI] dist=2.72 best=29.3 path=0.04 obs=0.0 prog=0.87 stk=0
+[Planner] Path found: 23 pts, 3.11m
+[MPPI] dist=2.69 best=28.8 path=0.04 obs=0.0 prog=0.88 stk=0
+[MPPI] dist=2.67 best=26.9 path=0.06 obs=0.0 prog=0.88 stk=0
+[Planner] Path found: 23 pts, 3.06m
+[MPPI] dist=2.64 best=24.9 path=0.04 obs=0.0 prog=0.70 stk=0
+[MPPI] dist=2.62 best=26.9 path=0.04 obs=0.0 prog=0.84 stk=0
+[Planner] Path found: 24 pts, 3.07m
+[MPPI] dist=2.60 best=33.2 path=0.04 obs=0.0 prog=0.68 stk=0
+[MPPI] dist=2.59 best=26.7 path=0.03 obs=0.0 prog=0.68 stk=0
+[Planner] Path found: 23 pts, 3.02m
+[MPPI] dist=2.57 best=24.6 path=0.04 obs=0.0 prog=0.73 stk=0
+[MPPI] dist=2.55 best=27.1 path=0.05 obs=0.0 prog=0.88 stk=0
+[Planner] Path found: 22 pts, 2.92m
+[MPPI] dist=2.53 best=22.9 path=0.04 obs=0.0 prog=0.74 stk=0
+[MPPI] dist=2.52 best=22.1 path=0.04 obs=0.0 prog=0.74 stk=0
+[Planner] Path found: 22 pts, 2.86m
+[MPPI] dist=2.50 best=25.5 path=0.04 obs=0.0 prog=0.72 stk=0
+[MPPI] dist=2.48 best=23.9 path=0.05 obs=0.0 prog=0.72 stk=0
+[Planner] Path found: 20 pts, 2.63m
+[MPPI] dist=2.47 best=28.2 path=0.04 obs=0.0 prog=0.70 stk=0
+[MPPI] dist=2.46 best=25.6 path=0.04 obs=0.0 prog=0.70 stk=0
+[Planner] Path found: 19 pts, 2.58m
+[MPPI] dist=2.45 best=26.4 path=0.05 obs=0.0 prog=0.73 stk=0
+[MPPI] dist=2.43 best=27.6 path=0.05 obs=0.0 prog=0.73 stk=0
+[Planner] Path found: 19 pts, 2.54m
+[MPPI] dist=2.42 best=26.1 path=0.04 obs=0.0 prog=0.73 stk=0
+[MPPI] dist=2.40 best=30.1 path=0.07 obs=0.0 prog=0.73 stk=0
+[Planner] Path found: 19 pts, 2.54m
+[MPPI] dist=2.39 best=26.2 path=0.05 obs=0.0 prog=0.73 stk=0
+[MPPI] dist=2.38 best=24.2 path=0.04 obs=0.0 prog=0.73 stk=0
+[Planner] Path found: 18 pts, 2.47m
+[MPPI] dist=2.36 best=24.1 path=0.04 obs=0.0 prog=0.60 stk=0
+[MPPI] dist=2.34 best=22.4 path=0.04 obs=0.0 prog=0.75 stk=0
+[Planner] Path found: 18 pts, 2.42m
+[MPPI] dist=2.32 best=27.6 path=0.06 obs=0.0 prog=0.88 stk=0
+[MPPI] dist=2.29 best=28.0 path=0.07 obs=0.0 prog=0.88 stk=0
+[Planner] Path found: 18 pts, 2.37m
+[MPPI] dist=2.25 best=26.6 path=0.08 obs=0.0 prog=0.88 stk=0
+[MPPI] dist=2.22 best=27.6 path=0.08 obs=0.0 prog=0.88 stk=0
+[Planner] Path found: 19 pts, 2.45m
+[MPPI] dist=2.18 best=26.2 path=0.07 obs=0.0 prog=0.89 stk=0
+[MPPI] dist=2.15 best=31.9 path=0.12 obs=0.0 prog=0.75 stk=0
+[Planner] Path found: 19 pts, 2.34m
+[MPPI] dist=2.11 best=24.1 path=0.07 obs=0.0 prog=0.84 stk=0
+[MPPI] dist=2.08 best=24.5 path=0.07 obs=0.0 prog=0.71 stk=0
+[Planner] Path found: 18 pts, 2.28m
+[MPPI] dist=2.05 best=26.8 path=0.09 obs=0.0 prog=0.75 stk=0
+[MPPI] dist=2.02 best=25.3 path=0.08 obs=0.0 prog=0.75 stk=0
+[Planner] Path found: 16 pts, 2.13m
+[MPPI] dist=1.98 best=32.9 path=0.06 obs=0.0 prog=0.57 stk=0
+[MPPI] dist=1.95 best=25.6 path=0.04 obs=0.0 prog=0.72 stk=0
+[Planner] Path found: 17 pts, 2.15m
+[MPPI] dist=1.92 best=23.2 path=0.04 obs=0.0 prog=0.73 stk=0
+[MPPI] dist=1.89 best=23.3 path=0.04 obs=0.0 prog=0.73 stk=0
+[Planner] Path found: 17 pts, 2.11m
+[MPPI] dist=1.87 best=22.8 path=0.05 obs=0.0 prog=0.73 stk=0
+[MPPI] dist=1.85 best=23.7 path=0.04 obs=0.0 prog=0.73 stk=0
+[Planner] Path found: 17 pts, 2.07m
+[MPPI] dist=1.83 best=23.9 path=0.05 obs=0.0 prog=0.71 stk=0
+[MPPI] dist=1.81 best=23.4 path=0.05 obs=0.0 prog=0.71 stk=0
+[Planner] Path found: 16 pts, 2.02m
+[MPPI] dist=1.79 best=23.6 path=0.04 obs=0.0 prog=0.73 stk=0
+[MPPI] dist=1.77 best=25.4 path=0.04 obs=0.0 prog=0.73 stk=0
+[Planner] Path found: 17 pts, 2.00m
+[MPPI] dist=1.76 best=26.2 path=0.06 obs=0.0 prog=0.84 stk=0
+[MPPI] dist=1.74 best=24.4 path=0.06 obs=0.0 prog=0.84 stk=0
+[Planner] Path found: 16 pts, 1.94m
+[MPPI] dist=1.73 best=24.8 path=0.03 obs=0.0 prog=0.54 stk=0
+[MPPI] dist=1.71 best=24.5 path=0.04 obs=0.0 prog=0.67 stk=0
+[Planner] Path found: 15 pts, 1.92m
+[MPPI] dist=1.70 best=26.3 path=0.07 obs=0.0 prog=0.59 stk=0
+[MPPI] dist=1.69 best=26.3 path=0.07 obs=0.0 prog=0.74 stk=0
+[Planner] Path found: 15 pts, 1.88m
+[MPPI] dist=1.68 best=26.5 path=0.04 obs=0.0 prog=0.58 stk=0
+[MPPI] dist=1.66 best=30.4 path=0.05 obs=0.0 prog=0.58 stk=0
+[Planner] Path found: 14 pts, 1.79m
+[MPPI] dist=1.65 best=28.6 path=0.05 obs=0.0 prog=0.58 stk=0
+[MPPI] dist=1.63 best=25.6 path=0.04 obs=0.0 prog=0.44 stk=0
+[Planner] Path found: 14 pts, 1.78m
+[MPPI] dist=1.62 best=30.4 path=0.04 obs=0.0 prog=0.44 stk=0
+[MPPI] dist=1.60 best=30.6 path=0.04 obs=0.0 prog=0.44 stk=0
+[Planner] Path found: 14 pts, 1.74m
+[MPPI] dist=1.58 best=38.7 path=0.04 obs=0.0 prog=0.56 stk=0
+[MPPI] dist=1.56 best=48.9 path=0.04 obs=0.0 prog=0.42 stk=0
+[Planner] Path found: 13 pts, 1.67m
+[MPPI] dist=1.54 best=78.7 path=0.05 obs=30.5 prog=0.70 stk=0
+[MPPI] dist=1.51 best=62.2 path=0.06 obs=6.3 prog=0.70 stk=0
+[Planner] Path found: 15 pts, 1.75m
+[MPPI] dist=1.48 best=368.6 path=0.27 obs=18.9 prog=0.13 stk=0
+[MPPI] dist=1.46 best=154.7 path=0.21 obs=0.0 prog=0.38 stk=0
+[Planner] Path found: 13 pts, 1.60m
+[MPPI] dist=1.45 best=241.8 path=0.29 obs=0.0 prog=0.28 stk=0
+[MPPI] dist=1.43 best=103.3 path=0.23 obs=0.0 prog=0.67 stk=0
+[Planner] Path found: 12 pts, 1.52m
+[MPPI] dist=1.42 best=271.7 path=0.36 obs=0.0 prog=0.40 stk=0
+[MPPI] dist=1.40 best=166.6 path=0.24 obs=0.0 prog=0.40 stk=0
+[Planner] Path found: 12 pts, 1.44m
+[MPPI] dist=1.39 best=354.3 path=0.42 obs=0.0 prog=0.26 stk=0
+[MPPI] dist=1.37 best=161.7 path=0.21 obs=0.0 prog=0.38 stk=0
+[Planner] Path found: 11 pts, 1.38m
+[MPPI] dist=1.35 best=374.5 path=0.42 obs=0.0 prog=0.26 stk=0
+[MPPI] dist=1.34 best=154.3 path=0.24 obs=0.0 prog=0.40 stk=0
+[Planner] Path found: 11 pts, 1.33m
+[MPPI] dist=1.33 best=254.3 path=0.34 obs=0.0 prog=0.38 stk=0
+[MPPI] dist=1.31 best=103.1 path=0.16 obs=0.0 prog=0.38 stk=0
+[Planner] Path found: 10 pts, 1.33m
+[MPPI] dist=1.31 best=269.6 path=0.38 obs=0.0 prog=0.45 stk=0
+[MPPI] dist=1.31 best=128.7 path=0.22 obs=0.0 prog=0.30 stk=0
+[Planner] Path found: 11 pts, 1.36m
+[MPPI] dist=1.30 best=209.0 path=0.36 obs=0.0 prog=0.43 stk=1
+[MPPI] dist=1.30 best=97.9 path=0.21 obs=0.0 prog=0.56 stk=2
+[Planner] Path found: 10 pts, 1.34m
+[MPPI] dist=1.30 best=246.7 path=0.41 obs=0.0 prog=0.45 stk=3
+[MPPI] dist=1.30 best=116.7 path=0.23 obs=0.0 prog=0.45 stk=4
+[Planner] Path found: 11 pts, 1.32m
+[MPPI] dist=1.30 best=172.0 path=0.29 obs=0.0 prog=0.39 stk=5
+[MPPI] dist=1.30 best=74.0 path=0.16 obs=0.0 prog=0.52 stk=6
+[Planner] Path found: 10 pts, 1.31m
+[MPPI] dist=1.31 best=208.1 path=0.34 obs=0.0 prog=0.30 stk=7
+[MPPI] dist=1.31 best=111.8 path=0.20 obs=0.0 prog=0.30 stk=8
+[Planner] Path found: 10 pts, 1.34m
+[MPPI] dist=1.31 best=166.7 path=0.29 obs=0.0 prog=0.44 stk=9
+[MPPI] dist=1.31 best=162.0 path=0.31 obs=0.0 prog=0.44 stk=10
+[Planner] Path found: 10 pts, 1.32m
+[MPPI] dist=1.31 best=108.3 path=0.20 obs=0.0 prog=0.58 stk=11
+[MPPI] dist=1.31 best=106.2 path=0.24 obs=0.0 prog=0.58 stk=12
+[Planner] Path found: 10 pts, 1.32m
+[MPPI] dist=1.31 best=178.3 path=0.32 obs=0.0 prog=0.44 stk=13
+[MPPI] dist=1.31 best=103.0 path=0.25 obs=0.0 prog=0.58 stk=14
+[Planner] Path found: 10 pts, 1.31m
+[MPPI] dist=1.31 best=96.1 path=0.21 obs=0.0 prog=0.58 stk=15
+[MPPI] dist=1.30 best=86.8 path=0.20 obs=0.0 prog=0.58 stk=16
+[Planner] Path found: 10 pts, 1.31m
+[MPPI] dist=1.30 best=120.7 path=0.21 obs=0.0 prog=0.43 stk=17
+[MPPI] dist=1.30 best=114.6 path=0.23 obs=0.0 prog=0.57 stk=18
+[Planner] Path found: 10 pts, 1.30m
+[MPPI] dist=1.29 best=107.7 path=0.24 obs=0.0 prog=0.59 stk=19
+[MPPI] dist=1.28 best=76.9 path=0.20 obs=0.0 prog=0.59 stk=20
+[Planner] Path found: 9 pts, 1.25m
+[MPPI] dist=1.27 best=135.5 path=0.25 obs=0.0 prog=0.47 stk=21
+[MPPI] dist=1.26 best=85.9 path=0.21 obs=0.0 prog=0.62 stk=22
+[Planner] Path found: 9 pts, 1.25m
+[MPPI] dist=1.25 best=58.7 path=0.09 obs=0.0 prog=0.62 stk=23
+[MPPI] dist=1.24 best=108.6 path=0.20 obs=0.0 prog=0.62 stk=24
+[Planner] Path found: 9 pts, 1.25m
+[MPPI] dist=1.23 best=57.3 path=0.13 obs=0.0 prog=0.62 stk=25
+[MPPI] dist=1.23 best=77.6 path=0.19 obs=0.0 prog=0.62 stk=26
+[Planner] Path found: 10 pts, 1.21m
+[MPPI] dist=1.22 best=78.6 path=0.20 obs=0.0 prog=0.63 stk=27
+[MPPI] dist=1.21 best=86.6 path=0.24 obs=0.0 prog=0.63 stk=28
+[Planner] Path found: 9 pts, 1.20m
+[MPPI] dist=1.21 best=79.8 path=0.19 obs=0.0 prog=0.45 stk=29
+[MPPI] dist=1.21 best=72.0 path=0.17 obs=0.0 prog=0.45 stk=30
+[Planner] Path found: 9 pts, 1.21m
+[MPPI] dist=1.21 best=52.1 path=0.10 obs=0.0 prog=0.60 stk=30
+[MPPI] dist=1.21 best=99.8 path=0.19 obs=0.0 prog=0.45 stk=30
+[Planner] Path found: 9 pts, 1.21m
+[MPPI] dist=1.21 best=91.8 path=0.18 obs=0.0 prog=0.45 stk=30
+[MPPI] dist=1.21 best=50.7 path=0.13 obs=0.0 prog=0.60 stk=30
+[Planner] Path found: 9 pts, 1.21m
+[MPPI] dist=1.21 best=44.3 path=0.13 obs=0.0 prog=0.60 stk=30
+[MPPI] dist=1.21 best=76.7 path=0.22 obs=0.0 prog=0.45 stk=30
+[Planner] Path found: 9 pts, 1.21m
+[MPPI] dist=1.21 best=59.9 path=0.15 obs=0.0 prog=0.60 stk=30
+[MPPI] dist=1.21 best=56.6 path=0.17 obs=0.0 prog=0.60 stk=30
+[Planner] Path found: 9 pts, 1.21m
+[MPPI] dist=1.21 best=66.8 path=0.20 obs=0.0 prog=0.60 stk=30
+[MPPI] dist=1.21 best=50.3 path=0.19 obs=0.0 prog=0.60 stk=30
+[Planner] Path found: 9 pts, 1.22m
+[MPPI] dist=1.20 best=70.0 path=0.22 obs=0.0 prog=0.61 stk=30
+[MPPI] dist=1.20 best=75.2 path=0.24 obs=0.0 prog=0.61 stk=30
+[Planner] Path found: 9 pts, 1.19m
+[MPPI] dist=1.20 best=71.9 path=0.19 obs=0.0 prog=0.59 stk=30
+[MPPI] dist=1.19 best=60.3 path=0.17 obs=0.0 prog=0.59 stk=30
+[Planner] Path found: 9 pts, 1.18m
+[MPPI] dist=1.17 best=37.9 path=0.13 obs=0.0 prog=0.73 stk=30
+[MPPI] dist=1.16 best=43.9 path=0.20 obs=0.0 prog=0.73 stk=30
+[Planner] Path found: 9 pts, 1.15m
+[MPPI] dist=1.14 best=56.5 path=0.18 obs=0.0 prog=0.72 stk=30
+[MPPI] dist=1.13 best=45.4 path=0.13 obs=0.0 prog=0.72 stk=30
+[Planner] Path found: 8 pts, 1.10m
+[MPPI] dist=1.11 best=44.8 path=0.16 obs=0.0 prog=0.78 stk=30
+[MPPI] dist=1.09 best=47.3 path=0.14 obs=0.0 prog=0.78 stk=28
+[Planner] Path found: 8 pts, 1.05m
+[MPPI] dist=1.07 best=59.5 path=0.17 obs=0.0 prog=0.75 stk=26
+[MPPI] dist=1.05 best=49.1 path=0.14 obs=0.0 prog=0.75 stk=24
+[Planner] Path found: 8 pts, 1.01m
+[MPPI] dist=1.02 best=43.9 path=0.13 obs=0.0 prog=0.87 stk=22
+[MPPI] dist=0.99 best=56.9 path=0.16 obs=0.0 prog=0.73 stk=20
+[Planner] Path found: 8 pts, 0.97m
+[MPPI] dist=0.97 best=31.8 path=0.06 obs=0.0 prog=0.69 stk=18
+[MPPI] dist=0.95 best=31.0 path=0.05 obs=0.0 prog=0.69 stk=16
+[Planner] Path found: 8 pts, 0.92m
+[MPPI] dist=0.94 best=38.2 path=0.11 obs=0.0 prog=0.65 stk=14
+[MPPI] dist=0.92 best=37.9 path=0.12 obs=0.0 prog=0.65 stk=12
+[Planner] Path found: 8 pts, 0.92m
+[MPPI] dist=0.91 best=29.1 path=0.10 obs=0.0 prog=0.65 stk=10
+[MPPI] dist=0.89 best=28.0 path=0.10 obs=0.0 prog=0.79 stk=8
+[Planner] Path found: 7 pts, 0.89m
+[MPPI] dist=0.87 best=35.4 path=0.13 obs=0.0 prog=0.74 stk=6
+[MPPI] dist=0.86 best=36.9 path=0.14 obs=0.0 prog=0.74 stk=4
+[Planner] Path found: 6 pts, 0.85m
+[MPPI] dist=0.84 best=37.9 path=0.15 obs=0.0 prog=0.68 stk=2
+[MPPI] dist=0.82 best=53.7 path=0.21 obs=0.0 prog=0.68 stk=0
+[Planner] Path found: 6 pts, 0.81m
+[MPPI] dist=0.81 best=33.6 path=0.15 obs=0.0 prog=0.64 stk=0
+[MPPI] dist=0.80 best=33.5 path=0.14 obs=0.0 prog=0.64 stk=0
+[Planner] Path found: 6 pts, 0.79m
+[MPPI] dist=0.79 best=34.8 path=0.12 obs=0.0 prog=0.63 stk=0
+[MPPI] dist=0.78 best=34.3 path=0.14 obs=0.0 prog=0.63 stk=0
+[Planner] Path found: 6 pts, 0.75m
+[MPPI] dist=0.77 best=30.4 path=0.12 obs=0.0 prog=0.60 stk=0
+[MPPI] dist=0.77 best=36.3 path=0.17 obs=0.0 prog=0.60 stk=0
+[Planner] Path found: 6 pts, 0.78m
+[MPPI] dist=0.76 best=53.9 path=0.20 obs=0.0 prog=0.62 stk=1
+[MPPI] dist=0.76 best=46.8 path=0.20 obs=0.0 prog=0.62 stk=2
+[Planner] Path found: 6 pts, 0.74m
+[MPPI] dist=0.76 best=38.1 path=0.16 obs=0.0 prog=0.59 stk=3
+[MPPI] dist=0.75 best=44.3 path=0.21 obs=0.0 prog=0.59 stk=4
+[Planner] Path found: 5 pts, 0.74m
+[MPPI] dist=0.75 best=51.3 path=0.19 obs=0.0 prog=0.56 stk=5
+[MPPI] dist=0.75 best=41.6 path=0.18 obs=0.0 prog=0.56 stk=6
+[Planner] Path found: 6 pts, 0.78m
+[MPPI] dist=0.75 best=39.9 path=0.15 obs=0.0 prog=0.62 stk=7
+[MPPI] dist=0.75 best=60.0 path=0.21 obs=0.0 prog=0.62 stk=8
+[Planner] Path found: 6 pts, 0.75m
+[MPPI] dist=0.75 best=42.6 path=0.16 obs=0.0 prog=0.60 stk=9
+[MPPI] dist=0.74 best=61.1 path=0.21 obs=0.0 prog=0.60 stk=10
+[Planner] Path found: 5 pts, 0.72m
+[MPPI] dist=0.74 best=62.4 path=0.16 obs=0.0 prog=0.54 stk=11
+[MPPI] dist=0.74 best=43.9 path=0.16 obs=0.0 prog=0.54 stk=12
+[Planner] Path found: 5 pts, 0.72m
+[MPPI] dist=0.73 best=49.6 path=0.17 obs=0.0 prog=0.54 stk=13
+[MPPI] dist=0.73 best=42.6 path=0.15 obs=0.0 prog=0.54 stk=14
+[Planner] Path found: 5 pts, 0.74m
+[MPPI] dist=0.72 best=44.3 path=0.11 obs=0.0 prog=0.55 stk=15
+[MPPI] dist=0.71 best=33.7 path=0.12 obs=0.0 prog=0.74 stk=16
+[Planner] Path found: 5 pts, 0.67m
+[MPPI] dist=0.70 best=53.3 path=0.14 obs=0.0 prog=0.67 stk=17
+[MPPI] dist=0.69 best=51.2 path=0.16 obs=0.0 prog=0.67 stk=18
+[Planner] Path found: 5 pts, 0.67m
+[MPPI] dist=0.68 best=32.4 path=0.11 obs=0.0 prog=0.67 stk=19
+[MPPI] dist=0.67 best=31.6 path=0.11 obs=0.0 prog=0.67 stk=20
+[Planner] Path found: 5 pts, 0.65m
+[MPPI] dist=0.65 best=48.7 path=0.11 obs=0.0 prog=0.65 stk=21
+[MPPI] dist=0.64 best=38.7 path=0.10 obs=0.0 prog=0.65 stk=22
+[Planner] Path found: 5 pts, 0.65m
+[MPPI] dist=0.63 best=27.8 path=0.09 obs=0.0 prog=0.65 stk=23
+[MPPI] dist=0.62 best=35.6 path=0.11 obs=0.0 prog=0.65 stk=21
+[Planner] Path found: 5 pts, 0.59m
+[MPPI] dist=0.60 best=56.3 path=0.12 obs=0.0 prog=0.59 stk=19
+[MPPI] dist=0.58 best=35.5 path=0.12 obs=0.0 prog=0.59 stk=17
+[Planner] Path found: 5 pts, 0.57m
+[MPPI] dist=0.56 best=31.6 path=0.08 obs=0.0 prog=0.57 stk=15
+[MPPI] dist=0.55 best=30.6 path=0.07 obs=0.0 prog=0.57 stk=13
+[Planner] Path found: 5 pts, 0.52m
+[MPPI] dist=0.53 best=33.4 path=0.09 obs=0.0 prog=0.52 stk=11
+[MPPI] dist=0.52 best=29.4 path=0.10 obs=0.0 prog=0.52 stk=9
+[Planner] Path found: 5 pts, 0.51m
+[MPPI] dist=0.51 best=32.0 path=0.09 obs=0.0 prog=0.51 stk=7
+[MPPI] dist=0.49 best=32.1 path=0.08 obs=0.0 prog=0.51 stk=5
+[Planner] Path found: 4 pts, 0.46m
+[MPPI] dist=0.48 best=37.7 path=0.09 obs=0.0 prog=0.46 stk=3
+[MPPI] dist=0.47 best=38.7 path=0.14 obs=0.0 prog=0.46 stk=1
+[Planner] Path found: 5 pts, 0.45m
+[MPPI] dist=0.46 best=31.5 path=0.08 obs=0.0 prog=0.45 stk=0
+[MPPI] dist=0.44 best=47.8 path=0.10 obs=0.0 prog=0.45 stk=0
+[Planner] Path found: 5 pts, 0.45m
+[MPPI] dist=0.43 best=33.4 path=0.12 obs=0.0 prog=0.45 stk=0
+[MPPI] dist=0.41 best=36.9 path=0.13 obs=0.0 prog=0.45 stk=0
+[Planner] Path found: 4 pts, 0.40m
+[MPPI] dist=0.40 best=31.5 path=0.13 obs=0.0 prog=0.40 stk=0
+[MPPI] dist=0.39 best=34.4 path=0.12 obs=0.0 prog=0.40 stk=0
+[Planner] Path found: 3 pts, 0.35m
+[MPPI] dist=0.37 best=33.3 path=0.11 obs=0.0 prog=0.35 stk=0
+[MPPI] dist=0.36 best=51.0 path=0.17 obs=0.0 prog=0.35 stk=0
+[Planner] Path found: 3 pts, 0.35m
+[MPPI] dist=0.34 best=46.7 path=0.18 obs=0.0 prog=0.35 stk=0
+[MPPI] dist=0.33 best=38.8 path=0.17 obs=0.0 prog=0.35 stk=0
+[Planner] Path found: 3 pts, 0.30m
+[MPPI] dist=0.32 best=43.4 path=0.16 obs=0.0 prog=0.30 stk=0
+[MPPI] dist=0.30 best=60.4 path=0.19 obs=0.0 prog=0.30 stk=0
+[Planner] Path found: 3 pts, 0.30m
+[MPPI] dist=0.30 best=42.9 path=0.17 obs=0.0 prog=0.30 stk=0
+[MPPI] dist=0.29 best=44.6 path=0.19 obs=0.0 prog=0.30 stk=0
+[Planner] Path found: 3 pts, 0.27m
+[MPPI] dist=0.28 best=68.2 path=0.21 obs=0.0 prog=0.27 stk=0
+[MPPI] dist=0.27 best=68.0 path=0.21 obs=0.0 prog=0.27 stk=0
+[Planner] Path found: 3 pts, 0.27m
+[MPPI] dist=0.26 best=73.8 path=0.29 obs=0.0 prog=0.27 stk=1
+[MPPI] dist=0.26 best=64.6 path=0.32 obs=0.0 prog=0.27 stk=2
+[Planner] Path found: 2 pts, 0.25m
+[MPPI] dist=0.25 best=61.1 path=0.15 obs=0.0 prog=0.25 stk=3
+[MPPI] dist=0.25 best=61.7 path=0.19 obs=0.0 prog=0.25 stk=4
+[Planner] Path found: 2 pts, 0.25m
+[MPPI] dist=0.25 best=112.1 path=0.22 obs=0.0 prog=0.25 stk=5
+[MPPI] dist=0.25 best=88.1 path=0.21 obs=5.2 prog=0.25 stk=6
+[Planner] Path found: 2 pts, 0.25m
+[MPPI] dist=0.25 best=108.0 path=0.23 obs=3.6 prog=0.25 stk=7
+[MPPI] dist=0.25 best=99.2 path=0.24 obs=3.5 prog=0.25 stk=8
+[Planner] Path found: 2 pts, 0.22m
+[MPPI] dist=0.25 best=128.4 path=0.27 obs=0.9 prog=0.22 stk=9
+[MPPI] dist=0.26 best=111.2 path=0.26 obs=3.6 prog=0.22 stk=10
+[Planner] Path found: 2 pts, 0.27m
+[MPPI] dist=0.26 best=133.0 path=0.25 obs=0.9 prog=0.27 stk=11
+[MPPI] dist=0.27 best=104.9 path=0.27 obs=3.4 prog=0.27 stk=12
+[Planner] Path found: 2 pts, 0.25m
+[MPPI] dist=0.28 best=263.3 path=0.31 obs=0.0 prog=0.00 stk=13
+[MPPI] dist=0.29 best=86.1 path=0.17 obs=0.0 prog=0.25 stk=14
+[Planner] Path found: 3 pts, 0.30m
+[MPPI] dist=0.29 best=147.8 path=0.26 obs=13.9 prog=0.30 stk=15
+[MPPI] dist=0.30 best=131.4 path=0.28 obs=6.1 prog=0.30 stk=16
+[Planner] Path found: 3 pts, 0.30m
+[MPPI] dist=0.31 best=216.3 path=0.30 obs=13.0 prog=0.15 stk=17
+[MPPI] dist=0.32 best=99.1 path=0.19 obs=0.0 prog=0.30 stk=18
+[Planner] Path found: 3 pts, 0.35m
+[MPPI] dist=0.33 best=241.8 path=0.28 obs=12.7 prog=0.18 stk=19
+[MPPI] dist=0.34 best=116.7 path=0.21 obs=4.5 prog=0.35 stk=20
+[Planner] Path found: 3 pts, 0.35m
+[MPPI] dist=0.35 best=266.5 path=0.29 obs=19.0 prog=0.18 stk=21
+[MPPI] dist=0.35 best=157.4 path=0.20 obs=4.3 prog=0.35 stk=22
+[Planner] Path found: 3 pts, 0.36m
+[MPPI] dist=0.35 best=201.3 path=0.20 obs=14.7 prog=0.36 stk=23
+[MPPI] dist=0.34 best=195.8 path=0.21 obs=14.7 prog=0.36 stk=24
+[Planner] Path found: 3 pts, 0.36m
+[MPPI] dist=0.34 best=235.6 path=0.26 obs=27.5 prog=0.36 stk=25
+[MPPI] dist=0.34 best=149.1 path=0.25 obs=15.3 prog=0.36 stk=26
+[Planner] Path found: 3 pts, 0.36m
+[MPPI] dist=0.35 best=202.7 path=0.30 obs=28.5 prog=0.36 stk=27
+[MPPI] dist=0.35 best=85.7 path=0.16 obs=0.0 prog=0.36 stk=28
+[Planner] Path found: 3 pts, 0.34m
+[MPPI] dist=0.36 best=250.1 path=0.26 obs=27.7 prog=0.17 stk=29
+[MPPI] dist=0.36 best=169.6 path=0.17 obs=4.0 prog=0.17 stk=30
+[Planner] Path found: 3 pts, 0.34m
+[MPPI] dist=0.36 best=237.7 path=0.24 obs=25.9 prog=0.17 stk=30
+[MPPI] dist=0.36 best=225.7 path=0.23 obs=13.2 prog=0.17 stk=30
+[Planner] Path found: 3 pts, 0.36m
+[MPPI] dist=0.36 best=258.6 path=0.21 obs=25.9 prog=0.18 stk=30
+[MPPI] dist=0.37 best=214.4 path=0.21 obs=20.2 prog=0.18 stk=30
+[Planner] Path found: 3 pts, 0.36m
+[MPPI] dist=0.37 best=250.1 path=0.21 obs=25.1 prog=0.18 stk=30
+[MPPI] dist=0.37 best=211.1 path=0.18 obs=13.7 prog=0.18 stk=30
+[Planner] Path found: 3 pts, 0.36m
+[MPPI] dist=0.37 best=195.0 path=0.24 obs=34.0 prog=0.36 stk=30
+[MPPI] dist=0.38 best=187.6 path=0.24 obs=20.3 prog=0.18 stk=30
+[Planner] Path found: 3 pts, 0.39m
+[MPPI] dist=0.38 best=223.4 path=0.24 obs=34.7 prog=0.20 stk=30
+[MPPI] dist=0.39 best=143.2 path=0.21 obs=14.2 prog=0.39 stk=30
+[Planner] Path found: 3 pts, 0.39m
+[MPPI] dist=0.40 best=190.7 path=0.25 obs=28.8 prog=0.20 stk=30
+[MPPI] dist=0.40 best=197.7 path=0.23 obs=19.6 prog=0.20 stk=30
+  Sim finished in 491.0s  (ctrl ticks: 4000/4000)
+
+  Completed in 495.1s
+  Goal reached: True
+  Traversal time: 16.909999999997684
+  Roll RMS: 0.2770 rad (12.80 deg mean)
+  Body contacts: 0 (0 steps)
+  Dist to goal: 0.375 m
+    Rendered 20/500 frames...
+    Rendered 40/500 frames...
+    Rendered 60/500 frames...
+    Rendered 80/500 frames...
+    Rendered 100/500 frames...
+    Rendered 120/500 frames...
+    Rendered 140/500 frames...
+    Rendered 160/500 frames...
+    Rendered 180/500 frames...
+    Rendered 200/500 frames...
+    Rendered 220/500 frames...
+    Rendered 240/500 frames...
+    Rendered 260/500 frames...
+    Rendered 280/500 frames...
+    Rendered 300/500 frames...
+    Rendered 320/500 frames...
+    Rendered 340/500 frames...
+    Rendered 360/500 frames...
+    Rendered 380/500 frames...
+    Rendered 400/500 frames...
+    Rendered 420/500 frames...
+    Rendered 440/500 frames...
+    Rendered 460/500 frames...
+    Rendered 480/500 frames...
+    Rendered 500/500 frames...
+  Video saved: environment_results_main_planner/bc_094a060_xli1m_utm10_20240610_20240611/mppi_debug.mp4
+
+======================================================================
+  ALL ENVIRONMENTS COMPLETE
+  Results saved to: environment_results_main_planner/
+  Summary: environment_results_main_planner/summary.json
+======================================================================
+
+Environment                                    Goal?  Time(s)  Roll(deg)  Contacts  Dist(m)
+----------------------------------------------------------------------------------------
+bc_093p056_xli1m_utm10_20240610_20240621        True     15.9       7.55         0    0.526
+bc_093p066_1_1_4_xli1m_utm10_20240610_20240621  False      N/A      10.38        44    3.356
+bc_094a059_2_4_4_xli1m_utm10_20240628_20240628   True     15.9       6.53         0    0.461
+bc_094a059_xli1m_utm10_20240611_20240620       False      N/A      50.01        33    5.003
+bc_094a060_xli1m_utm10_20240610_20240611        True     16.9      12.80         0    0.375

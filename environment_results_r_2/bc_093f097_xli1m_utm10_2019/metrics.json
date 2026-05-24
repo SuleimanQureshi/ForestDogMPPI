@@ -1,0 +1,18 @@
+{
+  "case_name": "bc_093f097_xli1m_utm10_2019",
+  "goal_reached": false,
+  "traversal_time_s": null,
+  "dist_to_goal_final_m": 1.1534137214842561,
+  "roll_rms_rad": 0.18523293122336149,
+  "pitch_rms_rad": 0.03704634342485887,
+  "mean_abs_roll_deg": 8.10458783279004,
+  "mean_abs_pitch_deg": 1.708773402426186,
+  "max_abs_roll_deg": 32.636125648393275,
+  "max_abs_pitch_deg": 6.470333361372892,
+  "total_path_length_m": 8.147906848082739,
+  "num_body_contacts": 0,
+  "body_contact_steps": 0,
+  "mpc_solve_time_mean_ms": 7.526122831103647,
+  "mpc_solve_time_max_ms": 22.936917001061374,
+  "sim_wall_time_s": 760.5241886580006
+}

@@ -1,0 +1,18 @@
+{
+  "case_name": "case4_no_terrain_com_adapt",
+  "goal_reached": true,
+  "traversal_time_s": 17.99499999999901,
+  "dist_to_goal_final_m": 0.7484125975230991,
+  "roll_rms_rad": 0.7590759897530043,
+  "pitch_rms_rad": 0.2435597699287866,
+  "mean_abs_roll_deg": 36.58651065277089,
+  "mean_abs_pitch_deg": 9.439277527363338,
+  "max_abs_roll_deg": 115.31283330868943,
+  "max_abs_pitch_deg": 49.897353952879875,
+  "total_path_length_m": 8.265374502509012,
+  "num_body_contacts": 16,
+  "body_contact_steps": 64,
+  "mpc_solve_time_mean_ms": 8.83097707222987,
+  "mpc_solve_time_max_ms": 31.380549000459723,
+  "sim_wall_time_s": 360.5897157140007
+}
