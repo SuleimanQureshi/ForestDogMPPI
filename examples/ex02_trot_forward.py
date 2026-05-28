@@ -36,7 +36,7 @@ from matplotlib.patches import Arc
 INITIAL_X_POS = -2
 INITIAL_Y_POS = 0
 # How long does the simulation run for How much time 
-RUN_SIM_LENGTH_S = 18.0
+RUN_SIM_LENGTH_S = 1.0
 
 RENDER_HZ = 120.0
 RENDER_DT = 1.0 / RENDER_HZ
@@ -1428,9 +1428,22 @@ if __name__ == "__main__":
     if initial_path is not None:
         mppi.set_path(initial_path)
 
-    # Initialize robot configuration
+    # Initialize robot configuration — spawn just above the actual terrain surface
     q_init = go2.current_config.get_q()
     q_init[0], q_init[1] = INITIAL_X_POS, INITIAL_Y_POS
+    hf_id = mj.mj_name2id(mujoco_go2.model, mj.mjtObj.mjOBJ_HFIELD, "forest")
+    if hf_id >= 0:
+        adr  = int(mujoco_go2.model.hfield_adr[hf_id])
+        nrow = int(mujoco_go2.model.hfield_nrow[hf_id])
+        ncol = int(mujoco_go2.model.hfield_ncol[hf_id])
+        sz   = mujoco_go2.model.hfield_size[hf_id]  # [x_half, y_half, z_scale, base]
+        ix = max(0, min(int((INITIAL_X_POS + sz[0]) / (2 * sz[0]) * ncol), ncol - 1))
+        iy = max(0, min(int((sz[1] - INITIAL_Y_POS) / (2 * sz[1]) * nrow), nrow - 1))
+        terrain_z = float(mujoco_go2.model.hfield_data[adr + iy * ncol + ix]) * float(sz[2])
+        spawn_z = terrain_z + 0.40
+    else:
+        spawn_z = 0.40
+    q_init[2] = spawn_z
     mujoco_go2.update_with_q_pin(q_init)
 
     # Set physics dt (keep it fast!)
@@ -1712,17 +1725,33 @@ if __name__ == "__main__":
     # --------------------------------------------------------------------------------
     # blocker = input("Press Enter to continue...")
 
-    # --- Write 3D sim video ---
-    import cv2 as _cv2
-    _sim_label     = f"sim3d{'_' + _VIDEO_LABEL if _VIDEO_LABEL else ''}"
+    # --- Write 3D sim video via ffmpeg (avoids cv2/numpy version conflicts) ---
+    _sim_label      = f"sim3d{'_' + _VIDEO_LABEL if _VIDEO_LABEL else ''}"
     _sim_video_path = str(_REPO / f"{_sim_label}.mp4")
     _h, _w = 720, 1280
     print(f"Writing 3D simulation video ({len(_3d_frames)} frames) -> {_sim_video_path}")
-    _vw = _cv2.VideoWriter(_sim_video_path, _cv2.VideoWriter_fourcc(*"mp4v"),
-                           RENDER_HZ, (_w, _h))
+    import shutil as _shutil
+    _ffmpeg_bin = (
+        _Path(os.environ.get("CONDA_PREFIX", "")) / "bin" / "ffmpeg"
+        if os.environ.get("CONDA_PREFIX") else None
+    )
+    if _ffmpeg_bin is None or not _ffmpeg_bin.exists():
+        _ffmpeg_bin = _shutil.which("ffmpeg") or "ffmpeg"
+    else:
+        _ffmpeg_bin = str(_ffmpeg_bin)
+    _ffmpeg_proc = _sp.Popen(
+        [_ffmpeg_bin, "-y",
+         "-f", "rawvideo", "-pix_fmt", "rgb24",
+         "-s", f"{_w}x{_h}", "-r", str(int(RENDER_HZ)),
+         "-i", "pipe:0",
+         "-vcodec", "libx264", "-pix_fmt", "yuv420p", "-crf", "20", "-preset", "fast",
+         _sim_video_path],
+        stdin=_sp.PIPE, stdout=_sp.DEVNULL, stderr=_sp.DEVNULL,
+    )
     for _frame in _3d_frames:
-        _vw.write(_cv2.cvtColor(_frame, _cv2.COLOR_RGB2BGR))
-    _vw.release()
+        _ffmpeg_proc.stdin.write(_frame.tobytes())
+    _ffmpeg_proc.stdin.close()
+    _ffmpeg_proc.wait()
     _3d_renderer.close()
     print(f"3D video saved: {_sim_video_path}")
 

@@ -464,9 +464,22 @@ def run_simulation(config: AblationConfig) -> dict:
         if initial_path is not None:
             mppi.set_path(initial_path)
 
-    # Robot initial pose
+    # Robot initial pose — spawn just above the actual terrain surface
     q_init = go2.current_config.get_q()
     q_init[0], q_init[1] = config.initial_x, config.initial_y
+    hf_id = mj.mj_name2id(mujoco_go2.model, mj.mjtObj.mjOBJ_HFIELD, "forest")
+    if hf_id >= 0:
+        adr  = int(mujoco_go2.model.hfield_adr[hf_id])
+        nrow = int(mujoco_go2.model.hfield_nrow[hf_id])
+        ncol = int(mujoco_go2.model.hfield_ncol[hf_id])
+        sz   = mujoco_go2.model.hfield_size[hf_id]  # [x_half, y_half, z_scale, base]
+        ix = max(0, min(int((config.initial_x + sz[0]) / (2 * sz[0]) * ncol), ncol - 1))
+        iy = max(0, min(int((sz[1] - config.initial_y) / (2 * sz[1]) * nrow), nrow - 1))
+        terrain_z = float(mujoco_go2.model.hfield_data[adr + iy * ncol + ix]) * float(sz[2])
+        spawn_z = terrain_z + 0.40
+    else:
+        spawn_z = 0.40
+    q_init[2] = spawn_z
     mujoco_go2.update_with_q_pin(q_init)
     mujoco_go2.model.opt.timestep = SIM_DT
 
@@ -887,11 +900,14 @@ def save_results(config, results, output_dir, save_video=True):
     # MPPI debug video
     if save_video and results['debug_frames']:
         video_path = os.path.join(case_dir, "mppi_debug.mp4")
-        save_mppi_video(
-            results['debug_frames'], video_path,
-            results['costmap_ref'], results['mppi_ref'],
-            np.array([config.goal_x, config.goal_y]),
-        )
+        try:
+            save_mppi_video(
+                results['debug_frames'], video_path,
+                results['costmap_ref'], results['mppi_ref'],
+                np.array([config.goal_x, config.goal_y]),
+            )
+        except Exception as e:
+            print(f"  [WARN] mppi_debug.mp4 skipped: {e}")
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
