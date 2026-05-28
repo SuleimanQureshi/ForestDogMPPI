@@ -780,7 +780,7 @@ class Nav2StyleMPPI:
         self.LAMBDA = 8.0
         self.ALPHA = 0.5         # moderate correlation for path following
 
-        self.vx_min, self.vx_max = -0.25, 0.75
+        self.vx_min, self.vx_max = -0.25, 0.6
         self.vy_min, self.vy_max = -0.5, 0.5
         self.wz_min, self.wz_max = -1.75, 1.75
 
