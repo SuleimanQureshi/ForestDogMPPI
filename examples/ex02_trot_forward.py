@@ -1428,7 +1428,7 @@ if __name__ == "__main__":
     if initial_path is not None:
         mppi.set_path(initial_path)
 
-    # Initialize robot configuration — spawn just above the actual terrain surface
+    # Initialize robot configuration — spawn above the highest terrain point under any foot
     q_init = go2.current_config.get_q()
     q_init[0], q_init[1] = INITIAL_X_POS, INITIAL_Y_POS
     hf_id = mj.mj_name2id(mujoco_go2.model, mj.mjtObj.mjOBJ_HFIELD, "forest")
@@ -1437,12 +1437,21 @@ if __name__ == "__main__":
         nrow = int(mujoco_go2.model.hfield_nrow[hf_id])
         ncol = int(mujoco_go2.model.hfield_ncol[hf_id])
         sz   = mujoco_go2.model.hfield_size[hf_id]  # [x_half, y_half, z_scale, base]
-        ix = max(0, min(int((INITIAL_X_POS + sz[0]) / (2 * sz[0]) * ncol), ncol - 1))
-        iy = max(0, min(int((sz[1] - INITIAL_Y_POS) / (2 * sz[1]) * nrow), nrow - 1))
-        terrain_z = float(mujoco_go2.model.hfield_data[adr + iy * ncol + ix]) * float(sz[2])
-        spawn_z = terrain_z + 0.40
+        gnd_id = mj.mj_name2id(mujoco_go2.model, mj.mjtObj.mjOBJ_GEOM, "ground")
+        geom_z = float(mujoco_go2.model.geom_pos[gnd_id, 2]) if gnd_id >= 0 else 0.0
+        def _hf_z(wx, wy):
+            jx = max(0, min(int((wx + sz[0]) / (2 * sz[0]) * ncol), ncol - 1))
+            jy = max(0, min(int((sz[1] - wy) / (2 * sz[1]) * nrow), nrow - 1))
+            return float(mujoco_go2.model.hfield_data[adr + jy * ncol + jx]) * float(sz[2]) + geom_z
+        _sx, _sy = INITIAL_X_POS, INITIAL_Y_POS
+        terrain_z = max(
+            _hf_z(_sx + dx, _sy + dy)
+            for dx in np.arange(-0.25, 0.26, 0.06)
+            for dy in np.arange(-0.20, 0.21, 0.06)
+        )
+        spawn_z = terrain_z + 0.35
     else:
-        spawn_z = 0.40
+        spawn_z = 0.35
     q_init[2] = spawn_z
     mujoco_go2.update_with_q_pin(q_init)
 
@@ -1463,6 +1472,19 @@ if __name__ == "__main__":
     tau_log_render = []
 
     next_render_t = 0.0
+
+    # ── Settle: hold keyframe joints with PD for 0.5 s so robot lands before MPC starts ──
+    _SETTLE_STEPS = 500
+    _KP_S, _KD_S = 20.0, 1.0
+    _q_ref = q_init[7:].copy()
+    for _ in range(_SETTLE_STEPS):
+        _q_cur  = mujoco_go2.data.qpos[7:]
+        _dq_cur = mujoco_go2.data.qvel[6:]
+        _tau_s  = np.clip(_KP_S * (_q_ref - _q_cur) - _KD_S * _dq_cur, -TAU_LIM, TAU_LIM)
+        mj.mj_step1(mujoco_go2.model, mujoco_go2.data)
+        mujoco_go2.set_joint_torque(_tau_s)
+        mj.mj_step2(mujoco_go2.model, mujoco_go2.data)
+    mujoco_go2.data.time = 0.0
 
     # --------------------------------------------------------------------------------
     # Simulation Loop

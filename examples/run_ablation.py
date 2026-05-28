@@ -464,7 +464,7 @@ def run_simulation(config: AblationConfig) -> dict:
         if initial_path is not None:
             mppi.set_path(initial_path)
 
-    # Robot initial pose — spawn just above the actual terrain surface
+    # Robot initial pose — spawn above the highest terrain point under any foot
     q_init = go2.current_config.get_q()
     q_init[0], q_init[1] = config.initial_x, config.initial_y
     hf_id = mj.mj_name2id(mujoco_go2.model, mj.mjtObj.mjOBJ_HFIELD, "forest")
@@ -473,15 +473,53 @@ def run_simulation(config: AblationConfig) -> dict:
         nrow = int(mujoco_go2.model.hfield_nrow[hf_id])
         ncol = int(mujoco_go2.model.hfield_ncol[hf_id])
         sz   = mujoco_go2.model.hfield_size[hf_id]  # [x_half, y_half, z_scale, base]
-        ix = max(0, min(int((config.initial_x + sz[0]) / (2 * sz[0]) * ncol), ncol - 1))
-        iy = max(0, min(int((sz[1] - config.initial_y) / (2 * sz[1]) * nrow), nrow - 1))
-        terrain_z = float(mujoco_go2.model.hfield_data[adr + iy * ncol + ix]) * float(sz[2])
-        spawn_z = terrain_z + 0.40
+        gnd_id = mj.mj_name2id(mujoco_go2.model, mj.mjtObj.mjOBJ_GEOM, "ground")
+        geom_z = float(mujoco_go2.model.geom_pos[gnd_id, 2]) if gnd_id >= 0 else 0.0
+        def _hf_z(wx, wy):
+            jx = max(0, min(int((wx + sz[0]) / (2 * sz[0]) * ncol), ncol - 1))
+            jy = max(0, min(int((sz[1] - wy) / (2 * sz[1]) * nrow), nrow - 1))
+            return float(mujoco_go2.model.hfield_data[adr + jy * ncol + jx]) * float(sz[2]) + geom_z
     else:
-        spawn_z = 0.40
+        def _hf_z(wx, wy): return 0.0
+    # Dense grid over the robot footprint — catches any bump under any foot
+    _sx, _sy = config.initial_x, config.initial_y
+    terrain_z = max(
+        _hf_z(_sx + dx, _sy + dy)
+        for dx in np.arange(-0.25, 0.26, 0.06)
+        for dy in np.arange(-0.20, 0.21, 0.06)
+    )
+    spawn_z = terrain_z + 0.35  # 0.27m nominal stand + 0.08m clearance
     q_init[2] = spawn_z
     mujoco_go2.update_with_q_pin(q_init)
     mujoco_go2.model.opt.timestep = SIM_DT
+
+    # ── Settle: hold keyframe joints with overdamped PD until robot lands ──
+    _SETTLE_STEPS = 500
+    _KP_S, _KD_S = 20.0, 3.0  # KD=3 → overdamped, suppresses bounce on impact
+    _q_ref = q_init[7:].copy()
+    for _ in range(_SETTLE_STEPS):
+        _q_cur  = mujoco_go2.data.qpos[7:]
+        _dq_cur = mujoco_go2.data.qvel[6:]
+        _tau_s  = np.clip(_KP_S * (_q_ref - _q_cur) - _KD_S * _dq_cur, -TAU_LIM, TAU_LIM)
+        mj.mj_step1(mujoco_go2.model, mujoco_go2.data)
+        mujoco_go2.set_joint_torque(_tau_s)
+        mj.mj_step2(mujoco_go2.model, mujoco_go2.data)
+    mujoco_go2.data.time = 0.0  # reset clock so metrics/logs begin from t=0
+
+    # Seed heightmap with actual hfield terrain heights across the robot footprint.
+    # The LiDAR blind spot directly under the robot means the first generate_traj
+    # call would otherwise use fallback z=-0.09, targeting 0.18m while the robot
+    # sits at terrain+0.27m — causing the MPC to violently push the robot down.
+    mujoco_go2.update_pin_with_mujoco(go2)
+    _px = float(go2.current_config.base_pos[0])
+    _py = float(go2.current_config.base_pos[1])
+    _seed_pts = np.array([
+        [_px + dx, _py + dy, _hf_z(_px + dx, _py + dy)]
+        for dx in np.arange(-0.30, 0.31, 0.06)
+        for dy in np.arange(-0.25, 0.26, 0.06)
+    ])
+    heightmap.update(_seed_pts)
+    go2.terrain = heightmap
 
     # ── Storage ──
     x_vec = np.zeros((12, CTRL_STEPS))
@@ -550,6 +588,19 @@ def run_simulation(config: AblationConfig) -> dict:
                 Rwb = go2.R_world_to_body
                 v_body = Rwb @ np.array([vx_w, vy_w, 0.0])
                 state0 = np.array([px, py, yaw, v_body[0], v_body[1], wz_w])
+
+                # ── Ground truth hfield patch under robot ──
+                # LiDAR excludes hits within 0.45m, so cells directly under the
+                # robot are only ever populated by the startup seed. As the robot
+                # moves, new cells fall into this blind spot. Re-seed the footprint
+                # every MPC tick so generate_traj always has correct z_ground.
+                if hf_id >= 0 and config.enable_perception:
+                    _blind_pts = np.array([
+                        [px + dx, py + dy, _hf_z(px + dx, py + dy)]
+                        for dx in np.arange(-0.30, 0.31, 0.06)
+                        for dy in np.arange(-0.25, 0.26, 0.06)
+                    ])
+                    heightmap.update(_blind_pts)
 
                 # ── Perception (every 4th MPC tick) ──
                 if (ctrl_i % (4 * STEPS_PER_MPC)) == 0:
