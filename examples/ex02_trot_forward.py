@@ -36,7 +36,7 @@ from matplotlib.patches import Arc
 INITIAL_X_POS = -2
 INITIAL_Y_POS = 0
 # How long does the simulation run for How much time 
-RUN_SIM_LENGTH_S = 1.0
+RUN_SIM_LENGTH_S = 18.0
 
 RENDER_HZ = 120.0
 RENDER_DT = 1.0 / RENDER_HZ
@@ -1475,7 +1475,7 @@ if __name__ == "__main__":
 
     # ── Settle: hold keyframe joints with PD for 0.5 s so robot lands before MPC starts ──
     _SETTLE_STEPS = 500
-    _KP_S, _KD_S = 20.0, 1.0
+    _KP_S, _KD_S = 20.0, 3.0
     _q_ref = q_init[7:].copy()
     for _ in range(_SETTLE_STEPS):
         _q_cur  = mujoco_go2.data.qpos[7:]
