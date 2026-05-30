@@ -53,24 +53,6 @@
     "mpc_solve_time_max_ms": 20.17369600071106,
     "sim_wall_time_s": 527.3615140359998
   },
-  "bc_094a059sub": {
-    "case_name": "bc_094a059sub",
-    "goal_reached": false,
-    "traversal_time_s": null,
-    "dist_to_goal_final_m": 3.05633794748723,
-    "roll_rms_rad": 1.2417519021136498,
-    "pitch_rms_rad": 0.3039044168319107,
-    "mean_abs_roll_deg": 52.55075704811686,
-    "mean_abs_pitch_deg": 11.504810620168799,
-    "max_abs_roll_deg": 179.9902333175858,
-    "max_abs_pitch_deg": 89.17740721703117,
-    "total_path_length_m": 15.524870400429805,
-    "num_body_contacts": 22,
-    "body_contact_steps": 139,
-    "mpc_solve_time_mean_ms": 5.809969746405841,
-    "mpc_solve_time_max_ms": 26.52290600053675,
-    "sim_wall_time_s": 537.125104969
-  },
   "bc_094a059": {
     "case_name": "bc_094a059",
     "goal_reached": true,
@@ -89,24 +71,6 @@
     "mpc_solve_time_max_ms": 32.31286700065539,
     "sim_wall_time_s": 527.6438675849986
   },
-  "bc_094a060": {
-    "case_name": "bc_094a060",
-    "goal_reached": false,
-    "traversal_time_s": null,
-    "dist_to_goal_final_m": 1.5027956265923594,
-    "roll_rms_rad": 1.215136250708074,
-    "pitch_rms_rad": 0.27682498750423,
-    "mean_abs_roll_deg": 53.15183431116789,
-    "mean_abs_pitch_deg": 11.834332895411634,
-    "max_abs_roll_deg": 172.56708785467944,
-    "max_abs_pitch_deg": 74.47684218565068,
-    "total_path_length_m": 8.879653911425217,
-    "num_body_contacts": 75,
-    "body_contact_steps": 444,
-    "mpc_solve_time_mean_ms": 4.905700919218361,
-    "mpc_solve_time_max_ms": 20.586909999110503,
-    "sim_wall_time_s": 906.8117112939999
-  },
   "lidar": {
     "case_name": "lidar",
     "goal_reached": true,
@@ -124,5 +88,41 @@
     "mpc_solve_time_mean_ms": 4.741560492751887,
     "mpc_solve_time_max_ms": 26.275621999957366,
     "sim_wall_time_s": 518.833213672
+  },
+  "bc_094a059sub": {
+    "case_name": "bc_094a059sub",
+    "goal_reached": true,
+    "traversal_time_s": 24.510000000006972,
+    "dist_to_goal_final_m": 0.45889780947951453,
+    "roll_rms_rad": 0.7683866640328159,
+    "pitch_rms_rad": 0.1829536628571947,
+    "mean_abs_roll_deg": 25.808183989202053,
+    "mean_abs_pitch_deg": 6.788802248692074,
+    "max_abs_roll_deg": 179.7800750719038,
+    "max_abs_pitch_deg": 38.03870155963847,
+    "total_path_length_m": 14.440586461552448,
+    "num_body_contacts": 10,
+    "body_contact_steps": 54,
+    "mpc_solve_time_mean_ms": 5.9782146951823965,
+    "mpc_solve_time_max_ms": 27.84780799993314,
+    "sim_wall_time_s": 733.8963384759991
+  },
+  "bc_094a060": {
+    "case_name": "bc_094a060",
+    "goal_reached": true,
+    "traversal_time_s": 22.61000000000465,
+    "dist_to_goal_final_m": 0.793309224445155,
+    "roll_rms_rad": 1.1420628828286998,
+    "pitch_rms_rad": 0.19985566940399646,
+    "mean_abs_roll_deg": 37.704153567818814,
+    "mean_abs_pitch_deg": 6.7467519254787955,
+    "max_abs_roll_deg": 179.96839144660365,
+    "max_abs_pitch_deg": 73.11613777607221,
+    "total_path_length_m": 10.672152669129506,
+    "num_body_contacts": 9,
+    "body_contact_steps": 62,
+    "mpc_solve_time_mean_ms": 5.28798577755515,
+    "mpc_solve_time_max_ms": 31.913531001919182,
+    "sim_wall_time_s": 665.3768932480016
   }
 }
