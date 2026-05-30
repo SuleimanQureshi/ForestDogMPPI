@@ -1,0 +1,18 @@
+{
+  "case_name": "lidar",
+  "goal_reached": true,
+  "traversal_time_s": 20.97500000000265,
+  "dist_to_goal_final_m": 0.6710061152319107,
+  "roll_rms_rad": 1.2041681882861095,
+  "pitch_rms_rad": 0.26977195128971077,
+  "mean_abs_roll_deg": 47.46384809246325,
+  "mean_abs_pitch_deg": 10.539374294478108,
+  "max_abs_roll_deg": 179.91057348333723,
+  "max_abs_pitch_deg": 78.41665792735542,
+  "total_path_length_m": 12.063374418769966,
+  "num_body_contacts": 8,
+  "body_contact_steps": 69,
+  "mpc_solve_time_mean_ms": 4.741560492751887,
+  "mpc_solve_time_max_ms": 26.275621999957366,
+  "sim_wall_time_s": 518.833213672
+}

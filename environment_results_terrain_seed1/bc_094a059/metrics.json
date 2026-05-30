@@ -1,0 +1,18 @@
+{
+  "case_name": "bc_094a059",
+  "goal_reached": true,
+  "traversal_time_s": 10.204999999999783,
+  "dist_to_goal_final_m": 0.8177027157889475,
+  "roll_rms_rad": 1.0204392901810273,
+  "pitch_rms_rad": 0.1189888607553539,
+  "mean_abs_roll_deg": 43.632307185710125,
+  "mean_abs_pitch_deg": 5.322063959007551,
+  "max_abs_roll_deg": 179.6794012075207,
+  "max_abs_pitch_deg": 29.73522940109742,
+  "total_path_length_m": 9.382566285058454,
+  "num_body_contacts": 3,
+  "body_contact_steps": 29,
+  "mpc_solve_time_mean_ms": 6.260054715184379,
+  "mpc_solve_time_max_ms": 23.2753620002768,
+  "sim_wall_time_s": 475.36843877000047
+}

@@ -76,6 +76,7 @@ class AblationConfig:
     initial_y: float = 0.0
     goal_x: float = 3.0
     goal_y: float = 0.0
+    seed: int = 42
 
 # ═══════════════════════════════════════════════════════════════════════════════
 #  AblationMPPI — Nav2StyleMPPI with toggleable critics
@@ -395,7 +396,7 @@ class AblationGait(Gait):
 
 def run_simulation(config: AblationConfig) -> dict:
     """Run a single ablation case headless. Returns metrics + log data."""
-    np.random.seed(42)
+    np.random.seed(config.seed)
 
     # ── Timing constants ──
     GAIT_HZ, GAIT_DUTY = 3, 0.8

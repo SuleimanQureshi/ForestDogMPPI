@@ -774,7 +774,7 @@ class Nav2StyleMPPI:
         # --- MPPI parameters ---
         self.dt = dt
         self.H = 80
-        self.BATCH = 400
+        self.BATCH = 800
         self.ITERS = 5
 
         self.LAMBDA = 8.0

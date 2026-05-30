@@ -1,0 +1,18 @@
+{
+  "case_name": "forest",
+  "goal_reached": true,
+  "traversal_time_s": 24.445000000006893,
+  "dist_to_goal_final_m": 0.5445126597931552,
+  "roll_rms_rad": 0.21937662633086707,
+  "pitch_rms_rad": 0.0899088989081514,
+  "mean_abs_roll_deg": 9.183872158192536,
+  "mean_abs_pitch_deg": 3.6881029646959074,
+  "max_abs_roll_deg": 53.512778857450556,
+  "max_abs_pitch_deg": 22.28332399468483,
+  "total_path_length_m": 7.487464324667541,
+  "num_body_contacts": 0,
+  "body_contact_steps": 0,
+  "mpc_solve_time_mean_ms": 6.53235318879706,
+  "mpc_solve_time_max_ms": 65.58788499995671,
+  "sim_wall_time_s": 575.166353888
+}

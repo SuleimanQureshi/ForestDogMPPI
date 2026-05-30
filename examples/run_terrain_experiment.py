@@ -1,16 +1,18 @@
 """
 Terrain traversability experiment runner.
 
-For each terrain, builds a temporary MuJoCo scene XML, runs the full simulation
-via run_ablation.run_simulation(), saves structured results (metrics.json, .npy
-logs, mppi_debug.mp4, simulation_3d.mp4) into environment_results_terrain/, and
-writes a top-level summary.json.
+For each terrain and seed, builds a temporary MuJoCo scene XML, runs the full
+simulation via run_ablation.run_simulation(), saves structured results
+(metrics.json, .npy logs, mppi_debug.mp4, simulation_3d.mp4) into a per-seed
+output folder (e.g. environment_results_terrain_seed0/), and writes a
+top-level summary.json in each folder.
 
 Usage:
-    python examples/run_terrain_experiment.py                  # full 18-s runs
-    python examples/run_terrain_experiment.py --sim-length 1   # 1-s validation
-    python examples/run_terrain_experiment.py --no-video       # skip video rendering
-    python examples/run_terrain_experiment.py --force          # overwrite existing
+    python examples/run_terrain_experiment.py                        # 5 seeds, 25-s runs
+    python examples/run_terrain_experiment.py --seeds 0 1 2          # specific seeds
+    python examples/run_terrain_experiment.py --sim-length 5         # quick validation
+    python examples/run_terrain_experiment.py --no-video             # skip video rendering
+    python examples/run_terrain_experiment.py --force                # overwrite existing
 """
 import os
 os.environ["MPLBACKEND"] = "Agg"
@@ -37,7 +39,9 @@ sys.path.insert(0, str(Path(__file__).parent))
 from run_ablation import AblationConfig, run_simulation, save_results
 from render_3d_videos import render_case
 
-OUTPUT_DIR = str(REPO / "environment_results_terrain")
+BASE_OUTPUT_DIR = str(REPO / "environment_results_terrain")
+
+DEFAULT_SEEDS = [0, 1, 2, 3, 4]
 
 # (label, png_path, z_scale)
 # forest uses the original synthetic z_scale=0.12; BC LiDAR terrains use 1.50
@@ -79,40 +83,47 @@ def case_already_done(case_name: str, output_dir: str) -> bool:
     return all((case_dir / f).exists() for f in required)
 
 
-def main():
-    parser = argparse.ArgumentParser(
-        description="Run terrain traversability experiment and save structured results")
-    parser.add_argument("--sim-length", type=float, default=18.0,
-                        help="Simulation length in seconds (default: 18.0)")
-    parser.add_argument("--no-video", action="store_true",
-                        help="Skip MPPI debug and 3D video rendering")
-    parser.add_argument("--output-dir", type=str, default=OUTPUT_DIR,
-                        help=f"Output directory (default: {OUTPUT_DIR})")
-    parser.add_argument("--force", action="store_true",
-                        help="Re-run even if results already exist")
-    args = parser.parse_args()
+def seed_output_dir(base_dir: str, seed: int) -> str:
+    return f"{base_dir}_seed{seed}"
 
-    os.makedirs(args.output_dir, exist_ok=True)
+
+def run_seed(seed: int, sim_length: float, output_dir: str,
+             no_video: bool, force: bool,
+             terrain_filter: list[str] | None = None) -> dict:
+    """Run all terrains for a single seed. Returns summary dict."""
+    os.makedirs(output_dir, exist_ok=True)
     summary = {}
 
     terrain_items = [(label, png, zs) for label, (png, zs) in TERRAINS.items()
                      if png.exists()]
+    if terrain_filter:
+        terrain_items = [(l, p, z) for l, p, z in terrain_items if l in terrain_filter]
     skipped = [label for label, (png, _) in TERRAINS.items() if not png.exists()]
     if skipped:
         print(f"[WARN] Missing PNGs, skipping: {skipped}")
 
-    for label, png_path, z_scale in tqdm(terrain_items, desc="terrains", unit="terrain"):
+    # Load existing results for terrains not being re-run
+    for label in TERRAINS:
+        if terrain_filter and label not in terrain_filter:
+            metrics_path = Path(output_dir) / label / "metrics.json"
+            if metrics_path.exists():
+                with open(metrics_path) as f:
+                    summary[label] = json.load(f)
 
-        if not args.force and case_already_done(label, args.output_dir):
-            print(f"\n[SKIP] {label}: results already exist (use --force to re-run)")
-            metrics_path = Path(args.output_dir) / label / "metrics.json"
+    for label, png_path, z_scale in tqdm(terrain_items, desc=f"seed{seed} terrains",
+                                          unit="terrain"):
+
+        if not force and case_already_done(label, output_dir):
+            print(f"\n[SKIP] seed={seed} {label}: results already exist (use --force to re-run)")
+            metrics_path = Path(output_dir) / label / "metrics.json"
             with open(metrics_path) as f:
                 summary[label] = json.load(f)
             continue
 
         print(f"\n{'=' * 70}")
-        print(f"  TERRAIN: {label}  |  png: {png_path.name}  |  z_scale: {z_scale or 'template'}")
-        print(f"  sim_length: {args.sim_length}s  ->  {args.output_dir}/{label}/")
+        print(f"  SEED: {seed}  |  TERRAIN: {label}  |  png: {png_path.name}"
+              f"  |  z_scale: {z_scale or 'template'}")
+        print(f"  sim_length: {sim_length}s  ->  {output_dir}/{label}/")
         print(f"{'=' * 70}")
 
         scene_xml = make_scene_xml(png_path, z_scale)
@@ -120,7 +131,8 @@ def main():
             config = AblationConfig(
                 case_name=label,
                 scene_xml=str(scene_xml),
-                sim_length_s=args.sim_length,
+                sim_length_s=sim_length,
+                seed=seed,
             )
 
             t0 = time.perf_counter()
@@ -136,13 +148,12 @@ def main():
             print(f"  Body contacts: {m['num_body_contacts']} "
                   f"({m['body_contact_steps']} steps)")
 
-            save_results(config, results, args.output_dir,
-                         save_video=(not args.no_video))
+            save_results(config, results, output_dir,
+                         save_video=(not no_video))
             summary[label] = m
 
-            # Render simulation_3d.mp4 from saved q_log_render.npy
-            if not args.no_video:
-                case_dir = str(Path(args.output_dir) / label)
+            if not no_video:
+                case_dir = str(Path(output_dir) / label)
                 sim3d_path = str(Path(case_dir) / "simulation_3d.mp4")
                 print(f"  Rendering simulation_3d.mp4 ...")
                 render_case(case_dir, sim3d_path, xml_path=str(scene_xml))
@@ -153,26 +164,67 @@ def main():
         del results
         gc.collect()
 
-    # Top-level summary
-    summary_path = Path(args.output_dir) / "summary.json"
+    summary_path = Path(output_dir) / "summary.json"
     with open(summary_path, "w") as f:
         json.dump(summary, f, indent=2)
 
+    return summary
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="Run terrain traversability experiment across multiple seeds")
+    parser.add_argument("--seeds", type=int, nargs="+", default=DEFAULT_SEEDS,
+                        help=f"Seeds to run (default: {DEFAULT_SEEDS})")
+    parser.add_argument("--sim-length", type=float, default=25.0,
+                        help="Simulation length in seconds (default: 25.0)")
+    parser.add_argument("--no-video", action="store_true",
+                        help="Skip MPPI debug and 3D video rendering")
+    parser.add_argument("--base-output-dir", type=str, default=BASE_OUTPUT_DIR,
+                        help=f"Base output directory; seed suffix appended automatically "
+                             f"(default: {BASE_OUTPUT_DIR})")
+    parser.add_argument("--force", action="store_true",
+                        help="Re-run even if results already exist")
+    parser.add_argument("--terrains", type=str, nargs="+", default=None,
+                        metavar="TERRAIN",
+                        help=f"Only run these terrain(s) (default: all). "
+                             f"Choices: {list(TERRAINS.keys())}")
+    args = parser.parse_args()
+
     print(f"\n{'=' * 70}")
-    print("  ALL TERRAINS COMPLETE")
-    print(f"  Results: {args.output_dir}/")
-    print(f"  Summary: {summary_path}")
+    print(f"  TERRAIN EXPERIMENT  |  seeds: {args.seeds}  |  sim_length: {args.sim_length}s")
+    if args.terrains:
+        print(f"  Terrain filter: {args.terrains}")
+    print(f"  Output dirs: {args.base_output_dir}_seed<N>/")
     print(f"{'=' * 70}\n")
 
-    print(f"{'Terrain':<20} {'Goal?':>6} {'Time(s)':>8} "
-          f"{'Roll(deg)':>10} {'Contacts':>9} {'Dist(m)':>8}")
-    print("-" * 65)
-    for name, m in summary.items():
-        t = f"{m['traversal_time_s']:.1f}" if m.get("traversal_time_s") else "N/A"
-        print(f"{name:<20} {str(m['goal_reached']):>6} {t:>8} "
-              f"{m['mean_abs_roll_deg']:>10.2f} "
-              f"{m['num_body_contacts']:>9} "
-              f"{m['dist_to_goal_final_m']:>8.3f}")
+    all_summaries = {}
+    for seed in args.seeds:
+        out_dir = seed_output_dir(args.base_output_dir, seed)
+        print(f"\n{'#' * 70}")
+        print(f"  STARTING SEED {seed}  ->  {out_dir}/")
+        print(f"{'#' * 70}")
+        summary = run_seed(seed, args.sim_length, out_dir,
+                           args.no_video, args.force,
+                           terrain_filter=args.terrains)
+        all_summaries[seed] = summary
+
+        print(f"\n  Seed {seed} complete.")
+        print(f"  {'Terrain':<20} {'Goal?':>6} {'Time(s)':>8} "
+              f"{'Roll(deg)':>10} {'Contacts':>9} {'Dist(m)':>8}")
+        print("  " + "-" * 63)
+        for name, m in summary.items():
+            t = f"{m['traversal_time_s']:.1f}" if m.get("traversal_time_s") else "N/A"
+            print(f"  {name:<20} {str(m['goal_reached']):>6} {t:>8} "
+                  f"{m['mean_abs_roll_deg']:>10.2f} "
+                  f"{m['num_body_contacts']:>9} "
+                  f"{m['dist_to_goal_final_m']:>8.3f}")
+
+    print(f"\n{'=' * 70}")
+    print("  ALL SEEDS COMPLETE")
+    for seed in args.seeds:
+        print(f"  Seed {seed}: {seed_output_dir(args.base_output_dir, seed)}/")
+    print(f"{'=' * 70}\n")
 
 
 if __name__ == "__main__":
